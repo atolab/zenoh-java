@@ -1,5 +1,31 @@
 %module zenohc 
-%{ 
+
+%typemap(jni) (const unsigned char *payload, size_t length) "jobject"
+%typemap(jtype) (const unsigned char *payload, size_t length) "java.nio.ByteBuffer"
+%typemap(jstype) (const unsigned char *payload, size_t length) "java.nio.ByteBuffer"
+%typemap(javain, pre="  assert $javainput.isDirect() : \"Buffer must be allocated direct.\";") (const unsigned char *payload, size_t length) "$javainput"
+%typemap(javaout) (const unsigned char *payload, size_t length) {
+  return $jnicall;
+}
+%typemap(in) (const unsigned char *payload, size_t length) {
+  // TODO: Below we assume that the ByteBuffer has offset=0 and is used at full capacity.
+  //       This could not be the case and we should deal with offset and limit
+  $1 = (unsigned char *) JCALL1(GetDirectBufferAddress, jenv, $input);
+  if ($1 == NULL) {
+    SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, "Unable to get address of a java.nio.ByteBuffer direct byte buffer. Buffer must be a direct buffer and not a non-direct buffer.");
+  }
+  $2 = (int)JCALL1(GetDirectBufferCapacity, jenv, $input);
+}
+%typemap(memberin) (const unsigned char *payload, size_t length) {
+  if ($input) {
+    $1 = $input;
+  } else {
+    $1 = 0;
+  }
+}
+%typemap(freearg) (const unsigned char *payload, size_t length) ""
+
+%{
 #define ZENOH_C_SWIG 1
 
 #include <stdint.h>
@@ -121,12 +147,12 @@ z_declare_publisher(z_zenoh_t *z, const char *resource);
 z_sto_p_result_t 
 z_declare_storage(z_zenoh_t *z, const char* resource, subscriber_callback_t *callback, query_handler_t *handler, replies_cleaner_t *cleaner);
 
-int z_stream_compact_data(z_pub_t *pub, const unsigned char *payload, size_t len);
-int z_stream_data(z_pub_t *pub, const unsigned char *payload, size_t len);
+int z_stream_compact_data(z_pub_t *pub, const unsigned char *payload, size_t length);
+int z_stream_data(z_pub_t *pub, const unsigned char *payload, size_t length);
 int z_write_data(z_zenoh_t *z, const char* resource, const unsigned char *payload, size_t length);
 
-int z_stream_data_wo(z_pub_t *pub, const unsigned char *payload, size_t len, uint8_t encoding, uint8_t kind);
-int z_write_data_wo(z_zenoh_t *z, const char* resource, const unsigned char *payload, size_t len, uint8_t encoding, uint8_t kind);
+int z_stream_data_wo(z_pub_t *pub, const unsigned char *payload, size_t length, uint8_t encoding, uint8_t kind);
+int z_write_data_wo(z_zenoh_t *z, const char* resource, const unsigned char *payload, size_t length, uint8_t encoding, uint8_t kind);
 
 int z_query(z_zenoh_t *z, const char* resource, const char* predicate, z_reply_callback_t *callback);
 
@@ -257,11 +283,11 @@ z_declare_publisher(z_zenoh_t *z, const char *resource);
 z_sto_p_result_t 
 z_declare_storage(z_zenoh_t *z, const char* resource, subscriber_callback_t *callback, query_handler_t *handler, replies_cleaner_t *cleaner);
 
-int z_stream_compact_data(z_pub_t *pub, const unsigned char *payload, size_t len);
-int z_stream_data(z_pub_t *pub, const unsigned char *payload, size_t len);
+int z_stream_compact_data(z_pub_t *pub, const unsigned char *payload, size_t length);
+int z_stream_data(z_pub_t *pub, const unsigned char *payload, size_t length);
 int z_write_data(z_zenoh_t *z, const char* resource, const unsigned char *payload, size_t length);
 
-int z_stream_data_wo(z_pub_t *pub, const unsigned char *payload, size_t len, uint8_t encoding, uint8_t kind);
-int z_write_data_wo(z_zenoh_t *z, const char* resource, const unsigned char *payload, size_t len, uint8_t encoding, uint8_t kind);
+int z_stream_data_wo(z_pub_t *pub, const unsigned char *payload, size_t length, uint8_t encoding, uint8_t kind);
+int z_write_data_wo(z_zenoh_t *z, const char* resource, const unsigned char *payload, size_t length, uint8_t encoding, uint8_t kind);
 
 int z_query(z_zenoh_t *z, const char* resource, const char* predicate, z_reply_callback_t *callback);

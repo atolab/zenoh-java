@@ -13,7 +13,7 @@
 
   <artifactId>zenoh</artifactId>
   <packaging>jar</packaging>
-  <name>Zenoh client in Java</name>  
+  <name>Zenoh client API in Java</name>
 
    <properties>
       <generatedSources>${project.build.directory}/generated-sources/java</generatedSources>
