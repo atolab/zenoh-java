@@ -49,6 +49,12 @@
     "handle", "(JLjava/nio/ByteBuffer;J)V");
   assert(jarg->handle_method);
 
+  jarg->byte_buffer_class = (*jenv)->FindClass(jenv, "java/nio/ByteBuffer");
+  assert(jarg->byte_buffer_class);
+  jarg->wrap_method = (*jenv)->GetStaticMethodID(jenv, jarg->byte_buffer_class,
+    "wrap", "([B)Ljava/nio/ByteBuffer;");
+  assert(jarg->wrap_method);
+
   jarg->callback_object = JCALL1(NewGlobalRef, jenv, $input);
   JCALL1(DeleteLocalRef, jenv, $input);
 
@@ -194,6 +200,8 @@ typedef struct {
   JavaVM *jvm;
   jobject callback_object;
   jmethodID handle_method;
+  jclass byte_buffer_class;
+  jmethodID wrap_method;
 } sub_callback_arg;
 
 
@@ -223,7 +231,6 @@ JNIEnv * attach_native_thread(JavaVM *jvm) {
 
 void java_subscriber_callback(z_resource_id_t rid, const unsigned char *data, size_t length, z_data_info_t info, void *arg) {
   sub_callback_arg *jarg = arg;
-
   JNIEnv *jenv = attach_native_thread(jarg->jvm);
 
   jlong jrid = 0 ;
@@ -231,9 +238,13 @@ void java_subscriber_callback(z_resource_id_t rid, const unsigned char *data, si
   memmove(ridPtr, &rid, sizeof(z_resource_id_t));
   *(z_resource_id_t **)&jrid = ridPtr;
 
-  void * dataCopy = (void *) malloc(length);
-  memcpy(dataCopy, data, length);
-  jobject jbuffer = (*jenv)->NewDirectByteBuffer(jenv, dataCopy, length);
+  jbyteArray jarray = (*jenv)->NewByteArray(jenv, length);
+  (*jenv)->SetByteArrayRegion(jenv, jarray, 0, length, (const jbyte*) data);
+  jobject jbuffer = (*jenv)->CallStaticObjectMethod(jenv, jarg->byte_buffer_class, jarg->wrap_method, jarray);
+  if ((*jenv)->ExceptionCheck(jenv)) {
+      (*jenv)->ExceptionDescribe(jenv);
+  }
+  assert(jbuffer);
 
   jlong jinfo = 0 ;
   z_data_info_t * infoPtr = (z_data_info_t *) malloc(sizeof(z_data_info_t));
