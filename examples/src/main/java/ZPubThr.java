@@ -10,6 +10,7 @@ class ZPubThr {
         }
 
         int len = Integer.parseInt(args[0]);
+        System.out.println("Running throughput test for payload of "+len+" bytes");
         if (args.length > 1) {
             locator = args[1];
         }

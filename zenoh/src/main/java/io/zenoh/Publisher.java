@@ -18,6 +18,6 @@ public class Publisher {
         if (result != 0) {
             throw new ZException("z_stream_data of "+data.capacity()+" bytes buffer failed", result);
         }
-}
+    }
     
 }
