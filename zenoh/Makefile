@@ -36,7 +36,7 @@ UNAME_M := $(shell uname -m)
 ifeq ($(UNAME_S),Darwin)
 	OS := osx
 	LOCAL_LIB_NAME := lib$(ZENOHC_LIB_NAME).dylib
-else ifeq ($(UNAME_S),$(filter $(UNAME_S)))
+else ifeq ($(UNAME_S),$(filter $(UNAME_S),Linux))
 	OS := linux
 	LOCAL_LIB_NAME := lib$(ZENOHC_LIB_NAME).so
 else ifeq ($(UNAME_S),$(filter $(UNAME_S),Windows_NT CYGWIN_NT MINGW))
