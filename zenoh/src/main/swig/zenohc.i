@@ -231,8 +231,8 @@ void java_subscriber_callback(z_resource_id_t rid, const unsigned char *data, si
   memmove(ridPtr, &rid, sizeof(z_resource_id_t));
   *(z_resource_id_t **)&jrid = ridPtr;
 
-  void * dataCopy = (void *) malloc(sizeof(length));
-  memmove(dataCopy, data, sizeof(length));
+  void * dataCopy = (void *) malloc(length);
+  memcpy(dataCopy, data, length);
   jobject jbuffer = (*jenv)->NewDirectByteBuffer(jenv, dataCopy, length);
 
   jlong jinfo = 0 ;
