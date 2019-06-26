@@ -17,7 +17,7 @@ class ZSubThr {
         System.out.format("%f msgs/sec%n", thpt);
     }
 
-    private static class Listener implements Subscriber.Callback {
+    private static class Listener implements SubscriberCallback {
         public void handle(z_resource_id_t rid, ByteBuffer data, z_data_info_t info) {
             if (count == 0) {
                 start = System.currentTimeMillis();

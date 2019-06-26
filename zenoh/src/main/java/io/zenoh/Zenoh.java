@@ -65,7 +65,7 @@ public class Zenoh {
         return new Publisher(pub_result.getValue().getPub());
     }
 
-    public Subscriber declareSubscriber(String resource, z_sub_mode_t mode, Subscriber.Callback callback) throws ZException {
+    public Subscriber declareSubscriber(String resource, z_sub_mode_t mode, SubscriberCallback callback) throws ZException {
         LOG.debug("Call z_declare_subscriber for {}", resource);
         z_sub_p_result_t sub_result = zenohc.z_declare_subscriber(z, resource, mode, new JNISubscriberCallback(callback));
         LOG.debug("Call z_declare_subscriber for {} OK", resource);
