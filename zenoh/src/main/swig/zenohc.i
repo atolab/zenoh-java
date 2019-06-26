@@ -310,6 +310,7 @@ void java_subscriber_callback(z_resource_id_t rid, const unsigned char *data, si
   *(z_resource_id_t **)&jrid = ridPtr;
 
   jbyteArray jarray = (*jenv)->NewByteArray(jenv, length);
+  assert(jarray);
   (*jenv)->SetByteArrayRegion(jenv, jarray, 0, length, (const jbyte*) data);
   jobject jbuffer = (*jenv)->CallStaticObjectMethod(jenv, byte_buffer_class, byte_buffer_wrap_method, jarray);
   if ((*jenv)->ExceptionCheck(jenv)) {
@@ -323,6 +324,10 @@ void java_subscriber_callback(z_resource_id_t rid, const unsigned char *data, si
   *(z_data_info_t **)&jinfo = infoPtr;
 
   (*jenv)->CallVoidMethod(jenv, jarg->callback_object, subscriber_handle_method, jrid, jbuffer, jinfo);
+
+  (*jenv)->DeleteLocalRef(jenv, jbuffer);
+  (*jenv)->DeleteLocalRef(jenv, jarray);
+
   if ((*jenv)->ExceptionCheck(jenv)) {
       (*jenv)->ExceptionDescribe(jenv);
   }
