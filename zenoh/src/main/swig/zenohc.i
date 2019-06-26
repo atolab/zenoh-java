@@ -14,13 +14,27 @@
   return $jnicall;
 }
 %typemap(in) (const unsigned char *payload, size_t length) {
-  // TODO: Below we assume that the ByteBuffer has offset=0 and is used at full capacity.
-  //       This could not be the case and we should deal with offset and limit
-  $1 = (unsigned char *) JCALL1(GetDirectBufferAddress, jenv, $input);
-  if ($1 == NULL) {
-    SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, "Unable to get address of a java.nio.ByteBuffer direct byte buffer. Buffer must be a direct buffer and not a non-direct buffer.");
+  if ((*jenv)->CallIntMethod(jenv, $input, byte_buffer_is_direct_method)) {
+    $1 = (unsigned char *) (*jenv)->GetDirectBufferAddress(jenv, $input);
+  } else if ((*jenv)->CallIntMethod(jenv, $input, byte_buffer_has_array_method)) {
+    jarray array = (jbyteArray) (*jenv)->CallObjectMethod(jenv, $input, byte_buffer_array_method);
+    int offset = (int) (*jenv)->CallIntMethod(jenv, $input, byte_buffer_array_offset_method);
+    int position = (int) (*jenv)->CallIntMethod(jenv, $input, byte_buffer_position_method);
+    jboolean is_copy;
+    $1 = (unsigned char *) (*jenv)->GetByteArrayElements(jenv, array, &is_copy);
+    $1 = &$1[offset+position];
+  } else {
+    SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, "The ByteBuffer is neither a direct buffer, neither a wrap of an array - it's not supported");
   }
-  $2 = (int)JCALL1(GetDirectBufferCapacity, jenv, $input);
+  $2 = (int) (*jenv)->CallIntMethod(jenv, $input, byte_buffer_remaining_method);
+}
+%typemap(freearg) (const unsigned char *payload, size_t length) {
+  if ((*jenv)->CallIntMethod(jenv, $input, byte_buffer_has_array_method)) {
+    jarray array = (jbyteArray) (*jenv)->CallObjectMethod(jenv, $input, byte_buffer_array_method);
+    int offset = (int) (*jenv)->CallIntMethod(jenv, $input, byte_buffer_array_offset_method);
+    int position = (int) (*jenv)->CallIntMethod(jenv, $input, byte_buffer_position_method);
+    (*jenv)->ReleaseByteArrayElements(jenv, array, (jbyte*) &$1[-offset-position], JNI_ABORT);
+  }
 }
 %typemap(memberin) (const unsigned char *payload, size_t length) {
   if ($input) {
@@ -29,7 +43,6 @@
     $1 = 0;
   }
 }
-%typemap(freearg) (const unsigned char *payload, size_t length) ""
 
 /*----- typemap for subscriber_callback+arg to Listener -------*/
 %typemap(jni) subscriber_callback_t *callback "jobject";
@@ -37,26 +50,11 @@
 %typemap(jstype) subscriber_callback_t *callback "io.zenoh.swig.JNISubscriberCallback";
 %typemap(javain) subscriber_callback_t *callback "$javainput";
 %typemap(in,numinputs=1) (subscriber_callback_t *callback, void *arg) {
-  // Get JVM, JNISubscriberCallback object and its handle() method
-  // to pass those as 'arg' at each notification
-  sub_callback_arg *jarg = malloc(sizeof(sub_callback_arg));;
-  int status = (*jenv)->GetJavaVM(jenv, &(jarg->jvm));
-  assert(status == 0);
-
-  const jclass callbackClass = (*jenv)->FindClass(jenv, "io/zenoh/swig/JNISubscriberCallback");
-  assert(callbackClass);
-  jarg->handle_method = (*jenv)->GetMethodID(jenv, callbackClass,
-    "handle", "(JLjava/nio/ByteBuffer;J)V");
-  assert(jarg->handle_method);
-
-  jarg->byte_buffer_class = (*jenv)->FindClass(jenv, "java/nio/ByteBuffer");
-  assert(jarg->byte_buffer_class);
-  jarg->wrap_method = (*jenv)->GetStaticMethodID(jenv, jarg->byte_buffer_class,
-    "wrap", "([B)Ljava/nio/ByteBuffer;");
-  assert(jarg->wrap_method);
-
-  jarg->callback_object = JCALL1(NewGlobalRef, jenv, $input);
-  JCALL1(DeleteLocalRef, jenv, $input);
+  // Store JNISubscriberCallback object in a callback_arg
+  // that will be passed to java_subscriber_callback() at each notification
+  callback_arg *jarg = malloc(sizeof(callback_arg));
+  jarg->callback_object = (*jenv)->NewGlobalRef(jenv, $input);
+  (*jenv)->DeleteLocalRef(jenv, $input);
 
   $1 = java_subscriber_callback;
   $2 = jarg;
@@ -196,16 +194,84 @@ int z_write_data_wo(z_zenoh_t *z, const char* resource, const unsigned char *pay
 int z_query(z_zenoh_t *z, const char* resource, const char* predicate, z_reply_callback_t *callback);
 
 #include <assert.h>
-typedef struct {
-  JavaVM *jvm;
-  jobject callback_object;
-  jmethodID handle_method;
-  jclass byte_buffer_class;
-  jmethodID wrap_method;
-} sub_callback_arg;
+
+/*------ Caching of Java VM, classes, methods... ------*/
+JavaVM *jvm = NULL;
+jclass byte_buffer_class = NULL;
+jmethodID byte_buffer_is_direct_method = NULL;
+jmethodID byte_buffer_has_array_method = NULL;
+jmethodID byte_buffer_array_method = NULL;
+jmethodID byte_buffer_array_offset_method = NULL;
+jmethodID byte_buffer_position_method = NULL;
+jmethodID byte_buffer_remaining_method = NULL;
+jmethodID byte_buffer_wrap_method = NULL;
+jmethodID subscriber_handle_method = NULL;
+
+jint JNI_OnLoad(JavaVM* vm, void* reserved) {
+  jvm = vm;
+  JNIEnv* jenv;
+  if ((*vm)->GetEnv(vm, (void **) &jenv, JNI_VERSION_1_6) != JNI_OK) {
+    printf("Unexpected error retrieving JNIEnv in JNI_OnLoad()\n");
+    return JNI_ERR;
+  }
+  
+  // Caching classes. Note that we need to convert those as a GlobalRef since they are local by default and might be GCed.
+  jclass bb_class = (*jenv)->FindClass(jenv, "java/nio/ByteBuffer");
+  assert(bb_class);
+  byte_buffer_class = (jclass) (*jenv)->NewGlobalRef(jenv, bb_class);
+  assert(byte_buffer_class);
+
+  // Non-cached classes that are used below to get methods IDs
+  jclass subscriber_class = (*jenv)->FindClass(jenv, "io/zenoh/swig/JNISubscriberCallback");
+  assert(subscriber_class);
 
 
-JNIEnv * attach_native_thread(JavaVM *jvm) {
+  // Caching methods IDs.
+  byte_buffer_position_method = (*jenv)->GetMethodID(jenv, byte_buffer_class,
+    "position", "()I");
+  assert(byte_buffer_position_method);
+  byte_buffer_is_direct_method = (*jenv)->GetMethodID(jenv, byte_buffer_class,
+    "isDirect", "()Z");
+  assert(byte_buffer_is_direct_method);
+  byte_buffer_has_array_method = (*jenv)->GetMethodID(jenv, byte_buffer_class,
+    "hasArray", "()Z");
+  assert(byte_buffer_has_array_method);
+  byte_buffer_array_method = (*jenv)->GetMethodID(jenv, byte_buffer_class,
+    "array", "()[B");
+  assert(byte_buffer_has_array_method);
+  byte_buffer_array_offset_method = (*jenv)->GetMethodID(jenv, byte_buffer_class,
+    "arrayOffset", "()I");
+  assert(byte_buffer_array_offset_method);
+  byte_buffer_remaining_method = (*jenv)->GetMethodID(jenv, byte_buffer_class,
+    "remaining", "()I");
+  assert(byte_buffer_remaining_method);
+  byte_buffer_wrap_method = (*jenv)->GetStaticMethodID(jenv, byte_buffer_class,
+    "wrap", "([B)Ljava/nio/ByteBuffer;");
+  assert(byte_buffer_wrap_method);
+
+  subscriber_handle_method = (*jenv)->GetMethodID(jenv, subscriber_class,
+    "handle", "(JLjava/nio/ByteBuffer;J)V");
+  assert(subscriber_handle_method);
+
+  return JNI_VERSION_1_6;
+}
+
+void JNI_OnUnload(JavaVM *vm, void *reserved) {
+  JNIEnv* env;
+  if ((*vm)->GetEnv(vm, (void **) &env, JNI_VERSION_1_6) != JNI_OK) {
+      printf("Unexpected error retrieving JNIEnv in JNI_OnUnload()\n");
+      return;
+  }
+  
+  // Delete global references to cached classes
+  if (byte_buffer_class != NULL) {
+    (*env)->DeleteGlobalRef(env, byte_buffer_class);
+    byte_buffer_class = NULL;
+  }
+}
+
+
+JNIEnv * attach_native_thread() {
   // NOTE: a native thread calling Java must be attached to the JVM.
   // Each callback from Zenoh should call this operation.
   // We don't detach the thread as it causes huge impact on performances...
@@ -228,10 +294,15 @@ JNIEnv * attach_native_thread(JavaVM *jvm) {
   return jenv;
 }
 
+typedef struct {
+  JavaVM *jvm;
+  jobject callback_object;
+} callback_arg;
+
 
 void java_subscriber_callback(z_resource_id_t rid, const unsigned char *data, size_t length, z_data_info_t info, void *arg) {
-  sub_callback_arg *jarg = arg;
-  JNIEnv *jenv = attach_native_thread(jarg->jvm);
+  callback_arg *jarg = arg;
+  JNIEnv *jenv = attach_native_thread();
 
   jlong jrid = 0 ;
   z_resource_id_t * ridPtr = (z_resource_id_t *) malloc(sizeof(z_resource_id_t));
@@ -240,7 +311,7 @@ void java_subscriber_callback(z_resource_id_t rid, const unsigned char *data, si
 
   jbyteArray jarray = (*jenv)->NewByteArray(jenv, length);
   (*jenv)->SetByteArrayRegion(jenv, jarray, 0, length, (const jbyte*) data);
-  jobject jbuffer = (*jenv)->CallStaticObjectMethod(jenv, jarg->byte_buffer_class, jarg->wrap_method, jarray);
+  jobject jbuffer = (*jenv)->CallStaticObjectMethod(jenv, byte_buffer_class, byte_buffer_wrap_method, jarray);
   if ((*jenv)->ExceptionCheck(jenv)) {
       (*jenv)->ExceptionDescribe(jenv);
   }
@@ -251,7 +322,7 @@ void java_subscriber_callback(z_resource_id_t rid, const unsigned char *data, si
   memmove(infoPtr, &info, sizeof(z_data_info_t));
   *(z_data_info_t **)&jinfo = infoPtr;
 
-  (*jenv)->CallVoidMethod(jenv, jarg->callback_object, jarg->handle_method, jrid, jbuffer, jinfo);
+  (*jenv)->CallVoidMethod(jenv, jarg->callback_object, subscriber_handle_method, jrid, jbuffer, jinfo);
   if ((*jenv)->ExceptionCheck(jenv)) {
       (*jenv)->ExceptionDescribe(jenv);
   }
