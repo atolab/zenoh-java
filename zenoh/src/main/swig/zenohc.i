@@ -44,19 +44,25 @@
   }
 }
 
-/*----- typemap for subscriber_callback+arg to Listener -------*/
-%typemap(jni) subscriber_callback_t *callback "jobject";
-%typemap(jtype) subscriber_callback_t *callback "io.zenoh.swig.JNISubscriberCallback";
-%typemap(jstype) subscriber_callback_t *callback "io.zenoh.swig.JNISubscriberCallback";
-%typemap(javain) subscriber_callback_t *callback "$javainput";
-%typemap(in,numinputs=1) (subscriber_callback_t *callback, void *arg) {
+/*----- typemap for on_disconnect_t : erase it in Java and pass NULL to C -------*/
+%typemap(in, numinputs=0) on_disconnect_t on_disconnect {
+  $1 = NULL;
+}
+
+
+/*----- typemap for subscriber_callback_t + arg to SubscriberCallback -------*/
+%typemap(jni) subscriber_callback_t callback "jobject";
+%typemap(jtype) subscriber_callback_t callback "io.zenoh.swig.JNISubscriberCallback";
+%typemap(jstype) subscriber_callback_t callback "io.zenoh.swig.JNISubscriberCallback";
+%typemap(javain) subscriber_callback_t callback "$javainput";
+%typemap(in,numinputs=1) (subscriber_callback_t callback, void *arg) {
   // Store JNISubscriberCallback object in a callback_arg
-  // that will be passed to java_subscriber_callback() at each notification
+  // that will be passed to jni_subscriber_callback() at each notification
   callback_arg *jarg = malloc(sizeof(callback_arg));
   jarg->callback_object = (*jenv)->NewGlobalRef(jenv, $input);
   (*jenv)->DeleteLocalRef(jenv, $input);
 
-  $1 = java_subscriber_callback;
+  $1 = jni_subscriber_callback;
   $2 = jarg;
 }
 
@@ -110,10 +116,10 @@ typedef struct {
   z_res_id_t id; 
 } z_resource_id_t;
 
-typedef void z_reply_callback_t(z_reply_value_t reply);
+typedef void (*z_reply_callback_t)(const z_reply_value_t *reply);
 
-typedef void subscriber_callback_t(z_resource_id_t rid, const unsigned char *data, size_t length, z_data_info_t info, void *arg);
-typedef void jni_subscriber_callback_t(long ridPtr, const unsigned char *data, size_t length, long infoPtr, void *arg);
+typedef void (*subscriber_callback_t)(const z_resource_id_t *rid, const unsigned char *data, size_t length, z_data_info_t info, void *arg);
+// typedef void jni_subscriber_callback_t(long ridPtr, const unsigned char *data, size_t length, long infoPtr, void *arg);
 
 typedef struct {
   const char* rname;
@@ -125,8 +131,8 @@ typedef struct {
 
 typedef struct { unsigned int length; z_resource_t* elem; } z_array_z_resource_t;
 
-typedef z_array_z_resource_t query_handler_t(const char *rname, const char *predicate, void *arg);
-typedef void replies_cleaner_t(z_array_z_resource_t replies, void *arg);
+typedef z_array_z_resource_t (*query_handler_t)(const char *rname, const char *predicate, void *arg);
+typedef void (*replies_cleaner_t)(z_array_z_resource_t replies, void *arg);
 
 #include "zenoh/config.h"
 #include "zenoh/types.h"
@@ -166,7 +172,7 @@ typedef struct { enum result_kind tag; union { z_sto_t * sto; int error; } value
 
 
 z_zenoh_p_result_t 
-z_open(char* locator, on_disconnect_t *on_disconnect, const z_vec_t *ps);
+z_open(char* locator, on_disconnect_t on_disconnect, const z_vec_t *ps);
 
 int z_start_recv_loop(z_zenoh_t* z);
 
@@ -176,13 +182,13 @@ z_zenoh_t *
 z_open_wup(char* locator, const char * uname, const char *passwd);
 
 z_sub_p_result_t 
-z_declare_subscriber(z_zenoh_t *z, const char* resource, z_sub_mode_t *sm, subscriber_callback_t *callback, void *arg);
+z_declare_subscriber(z_zenoh_t *z, const char* resource, const z_sub_mode_t *sm, subscriber_callback_t callback, void *arg);
 
 z_pub_p_result_t 
 z_declare_publisher(z_zenoh_t *z, const char *resource);
 
 z_sto_p_result_t 
-z_declare_storage(z_zenoh_t *z, const char* resource, subscriber_callback_t *callback, query_handler_t *handler, replies_cleaner_t *cleaner, void *arg);
+z_declare_storage(z_zenoh_t *z, const char* resource, subscriber_callback_t callback, query_handler_t handler, replies_cleaner_t cleaner, void *arg);
 
 int z_stream_compact_data(z_pub_t *pub, const unsigned char *payload, size_t length);
 int z_stream_data(z_pub_t *pub, const unsigned char *payload, size_t length);
@@ -191,7 +197,7 @@ int z_write_data(z_zenoh_t *z, const char* resource, const unsigned char *payloa
 int z_stream_data_wo(z_pub_t *pub, const unsigned char *payload, size_t length, uint8_t encoding, uint8_t kind);
 int z_write_data_wo(z_zenoh_t *z, const char* resource, const unsigned char *payload, size_t length, uint8_t encoding, uint8_t kind);
 
-int z_query(z_zenoh_t *z, const char* resource, const char* predicate, z_reply_callback_t *callback);
+int z_query(z_zenoh_t *z, const char* resource, const char* predicate, z_reply_callback_t callback);
 
 #include <assert.h>
 
@@ -300,13 +306,13 @@ typedef struct {
 } callback_arg;
 
 
-void java_subscriber_callback(z_resource_id_t rid, const unsigned char *data, size_t length, z_data_info_t info, void *arg) {
+void jni_subscriber_callback(const z_resource_id_t *rid, const unsigned char *data, size_t length, z_data_info_t info, void *arg) {
   callback_arg *jarg = arg;
   JNIEnv *jenv = attach_native_thread();
 
   jlong jrid = 0 ;
   z_resource_id_t * ridPtr = (z_resource_id_t *) malloc(sizeof(z_resource_id_t));
-  memmove(ridPtr, &rid, sizeof(z_resource_id_t));
+  memmove(ridPtr, rid, sizeof(z_resource_id_t));
   *(z_resource_id_t **)&jrid = ridPtr;
 
   jbyteArray jarray = (*jenv)->NewByteArray(jenv, length);
@@ -384,9 +390,9 @@ typedef struct {
   z_res_id_t id; 
 } z_resource_id_t;
 
-typedef void z_reply_callback_t(z_reply_value_t reply);
+typedef void (*z_reply_callback_t)(const z_reply_value_t *reply);
 
-typedef void subscriber_callback_t(z_resource_id_t rid, const unsigned char *data, size_t length, z_data_info_t info, void *arg);
+typedef void (*subscriber_callback_t)(const z_resource_id_t *rid, const unsigned char *data, size_t length, z_data_info_t info, void *arg);
 
 typedef struct {
   const char* rname;
@@ -398,8 +404,8 @@ typedef struct {
 
 typedef struct { unsigned int length; z_resource_t* elem; } z_array_z_resource_t;
 
-typedef z_array_z_resource_t query_handler_t(const char *rname, const char *predicate, void *arg);
-typedef void replies_cleaner_t(z_array_z_resource_t replies, void *arg);
+typedef z_array_z_resource_t (*query_handler_t)(const char *rname, const char *predicate, void *arg);
+typedef void (*replies_cleaner_t)(z_array_z_resource_t replies, void *arg);
 
 
 #include "zenoh/config.h"
@@ -441,7 +447,7 @@ typedef struct { enum result_kind tag; union { z_sto_t * sto; int error; } value
 
 
 z_zenoh_p_result_t 
-z_open(char* locator, on_disconnect_t *on_disconnect, const z_vec_t *ps);
+z_open(char* locator, on_disconnect_t on_disconnect, const z_vec_t *ps);
 
 int z_start_recv_loop(z_zenoh_t* z);
 
@@ -451,13 +457,13 @@ z_zenoh_t *
 z_open_wup(char* locator, const char * uname, const char *passwd);
 
 z_sub_p_result_t 
-z_declare_subscriber(z_zenoh_t *z, const char* resource, z_sub_mode_t *sm, subscriber_callback_t *callback, void *arg);
+z_declare_subscriber(z_zenoh_t *z, const char* resource, const z_sub_mode_t *sm, subscriber_callback_t callback, void *arg);
 
 z_pub_p_result_t 
 z_declare_publisher(z_zenoh_t *z, const char *resource);
 
 z_sto_p_result_t 
-z_declare_storage(z_zenoh_t *z, const char* resource, subscriber_callback_t *callback, query_handler_t *handler, replies_cleaner_t *cleaner, void *arg);
+z_declare_storage(z_zenoh_t *z, const char* resource, subscriber_callback_t callback, query_handler_t handler, replies_cleaner_t cleaner, void *arg);
 
 int z_stream_compact_data(z_pub_t *pub, const unsigned char *payload, size_t length);
 int z_stream_data(z_pub_t *pub, const unsigned char *payload, size_t length);
@@ -466,4 +472,4 @@ int z_write_data(z_zenoh_t *z, const char* resource, const unsigned char *payloa
 int z_stream_data_wo(z_pub_t *pub, const unsigned char *payload, size_t length, uint8_t encoding, uint8_t kind);
 int z_write_data_wo(z_zenoh_t *z, const char* resource, const unsigned char *payload, size_t length, uint8_t encoding, uint8_t kind);
 
-int z_query(z_zenoh_t *z, const char* resource, const char* predicate, z_reply_callback_t *callback);
+int z_query(z_zenoh_t *z, const char* resource, const char* predicate, z_reply_callback_t callback);

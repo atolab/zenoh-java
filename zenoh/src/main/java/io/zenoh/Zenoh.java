@@ -41,7 +41,7 @@ public class Zenoh {
 
     public static Zenoh open(String locator) throws ZException {
         LOG.debug("Call z_open on {}", locator);
-        z_zenoh_p_result_t zenoh_result = zenohc.z_open(locator, null, null);
+        z_zenoh_p_result_t zenoh_result = zenohc.z_open(locator, null);
         if (zenoh_result.getTag().equals(result_kind.Z_ERROR_TAG)) {
             throw new ZException("z_open on " + locator + " failed", zenoh_result.getValue().getError());
         }
