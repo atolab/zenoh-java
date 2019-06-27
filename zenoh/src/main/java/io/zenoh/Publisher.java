@@ -13,11 +13,25 @@ public class Publisher {
         this.pub = pub;
     }
 
-    public void streamData(ByteBuffer data) throws ZException {
-        int result = zenohc.z_stream_data(pub, data);
+    public void streamCompactData(ByteBuffer payload) throws ZException {
+        int result = zenohc.z_stream_compact_data(pub, payload);
         if (result != 0) {
-            throw new ZException("z_stream_data of "+data.capacity()+" bytes buffer failed", result);
+            throw new ZException("z_stream_compact_data of "+payload.capacity()+" bytes buffer failed", result);
         }
     }
-    
+
+    public void streamData(ByteBuffer payload) throws ZException {
+        int result = zenohc.z_stream_data(pub, payload);
+        if (result != 0) {
+            throw new ZException("z_stream_data of "+payload.capacity()+" bytes buffer failed", result);
+        }
+    }
+
+    public void streamData(ByteBuffer payload, short encoding, short kind) throws ZException {
+        int result = zenohc.z_stream_data_wo(pub, payload, encoding, kind);
+        if (result != 0) {
+            throw new ZException("z_stream_data of "+payload.capacity()+" bytes buffer failed", result);
+        }
+    }
+
 }

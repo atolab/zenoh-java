@@ -75,6 +75,18 @@ public class Zenoh {
         return new Subscriber(sub_result.getValue().getSub());
     }
 
+    public void writeData(String resource, java.nio.ByteBuffer payload) throws ZException {
+        int result = zenohc.z_write_data(z, resource, payload);
+        if (result != 0) {
+            throw new ZException("z_write_data of "+payload.capacity()+" bytes buffer on "+resource+"failed", result);
+        }
+    }
 
+    public void writeData(String resource, java.nio.ByteBuffer payload, short encoding, short kind) throws ZException {
+        int result = zenohc.z_write_data_wo(z, resource, payload, encoding, kind);
+        if (result != 0) {
+            throw new ZException("z_write_data_wo of "+payload.capacity()+" bytes buffer on "+resource+"failed", result);
+        }
+    }
 
 }
