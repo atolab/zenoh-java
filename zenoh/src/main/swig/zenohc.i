@@ -50,7 +50,7 @@
 }
 
 
-/*----- typemap for subscriber_callback_t + arg to SubscriberCallback -------*/
+/*----- typemap for subscriber_callback_t + arg in z_declare_subscriber -------*/
 %typemap(jni) subscriber_callback_t callback "jobject";
 %typemap(jtype) subscriber_callback_t callback "io.zenoh.swig.JNISubscriberCallback";
 %typemap(jstype) subscriber_callback_t callback "io.zenoh.swig.JNISubscriberCallback";
@@ -63,6 +63,40 @@
   (*jenv)->DeleteLocalRef(jenv, $input);
 
   $1 = jni_subscriber_callback;
+  $2 = jarg;
+}
+
+/*----- typemap for subscriber_callback_t + query_handler_t + replies_cleaner_t + arg in z_declare_storage -------*/
+%typemap(jni) (subscriber_callback_t callback, query_handler_t handler, replies_cleaner_t cleaner) "jobject";
+%typemap(jtype) (subscriber_callback_t callback, query_handler_t handler, replies_cleaner_t cleaner) "io.zenoh.swig.JNIStorage";
+%typemap(jstype) (subscriber_callback_t callback, query_handler_t handler, replies_cleaner_t cleaner) "io.zenoh.swig.JNIStorage";
+%typemap(javain) (subscriber_callback_t callback, query_handler_t handler, replies_cleaner_t cleaner) "$javainput";
+%typemap(in,numinputs=1) (subscriber_callback_t callback, query_handler_t handler, replies_cleaner_t cleaner, void *arg) {
+  // Store the Storage object in a callback_arg
+  // that will be passed to each call to jni_subscriber_callback, jni_query_handler and jni_replies_cleaner
+  callback_arg *jarg = malloc(sizeof(callback_arg));
+  jarg->callback_object = (*jenv)->NewGlobalRef(jenv, $input);
+  (*jenv)->DeleteLocalRef(jenv, $input);
+
+  $1 = jni_storage_subscriber_callback;
+  $2 = jni_storage_query_handler;
+  $3 = jni_storage_replies_cleaner;
+  $4 = jarg;
+}
+
+/*----- typemap for z_reply_callback_t + arg in z_query -------*/
+%typemap(jni) z_reply_callback_t callback "jobject";
+%typemap(jtype) z_reply_callback_t callback "io.zenoh.swig.JNIReplyCallback";
+%typemap(jstype) z_reply_callback_t callback "io.zenoh.swig.JNIReplyCallback";
+%typemap(javain) z_reply_callback_t callback "$javainput";
+%typemap(in,numinputs=1) (z_reply_callback_t callback, void *arg) {
+  // Store JNIReplyCallback object in a callback_arg
+  // that will be passed to jni_reply_callback() at each notification
+  callback_arg *jarg = malloc(sizeof(callback_arg));
+  jarg->callback_object = (*jenv)->NewGlobalRef(jenv, $input);
+  (*jenv)->DeleteLocalRef(jenv, $input);
+
+  $1 = jni_reply_callback;
   $2 = jarg;
 }
 
@@ -212,6 +246,10 @@ jmethodID byte_buffer_position_method = NULL;
 jmethodID byte_buffer_remaining_method = NULL;
 jmethodID byte_buffer_wrap_method = NULL;
 jmethodID subscriber_handle_method = NULL;
+jmethodID storage_subscriber_callback_method = NULL;
+jmethodID storage_query_handler_method = NULL;
+jmethodID storage_replies_cleaner_method = NULL;
+jmethodID reply_handle_method = NULL;
 
 jint JNI_OnLoad(JavaVM* vm, void* reserved) {
   jvm = vm;
@@ -228,8 +266,12 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
   assert(byte_buffer_class);
 
   // Non-cached classes that are used below to get methods IDs
-  jclass subscriber_class = (*jenv)->FindClass(jenv, "io/zenoh/swig/JNISubscriberCallback");
-  assert(subscriber_class);
+  jclass jni_subscriber_callback_class = (*jenv)->FindClass(jenv, "io/zenoh/swig/JNISubscriberCallback");
+  assert(jni_subscriber_callback_class);
+  jclass jni_storage_class = (*jenv)->FindClass(jenv, "io/zenoh/swig/JNIStorage");
+  assert(jni_storage_class);
+  jclass jni_reply_callback_class = (*jenv)->FindClass(jenv, "io/zenoh/swig/JNIReplyCallback");
+  assert(jni_reply_callback_class);
 
 
   // Caching methods IDs.
@@ -255,9 +297,21 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
     "wrap", "([B)Ljava/nio/ByteBuffer;");
   assert(byte_buffer_wrap_method);
 
-  subscriber_handle_method = (*jenv)->GetMethodID(jenv, subscriber_class,
+  subscriber_handle_method = (*jenv)->GetMethodID(jenv, jni_subscriber_callback_class,
     "handle", "(JLjava/nio/ByteBuffer;J)V");
   assert(subscriber_handle_method);
+  storage_subscriber_callback_method = (*jenv)->GetMethodID(jenv, jni_storage_class,
+    "subscriberCallback", "(JLjava/nio/ByteBuffer;J)V");
+  assert(storage_subscriber_callback_method);
+  storage_query_handler_method = (*jenv)->GetMethodID(jenv, jni_storage_class,
+    "queryHandler", "(Ljava/lang/String;Ljava/lang/String;)Lio/zenoh/swig/z_array_z_resource_t;");
+  assert(storage_query_handler_method);
+  storage_replies_cleaner_method = (*jenv)->GetMethodID(jenv, jni_storage_class,
+    "repliesCleaner", "(J)V");
+  assert(storage_replies_cleaner_method);
+  reply_handle_method = (*jenv)->GetMethodID(jenv, jni_reply_callback_class,
+    "handle", "(J)V");
+  assert(reply_handle_method);
 
   return JNI_VERSION_1_6;
 }
@@ -338,6 +392,82 @@ void jni_subscriber_callback(const z_resource_id_t *rid, const unsigned char *da
       (*jenv)->ExceptionDescribe(jenv);
   }
 }
+
+void jni_storage_subscriber_callback(const z_resource_id_t *rid, const unsigned char *data, size_t length, z_data_info_t info, void *arg) {
+  callback_arg *jarg = arg;
+  JNIEnv *jenv = attach_native_thread();
+
+  jlong jrid = 0 ;
+  z_resource_id_t * ridPtr = (z_resource_id_t *) malloc(sizeof(z_resource_id_t));
+  memmove(ridPtr, rid, sizeof(z_resource_id_t));
+  *(z_resource_id_t **)&jrid = ridPtr;
+
+  jbyteArray jarray = (*jenv)->NewByteArray(jenv, length);
+  assert(jarray);
+  (*jenv)->SetByteArrayRegion(jenv, jarray, 0, length, (const jbyte*) data);
+  jobject jbuffer = (*jenv)->CallStaticObjectMethod(jenv, byte_buffer_class, byte_buffer_wrap_method, jarray);
+  if ((*jenv)->ExceptionCheck(jenv)) {
+      (*jenv)->ExceptionDescribe(jenv);
+  }
+  assert(jbuffer);
+
+  jlong jinfo = 0 ;
+  z_data_info_t * infoPtr = (z_data_info_t *) malloc(sizeof(z_data_info_t));
+  memmove(infoPtr, &info, sizeof(z_data_info_t));
+  *(z_data_info_t **)&jinfo = infoPtr;
+
+  (*jenv)->CallVoidMethod(jenv, jarg->callback_object, storage_subscriber_callback_method, jrid, jbuffer, jinfo);
+
+  (*jenv)->DeleteLocalRef(jenv, jbuffer);
+  (*jenv)->DeleteLocalRef(jenv, jarray);
+
+  if ((*jenv)->ExceptionCheck(jenv)) {
+      (*jenv)->ExceptionDescribe(jenv);
+  }
+}
+
+z_array_z_resource_t jni_storage_query_handler(const char *rname, const char *predicate, void *arg) {
+  callback_arg *jarg = arg;
+  JNIEnv *jenv = attach_native_thread();
+
+  jstring jrname = (*jenv)->NewStringUTF(jenv, rname);
+  jstring jpredicate = (*jenv)->NewStringUTF(jenv, predicate);
+
+  jobject jresult = (*jenv)->CallObjectMethod(jenv, jarg->callback_object, storage_query_handler_method, jrname, jpredicate);
+
+  if ((*jenv)->ExceptionCheck(jenv)) {
+      (*jenv)->ExceptionDescribe(jenv);
+  }
+  
+  z_array_z_resource_t *result = (z_array_z_resource_t *) 0;
+  result = *(z_array_z_resource_t **)&jresult;
+
+  return *result;
+}
+
+void jni_storage_replies_cleaner(z_array_z_resource_t replies, void *arg) {
+
+  // TODO.....
+
+}
+
+void jni_reply_callback(const z_reply_value_t *reply, void *arg) {
+  printf("------ jni_reply_callback...\n"); fflush(stdout);
+  callback_arg *jarg = arg;
+  JNIEnv *jenv = attach_native_thread();
+
+  jlong jreply = 0;
+  *(const z_reply_value_t **)&jreply = reply;
+
+  printf("------ jni_reply_callback call reply_handle_method\n"); fflush(stdout);
+  (*jenv)->CallVoidMethod(jenv, jarg->callback_object, reply_handle_method, jreply);
+  printf("------ jni_reply_callback call reply_handle_method DONE\n"); fflush(stdout);
+
+  if ((*jenv)->ExceptionCheck(jenv)) {
+      (*jenv)->ExceptionDescribe(jenv);
+  }
+}
+
 
 %}
 

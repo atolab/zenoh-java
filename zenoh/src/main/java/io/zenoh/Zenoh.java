@@ -9,15 +9,23 @@ import org.slf4j.LoggerFactory;
 import io.zenoh.swig.SWIGTYPE_p_z_zenoh_t;
 import io.zenoh.swig.result_kind;
 import io.zenoh.swig.z_pub_p_result_t;
+import io.zenoh.swig.z_sto_p_result_t;
 import io.zenoh.swig.z_sub_mode_t;
 import io.zenoh.swig.z_sub_p_result_t;
 import io.zenoh.swig.z_zenoh_p_result_t;
 import io.zenoh.swig.zenohc;
+import io.zenoh.swig.JNIReplyCallback;
+import io.zenoh.swig.JNIStorage;
 import io.zenoh.swig.JNISubscriberCallback;
 
 
 public class Zenoh {
 
+    public static final char Z_STORAGE_DATA  = 0;
+    public static final char Z_STORAGE_FINAL = 1;
+    public static final char Z_REPLY_FINAL   = 2;
+
+   
     private static final Logger LOG = LoggerFactory.getLogger("io.zenoh");
 
     static {
@@ -68,11 +76,21 @@ public class Zenoh {
     public Subscriber declareSubscriber(String resource, z_sub_mode_t mode, SubscriberCallback callback) throws ZException {
         LOG.debug("Call z_declare_subscriber for {}", resource);
         z_sub_p_result_t sub_result = zenohc.z_declare_subscriber(z, resource, mode, new JNISubscriberCallback(callback));
-        LOG.debug("Call z_declare_subscriber for {} OK", resource);
         if (sub_result.getTag().equals(result_kind.Z_ERROR_TAG)) {
             throw new ZException("z_declare_subscriber on "+resource+" failed ", sub_result.getValue().getError());
         }
         return new Subscriber(sub_result.getValue().getSub());
+    }
+
+    public void declareStorage(String resource, Storage storage)
+        throws ZException
+    {
+        LOG.debug("Call z_declare_storage for {}", resource);
+        z_sto_p_result_t sto_result = zenohc.z_declare_storage(z, resource, new JNIStorage(storage));
+        if (sto_result.getTag().equals(result_kind.Z_ERROR_TAG)) {
+            throw new ZException("z_declare_subscriber on "+resource+" failed ", sto_result.getValue().getError());
+        }
+        storage.setZSto(sto_result.getValue().getSto());
     }
 
     public void writeData(String resource, java.nio.ByteBuffer payload) throws ZException {
@@ -89,4 +107,11 @@ public class Zenoh {
         }
     }
 
+    public void query(String resource, String predicate, ReplyCallback callback) throws ZException {
+        int result = zenohc.z_query(z, resource, predicate, new JNIReplyCallback(callback));
+        if (result != 0) {
+            throw new ZException("z_query on "+resource+" failed", result);
+        }
+
+    }
 }
