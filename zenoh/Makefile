@@ -26,8 +26,14 @@ SWIG_C_FILE := $(SWIG_C_OUTDIR)/zenohc_java.c
 JNI_INCLUDE_ALL_PLATFORMS := $(ZENOHC_COPY_DIR)/jni-include
 NATIVES_DIR := $(TARGET_DIR)/resources/natives
 
-CMAKE_OPTIONS := -DSWIG_JAVA=ON -DTESTS=OFF -DEXAMPLES=OFF
 
+CMAKE_OPTIONS := -DSWIG_JAVA=ON -DTESTS=OFF -DEXAMPLES=OFF
+ifneq ($(ZENOH_DEBUG),)
+	CMAKE_OPTIONS += -DZENOH_DEBUG=$(ZENOH_DEBUG)
+endif
+ifneq ($(CMAKE_BUILD_TYPE),)
+	CMAKE_OPTIONS += -DCMAKE_BUILD_TYPE=$(CMAKE_BUILD_TYPE)
+endif
 
 # Naive OS detection... TODO: probably to be improved
 UNAME_S := $(shell uname -s)

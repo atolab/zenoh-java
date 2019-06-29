@@ -15,10 +15,9 @@
   <packaging>jar</packaging>
   <name>Zenoh client API in Java</name>
 
-   <properties>
+  <properties>
       <generatedSources>${project.build.directory}/generated-sources/java</generatedSources>
-   </properties>
-
+  </properties>
 
   <dependencies>
     <dependency>
@@ -28,6 +27,103 @@
     </dependency>
   </dependencies>
 
+
+  <profiles>
+    <!-- default profile: zenoh-c is compiled in debug mode
+         with ZENOH_DEBUG unset (i.e. default value) -->
+    <profile>
+      <id>default</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>${exec-maven-plugin-version}</version> 
+            <executions>
+              <execution>
+                <id>make-natives</id>
+                <phase>generate-sources</phase>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <configuration>
+                  <executable>make</executable>
+                  <workingDirectory>${project.basedir}</workingDirectory>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <!-- default profile: zenoh-c is compiled in debug mode
+         with ZENOH_DEBUG=2 -->
+    <profile>
+      <id>debug</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>${exec-maven-plugin-version}</version> 
+            <executions>
+              <execution>
+                <id>make-natives</id>
+                <phase>generate-sources</phase>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <configuration>
+                  <executable>make</executable>
+                  <environmentVariables>
+                    <ZENOH_DEBUG>2</ZENOH_DEBUG>
+                    <CMAKE_BUILD_TYPE>Debug</CMAKE_BUILD_TYPE>
+                  </environmentVariables>
+                  <workingDirectory>${project.basedir}</workingDirectory>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <!-- default profile: zenoh-c is compiled in release mode
+         with ZENOH_DEBUG=0, and no Java exception check in JNI code -->
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>exec-maven-plugin</artifactId>
+            <version>${exec-maven-plugin-version}</version> 
+            <executions>
+              <execution>
+                <id>make-natives</id>
+                <phase>generate-sources</phase>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <configuration>
+                  <executable>make</executable>
+                  <environmentVariables>
+                    <ZENOH_DEBUG>0</ZENOH_DEBUG>
+                    <CMAKE_BUILD_TYPE>Release</CMAKE_BUILD_TYPE>
+                  </environmentVariables>
+                  <workingDirectory>${project.basedir}</workingDirectory>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 
   <build>
     <plugins>
