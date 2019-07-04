@@ -6,7 +6,8 @@ import java.nio.ByteBuffer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.zenoh.Storage;;
+import io.zenoh.Storage;
+import io.zenoh.DataInfo;
 
 public class JNIStorage {
 
@@ -18,9 +19,8 @@ public class JNIStorage {
         this.sto = sto;
     }
 
-    public void subscriberCallback(long ridPtr, ByteBuffer data, long infoPtr) {
+    public void subscriberCallback(long ridPtr, ByteBuffer data, DataInfo info) {
         z_resource_id_t rid = new z_resource_id_t(ridPtr, true);
-        z_data_info_t info = new z_data_info_t(infoPtr, true);
         sto.subscriberCallback(rid, data, info);
 
     }

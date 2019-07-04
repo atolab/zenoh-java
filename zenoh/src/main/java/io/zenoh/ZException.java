@@ -6,6 +6,10 @@ public class ZException extends Exception {
 
     private static final long serialVersionUID = 402535504102337839L;
     
+    public ZException(String message) {
+        this(message, -1);
+    }
+
     public ZException(String message, int errorCode) {
         super(message);
         this.errorCode = errorCode;
@@ -17,6 +21,10 @@ public class ZException extends Exception {
     }
 
     public String toString() {
-        return super.toString() + " (error code:" + this.errorCode + ")";
+        if (errorCode > 0) {
+            return super.toString() + " (error code:" + this.errorCode + ")";
+        } else {
+            return super.toString();
+        }
     }
 }

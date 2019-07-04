@@ -1,18 +1,27 @@
 import io.zenoh.*;
-import io.zenoh.swig.z_reply_value_t;
 
 class ZQuery {
 
     private static class ReplyHandler implements ReplyCallback {
-        public void handle(z_reply_value_t reply) {
+
+        public void handle(ReplyValue reply) {
             switch (reply.getKind()) {
-                case Zenoh.Z_STORAGE_DATA:
-                    reply.getData();
+                case Z_STORAGE_DATA:
+                    java.nio.ByteBuffer data = reply.getData();
+                    try {
+                        int len = Vle.decode(data);
+                        byte[] buf = new byte[len];
+                        data.get(buf);
+                        String s = new String(buf, "UTF-8");
+                        System.out.println("Received Storage Data. " + reply.getRname() + ":"+ s);
+                    } catch (java.io.UnsupportedEncodingException e) {
+                        System.out.println("Error decoding data: "+e);
+                    }
                     break;
-                case Zenoh.Z_STORAGE_FINAL:
+                case Z_STORAGE_FINAL:
                     System.out.println("Received Storage Final.");
                     break;
-                case Zenoh.Z_REPLY_FINAL:
+                case Z_REPLY_FINAL:
                     System.out.println("Received Reply Final.");
                     break;
             }
@@ -41,10 +50,6 @@ class ZQuery {
 
             System.out.println("Send query for "+uri);
             z.query(uri,  "", new ReplyHandler());
-
-            java.nio.ByteBuffer data = java.nio.ByteBuffer.allocate(512);
-            data.put(value.getBytes("UTF-8"));
-            data.flip();
 
             Thread.sleep(60000);
         } catch (Throwable e) {

@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import io.zenoh.ReplyCallback;
+import io.zenoh.ReplyValue;
 
 public class JNIReplyCallback {
 
@@ -15,8 +16,7 @@ public class JNIReplyCallback {
         this.cb = cb;
     }
 
-    protected void handle(long replyPtr) {
-        z_reply_value_t reply = new z_reply_value_t(replyPtr, false);
+    protected void handle(ReplyValue reply) {
         cb.handle(reply);
     }
 }

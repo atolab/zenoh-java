@@ -9,7 +9,7 @@ class ZStorage extends Storage {
 
     private Map<String, ByteBuffer> stored = new HashMap<String, ByteBuffer>();
 
-    public void subscriberCallback(z_resource_id_t rid, ByteBuffer data, z_data_info_t info) {
+    public void subscriberCallback(z_resource_id_t rid, ByteBuffer data, DataInfo info) {
         String rname = rid.getId().getRname();
         System.out.println("Received data: " + rname);
         this.stored.put(rname, data);

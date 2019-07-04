@@ -64,7 +64,7 @@
 
   $1 = jni_subscriber_callback;
   $2 = jarg;
-}
+};
 
 /*----- typemap for subscriber_callback_t + query_handler_t + replies_cleaner_t + arg in z_declare_storage -------*/
 %typemap(jni) (subscriber_callback_t callback, query_handler_t handler, replies_cleaner_t cleaner) "jobject";
@@ -82,7 +82,7 @@
   $2 = jni_storage_query_handler;
   $3 = jni_storage_replies_cleaner;
   $4 = jarg;
-}
+};
 
 /*----- typemap for z_reply_callback_t + arg in z_query -------*/
 %typemap(jni) z_reply_callback_t callback "jobject";
@@ -98,7 +98,7 @@
 
   $1 = jni_reply_callback;
   $2 = jarg;
-}
+};
 
 
 %{
@@ -150,10 +150,9 @@ typedef struct {
   z_res_id_t id; 
 } z_resource_id_t;
 
-typedef void (*z_reply_callback_t)(const z_reply_value_t *reply);
+typedef void (*z_reply_callback_t)(const z_reply_value_t *reply, void *arg);
 
 typedef void (*subscriber_callback_t)(const z_resource_id_t *rid, const unsigned char *data, size_t length, z_data_info_t info, void *arg);
-// typedef void jni_subscriber_callback_t(long ridPtr, const unsigned char *data, size_t length, long infoPtr, void *arg);
 
 typedef struct {
   const char* rname;
@@ -231,13 +230,25 @@ int z_write_data(z_zenoh_t *z, const char* resource, const unsigned char *payloa
 int z_stream_data_wo(z_pub_t *pub, const unsigned char *payload, size_t length, uint8_t encoding, uint8_t kind);
 int z_write_data_wo(z_zenoh_t *z, const char* resource, const unsigned char *payload, size_t length, uint8_t encoding, uint8_t kind);
 
-int z_query(z_zenoh_t *z, const char* resource, const char* predicate, z_reply_callback_t callback);
+int z_query(z_zenoh_t *z, const char* resource, const char* predicate, z_reply_callback_t callback, void *arg);
 
 #include <assert.h>
+
+#if (ZENOH_DEBUG == 0)
+#define assert_no_exception
+#else
+#define assert_no_exception \
+  if ((*jenv)->ExceptionCheck(jenv)) { \
+    (*jenv)->ExceptionDescribe(jenv); \
+    assert(0); \
+  }
+#endif
 
 /*------ Caching of Java VM, classes, methods... ------*/
 JavaVM *jvm = NULL;
 jclass byte_buffer_class = NULL;
+jclass data_info_class = NULL;
+jclass reply_value_class = NULL;
 jmethodID byte_buffer_is_direct_method = NULL;
 jmethodID byte_buffer_has_array_method = NULL;
 jmethodID byte_buffer_array_method = NULL;
@@ -250,6 +261,10 @@ jmethodID storage_subscriber_callback_method = NULL;
 jmethodID storage_query_handler_method = NULL;
 jmethodID storage_replies_cleaner_method = NULL;
 jmethodID reply_handle_method = NULL;
+jmethodID data_info_constr = NULL;
+jmethodID reply_value_constr = NULL;
+
+
 
 jint JNI_OnLoad(JavaVM* vm, void* reserved) {
   jvm = vm;
@@ -261,57 +276,71 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
   
   // Caching classes. Note that we need to convert those as a GlobalRef since they are local by default and might be GCed.
   jclass bb_class = (*jenv)->FindClass(jenv, "java/nio/ByteBuffer");
-  assert(bb_class);
+  assert_no_exception;
   byte_buffer_class = (jclass) (*jenv)->NewGlobalRef(jenv, bb_class);
-  assert(byte_buffer_class);
+  assert_no_exception;
+  jclass di_class = (*jenv)->FindClass(jenv, "io/zenoh/DataInfo");
+  assert_no_exception;
+  data_info_class = (jclass) (*jenv)->NewGlobalRef(jenv, di_class);
+  assert_no_exception;
+  jclass rv_class = (*jenv)->FindClass(jenv, "io/zenoh/ReplyValue");
+  assert_no_exception;
+  reply_value_class = (jclass) (*jenv)->NewGlobalRef(jenv, rv_class);
+  assert_no_exception;
 
   // Non-cached classes that are used below to get methods IDs
   jclass jni_subscriber_callback_class = (*jenv)->FindClass(jenv, "io/zenoh/swig/JNISubscriberCallback");
-  assert(jni_subscriber_callback_class);
+  assert_no_exception;
   jclass jni_storage_class = (*jenv)->FindClass(jenv, "io/zenoh/swig/JNIStorage");
-  assert(jni_storage_class);
+  assert_no_exception;
   jclass jni_reply_callback_class = (*jenv)->FindClass(jenv, "io/zenoh/swig/JNIReplyCallback");
-  assert(jni_reply_callback_class);
+  assert_no_exception;
 
 
   // Caching methods IDs.
   byte_buffer_position_method = (*jenv)->GetMethodID(jenv, byte_buffer_class,
     "position", "()I");
-  assert(byte_buffer_position_method);
+  assert_no_exception;
   byte_buffer_is_direct_method = (*jenv)->GetMethodID(jenv, byte_buffer_class,
     "isDirect", "()Z");
-  assert(byte_buffer_is_direct_method);
+  assert_no_exception;
   byte_buffer_has_array_method = (*jenv)->GetMethodID(jenv, byte_buffer_class,
     "hasArray", "()Z");
-  assert(byte_buffer_has_array_method);
+  assert_no_exception;
   byte_buffer_array_method = (*jenv)->GetMethodID(jenv, byte_buffer_class,
     "array", "()[B");
-  assert(byte_buffer_has_array_method);
+  assert_no_exception;
   byte_buffer_array_offset_method = (*jenv)->GetMethodID(jenv, byte_buffer_class,
     "arrayOffset", "()I");
-  assert(byte_buffer_array_offset_method);
+  assert_no_exception;
   byte_buffer_remaining_method = (*jenv)->GetMethodID(jenv, byte_buffer_class,
     "remaining", "()I");
-  assert(byte_buffer_remaining_method);
+  assert_no_exception;
   byte_buffer_wrap_method = (*jenv)->GetStaticMethodID(jenv, byte_buffer_class,
     "wrap", "([B)Ljava/nio/ByteBuffer;");
-  assert(byte_buffer_wrap_method);
+  assert_no_exception;
 
   subscriber_handle_method = (*jenv)->GetMethodID(jenv, jni_subscriber_callback_class,
-    "handle", "(JLjava/nio/ByteBuffer;J)V");
-  assert(subscriber_handle_method);
+    "handle", "(JLjava/nio/ByteBuffer;Lio/zenoh/DataInfo;)V");
+  assert_no_exception;
   storage_subscriber_callback_method = (*jenv)->GetMethodID(jenv, jni_storage_class,
-    "subscriberCallback", "(JLjava/nio/ByteBuffer;J)V");
-  assert(storage_subscriber_callback_method);
+    "subscriberCallback", "(JLjava/nio/ByteBuffer;Lio/zenoh/DataInfo;)V");
+  assert_no_exception;
   storage_query_handler_method = (*jenv)->GetMethodID(jenv, jni_storage_class,
     "queryHandler", "(Ljava/lang/String;Ljava/lang/String;)Lio/zenoh/swig/z_array_z_resource_t;");
-  assert(storage_query_handler_method);
+  assert_no_exception;
   storage_replies_cleaner_method = (*jenv)->GetMethodID(jenv, jni_storage_class,
     "repliesCleaner", "(J)V");
-  assert(storage_replies_cleaner_method);
+  assert_no_exception;
   reply_handle_method = (*jenv)->GetMethodID(jenv, jni_reply_callback_class,
-    "handle", "(J)V");
-  assert(reply_handle_method);
+   "handle", "(Lio/zenoh/ReplyValue;)V");
+  assert_no_exception;
+  data_info_constr = (*jenv)->GetMethodID(jenv, data_info_class,
+    "<init>", "(JII)V");
+  assert_no_exception;
+  reply_value_constr = (*jenv)->GetMethodID(jenv, reply_value_class,
+    "<init>", "(I[BJLjava/lang/String;Ljava/nio/ByteBuffer;Lio/zenoh/DataInfo;)V");
+  assert_no_exception;
 
   return JNI_VERSION_1_6;
 }
@@ -354,6 +383,22 @@ JNIEnv * attach_native_thread() {
   return jenv;
 }
 
+
+#define native_to_jbuffer(jenv, data, length) \
+  jbyteArray jarray = (*jenv)->NewByteArray(jenv, length); \
+  assert_no_exception; \
+  (*jenv)->SetByteArrayRegion(jenv, jarray, 0, length, (const jbyte*) data); \
+  assert_no_exception; \
+  jobject jbuffer = (*jenv)->CallStaticObjectMethod(jenv, byte_buffer_class, byte_buffer_wrap_method, jarray); \
+  assert_no_exception; \
+
+#define delete_jbuffer(jenv) \
+  (*jenv)->DeleteLocalRef(jenv, jbuffer); \
+  (*jenv)->DeleteLocalRef(jenv, jarray); \
+  assert_no_exception;
+
+
+
 typedef struct {
   JavaVM *jvm;
   jobject callback_object;
@@ -369,28 +414,17 @@ void jni_subscriber_callback(const z_resource_id_t *rid, const unsigned char *da
   memmove(ridPtr, rid, sizeof(z_resource_id_t));
   *(z_resource_id_t **)&jrid = ridPtr;
 
-  jbyteArray jarray = (*jenv)->NewByteArray(jenv, length);
-  assert(jarray);
-  (*jenv)->SetByteArrayRegion(jenv, jarray, 0, length, (const jbyte*) data);
-  jobject jbuffer = (*jenv)->CallStaticObjectMethod(jenv, byte_buffer_class, byte_buffer_wrap_method, jarray);
-  if ((*jenv)->ExceptionCheck(jenv)) {
-      (*jenv)->ExceptionDescribe(jenv);
-  }
-  assert(jbuffer);
+  native_to_jbuffer(jenv, data, length);
 
-  jlong jinfo = 0 ;
-  z_data_info_t * infoPtr = (z_data_info_t *) malloc(sizeof(z_data_info_t));
-  memmove(infoPtr, &info, sizeof(z_data_info_t));
-  *(z_data_info_t **)&jinfo = infoPtr;
+  jobject jinfo = (*jenv)->NewObject(jenv, data_info_class, data_info_constr, info.flags, info.encoding, info.kind);
+  assert_no_exception;
 
   (*jenv)->CallVoidMethod(jenv, jarg->callback_object, subscriber_handle_method, jrid, jbuffer, jinfo);
+  assert_no_exception;
 
-  (*jenv)->DeleteLocalRef(jenv, jbuffer);
-  (*jenv)->DeleteLocalRef(jenv, jarray);
-
-  if ((*jenv)->ExceptionCheck(jenv)) {
-      (*jenv)->ExceptionDescribe(jenv);
-  }
+  delete_jbuffer(jenv);
+  (*jenv)->DeleteLocalRef(jenv, jinfo);
+  assert_no_exception;
 }
 
 void jni_storage_subscriber_callback(const z_resource_id_t *rid, const unsigned char *data, size_t length, z_data_info_t info, void *arg) {
@@ -402,28 +436,15 @@ void jni_storage_subscriber_callback(const z_resource_id_t *rid, const unsigned 
   memmove(ridPtr, rid, sizeof(z_resource_id_t));
   *(z_resource_id_t **)&jrid = ridPtr;
 
-  jbyteArray jarray = (*jenv)->NewByteArray(jenv, length);
-  assert(jarray);
-  (*jenv)->SetByteArrayRegion(jenv, jarray, 0, length, (const jbyte*) data);
-  jobject jbuffer = (*jenv)->CallStaticObjectMethod(jenv, byte_buffer_class, byte_buffer_wrap_method, jarray);
-  if ((*jenv)->ExceptionCheck(jenv)) {
-      (*jenv)->ExceptionDescribe(jenv);
-  }
-  assert(jbuffer);
+  native_to_jbuffer(jenv, data, length);
 
-  jlong jinfo = 0 ;
-  z_data_info_t * infoPtr = (z_data_info_t *) malloc(sizeof(z_data_info_t));
-  memmove(infoPtr, &info, sizeof(z_data_info_t));
-  *(z_data_info_t **)&jinfo = infoPtr;
+  jobject jinfo = (*jenv)->NewObject(jenv, data_info_class, data_info_constr, info.flags, info.encoding, info.kind);
+  assert_no_exception;
 
   (*jenv)->CallVoidMethod(jenv, jarg->callback_object, storage_subscriber_callback_method, jrid, jbuffer, jinfo);
+  assert_no_exception;
 
-  (*jenv)->DeleteLocalRef(jenv, jbuffer);
-  (*jenv)->DeleteLocalRef(jenv, jarray);
-
-  if ((*jenv)->ExceptionCheck(jenv)) {
-      (*jenv)->ExceptionDescribe(jenv);
-  }
+  delete_jbuffer(jenv);
 }
 
 z_array_z_resource_t jni_storage_query_handler(const char *rname, const char *predicate, void *arg) {
@@ -434,10 +455,7 @@ z_array_z_resource_t jni_storage_query_handler(const char *rname, const char *pr
   jstring jpredicate = (*jenv)->NewStringUTF(jenv, predicate);
 
   jobject jresult = (*jenv)->CallObjectMethod(jenv, jarg->callback_object, storage_query_handler_method, jrname, jpredicate);
-
-  if ((*jenv)->ExceptionCheck(jenv)) {
-      (*jenv)->ExceptionDescribe(jenv);
-  }
+  assert_no_exception;
   
   z_array_z_resource_t *result = (z_array_z_resource_t *) 0;
   result = *(z_array_z_resource_t **)&jresult;
@@ -452,20 +470,36 @@ void jni_storage_replies_cleaner(z_array_z_resource_t replies, void *arg) {
 }
 
 void jni_reply_callback(const z_reply_value_t *reply, void *arg) {
-  printf("------ jni_reply_callback...\n"); fflush(stdout);
   callback_arg *jarg = arg;
   JNIEnv *jenv = attach_native_thread();
 
-  jlong jreply = 0;
-  *(const z_reply_value_t **)&jreply = reply;
+  jbyteArray jstoid = (*jenv)->NewByteArray(jenv, reply->stoid_length);
+  assert_no_exception;
+  (*jenv)->SetByteArrayRegion(jenv, jstoid, 0, reply->stoid_length, (const jbyte*) reply->stoid);
+  assert_no_exception;
 
-  printf("------ jni_reply_callback call reply_handle_method\n"); fflush(stdout);
+  native_to_jbuffer(jenv, reply->data, reply->data_length);
+
+  jobject jinfo = (*jenv)->NewObject(jenv, data_info_class, data_info_constr,
+    reply->info.flags, reply->info.encoding, reply->info.kind);
+  assert_no_exception;
+
+  jstring jrname = (*jenv)->NewStringUTF(jenv, reply->rname);
+
+  jobject jreply = (*jenv)->NewObject(jenv, reply_value_class, reply_value_constr,
+    reply->kind, jstoid, reply->rsn, jrname, jbuffer, jinfo);
+
   (*jenv)->CallVoidMethod(jenv, jarg->callback_object, reply_handle_method, jreply);
-  printf("------ jni_reply_callback call reply_handle_method DONE\n"); fflush(stdout);
 
-  if ((*jenv)->ExceptionCheck(jenv)) {
-      (*jenv)->ExceptionDescribe(jenv);
-  }
+  (*jenv)->DeleteLocalRef(jenv, jreply);
+  assert_no_exception;
+  (*jenv)->DeleteLocalRef(jenv, jrname);
+  assert_no_exception;
+  (*jenv)->DeleteLocalRef(jenv, jinfo);
+  assert_no_exception;
+  delete_jbuffer(jenv);
+  (*jenv)->DeleteLocalRef(jenv, jstoid);
+  assert_no_exception;
 }
 
 
@@ -520,7 +554,7 @@ typedef struct {
   z_res_id_t id; 
 } z_resource_id_t;
 
-typedef void (*z_reply_callback_t)(const z_reply_value_t *reply);
+typedef void (*z_reply_callback_t)(const z_reply_value_t *reply, void *arg);
 
 typedef void (*subscriber_callback_t)(const z_resource_id_t *rid, const unsigned char *data, size_t length, z_data_info_t info, void *arg);
 
@@ -602,4 +636,4 @@ int z_write_data(z_zenoh_t *z, const char* resource, const unsigned char *payloa
 int z_stream_data_wo(z_pub_t *pub, const unsigned char *payload, size_t length, uint8_t encoding, uint8_t kind);
 int z_write_data_wo(z_zenoh_t *z, const char* resource, const unsigned char *payload, size_t length, uint8_t encoding, uint8_t kind);
 
-int z_query(z_zenoh_t *z, const char* resource, const char* predicate, z_reply_callback_t callback);
+int z_query(z_zenoh_t *z, const char* resource, const char* predicate, z_reply_callback_t callback, void *arg);

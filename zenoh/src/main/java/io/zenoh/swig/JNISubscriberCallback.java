@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import java.nio.ByteBuffer;
 
 import io.zenoh.SubscriberCallback;
+import io.zenoh.DataInfo;
 
 public class JNISubscriberCallback {
 
@@ -16,9 +17,9 @@ public class JNISubscriberCallback {
         this.cb = cb;
     }
 
-    protected void handle(long ridPtr, ByteBuffer data, long infoPtr) {
+    protected void handle(long ridPtr, ByteBuffer data, DataInfo info) {
         z_resource_id_t rid = new z_resource_id_t(ridPtr, true);
-        z_data_info_t info = new z_data_info_t(infoPtr, true);
         cb.handle(rid, data, info);
     }
+
 }

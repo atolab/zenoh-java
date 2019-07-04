@@ -22,18 +22,17 @@ class ZPub {
             System.out.println("Connecting to "+locator+"...");
             Zenoh z = Zenoh.open(locator);
 
-            // System.out.println("Declaring Publisher...");
-            // Publisher pub = z.declarePublisher(uri);
+            System.out.println("Declaring Publisher...");
+            Publisher pub = z.declarePublisher(uri);
 
-            java.nio.ByteBuffer data = java.nio.ByteBuffer.allocate(512);
+            java.nio.ByteBuffer data = java.nio.ByteBuffer.allocateDirect(512);
+            Vle.encode(data, value.length());
             data.put(value.getBytes("UTF-8"));
             data.flip();
 
             System.out.println("Streaming Data...");
             while (true) {
-                System.out.println("pub.streamData: "+data);
-                // pub.streamData(data);
-                z.writeData(uri, data);
+                pub.streamData(data);
                 Thread.sleep(1000);
             }
         } catch (Throwable e) {
