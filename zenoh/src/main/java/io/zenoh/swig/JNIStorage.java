@@ -19,9 +19,8 @@ public class JNIStorage {
         this.sto = sto;
     }
 
-    public void subscriberCallback(long ridPtr, ByteBuffer data, DataInfo info) {
-        z_resource_id_t rid = new z_resource_id_t(ridPtr, true);
-        sto.subscriberCallback(rid, data, info);
+    public void subscriberCallback(String rname, ByteBuffer data, DataInfo info) {
+        sto.subscriberCallback(rname, data, info);
 
     }
 

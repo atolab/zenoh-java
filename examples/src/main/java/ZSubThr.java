@@ -18,8 +18,8 @@ class ZSubThr {
     }
 
     private static class Listener implements SubscriberCallback {
-        public void handle(z_resource_id_t rid, ByteBuffer data, DataInfo info) {
-                if (count == 0) {
+        public void handle(String rname, ByteBuffer data, DataInfo info) {
+            if (count == 0) {
                 start = System.currentTimeMillis();
                 count ++;
             } else if (count < N) {
@@ -27,6 +27,7 @@ class ZSubThr {
             } else {
                 stop = System.currentTimeMillis();
                 printStats(start, stop);
+                System.gc();
                 count = 0;
             }
         }

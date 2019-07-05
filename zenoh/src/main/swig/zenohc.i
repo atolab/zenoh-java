@@ -265,7 +265,6 @@ jmethodID data_info_constr = NULL;
 jmethodID reply_value_constr = NULL;
 
 
-
 jint JNI_OnLoad(JavaVM* vm, void* reserved) {
   jvm = vm;
   JNIEnv* jenv;
@@ -273,7 +272,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
     printf("Unexpected error retrieving JNIEnv in JNI_OnLoad()\n");
     return JNI_ERR;
   }
-  
+
   // Caching classes. Note that we need to convert those as a GlobalRef since they are local by default and might be GCed.
   jclass bb_class = (*jenv)->FindClass(jenv, "java/nio/ByteBuffer");
   assert_no_exception;
@@ -321,10 +320,10 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
   assert_no_exception;
 
   subscriber_handle_method = (*jenv)->GetMethodID(jenv, jni_subscriber_callback_class,
-    "handle", "(JLjava/nio/ByteBuffer;Lio/zenoh/DataInfo;)V");
+    "handle", "(Ljava/lang/String;Ljava/nio/ByteBuffer;Lio/zenoh/DataInfo;)V");
   assert_no_exception;
   storage_subscriber_callback_method = (*jenv)->GetMethodID(jenv, jni_storage_class,
-    "subscriberCallback", "(JLjava/nio/ByteBuffer;Lio/zenoh/DataInfo;)V");
+    "subscriberCallback", "(Ljava/lang/String;Ljava/nio/ByteBuffer;Lio/zenoh/DataInfo;)V");
   assert_no_exception;
   storage_query_handler_method = (*jenv)->GetMethodID(jenv, jni_storage_class,
     "queryHandler", "(Ljava/lang/String;Ljava/lang/String;)Lio/zenoh/swig/z_array_z_resource_t;");
@@ -358,7 +357,6 @@ void JNI_OnUnload(JavaVM *vm, void *reserved) {
     byte_buffer_class = NULL;
   }
 }
-
 
 JNIEnv * attach_native_thread() {
   // NOTE: a native thread calling Java must be attached to the JVM.
@@ -409,21 +407,26 @@ void jni_subscriber_callback(const z_resource_id_t *rid, const unsigned char *da
   callback_arg *jarg = arg;
   JNIEnv *jenv = attach_native_thread();
 
-  jlong jrid = 0 ;
-  z_resource_id_t * ridPtr = (z_resource_id_t *) malloc(sizeof(z_resource_id_t));
-  memmove(ridPtr, rid, sizeof(z_resource_id_t));
-  *(z_resource_id_t **)&jrid = ridPtr;
+  jstring jrname = NULL;
+  if (rid->kind == Z_STR_RES_ID) {
+    jrname = (*jenv)->NewStringUTF(jenv, rid->id.rname);
+  } else {
+    printf("INTERNAL ERROR: jni_subscriber_callback received a non-string z_resource_id_t with kind=%d", rid->kind);
+    return;
+  }
 
   native_to_jbuffer(jenv, data, length);
 
   jobject jinfo = (*jenv)->NewObject(jenv, data_info_class, data_info_constr, info.flags, info.encoding, info.kind);
   assert_no_exception;
 
-  (*jenv)->CallVoidMethod(jenv, jarg->callback_object, subscriber_handle_method, jrid, jbuffer, jinfo);
+  (*jenv)->CallVoidMethod(jenv, jarg->callback_object, subscriber_handle_method, jrname, jbuffer, jinfo);
   assert_no_exception;
 
-  delete_jbuffer(jenv);
   (*jenv)->DeleteLocalRef(jenv, jinfo);
+  assert_no_exception;
+  delete_jbuffer(jenv);
+  (*jenv)->DeleteLocalRef(jenv, jrname);
   assert_no_exception;
 }
 
@@ -431,20 +434,25 @@ void jni_storage_subscriber_callback(const z_resource_id_t *rid, const unsigned 
   callback_arg *jarg = arg;
   JNIEnv *jenv = attach_native_thread();
 
-  jlong jrid = 0 ;
-  z_resource_id_t * ridPtr = (z_resource_id_t *) malloc(sizeof(z_resource_id_t));
-  memmove(ridPtr, rid, sizeof(z_resource_id_t));
-  *(z_resource_id_t **)&jrid = ridPtr;
+  jstring jrname = NULL;
+  if (rid->kind == Z_STR_RES_ID) {
+    jrname = (*jenv)->NewStringUTF(jenv, rid->id.rname);
+  } else {
+    printf("INTERNAL ERROR: jni_subscriber_callback received a non-string z_resource_id_t with kind=%d", rid->kind);
+    return;
+  }
 
   native_to_jbuffer(jenv, data, length);
 
   jobject jinfo = (*jenv)->NewObject(jenv, data_info_class, data_info_constr, info.flags, info.encoding, info.kind);
   assert_no_exception;
 
-  (*jenv)->CallVoidMethod(jenv, jarg->callback_object, storage_subscriber_callback_method, jrid, jbuffer, jinfo);
+  (*jenv)->CallVoidMethod(jenv, jarg->callback_object, storage_subscriber_callback_method, jrname, jbuffer, jinfo);
   assert_no_exception;
 
   delete_jbuffer(jenv);
+  (*jenv)->DeleteLocalRef(jenv, jrname);
+  assert_no_exception;
 }
 
 z_array_z_resource_t jni_storage_query_handler(const char *rname, const char *predicate, void *arg) {

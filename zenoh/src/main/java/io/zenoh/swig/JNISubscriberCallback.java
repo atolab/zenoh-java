@@ -17,9 +17,8 @@ public class JNISubscriberCallback {
         this.cb = cb;
     }
 
-    protected void handle(long ridPtr, ByteBuffer data, DataInfo info) {
-        z_resource_id_t rid = new z_resource_id_t(ridPtr, true);
-        cb.handle(rid, data, info);
+    protected void handle(String rname, ByteBuffer data, DataInfo info) {
+        cb.handle(rname, data, info);
     }
 
 }
