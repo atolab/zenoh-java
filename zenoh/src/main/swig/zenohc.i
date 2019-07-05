@@ -211,7 +211,7 @@ int z_start_recv_loop(z_zenoh_t* z);
 
 int z_stop_recv_loop(z_zenoh_t* z);
 
-z_zenoh_t * 
+z_zenoh_p_result_t 
 z_open_wup(char* locator, const char * uname, const char *passwd);
 
 z_sub_p_result_t 
@@ -625,7 +625,7 @@ int z_start_recv_loop(z_zenoh_t* z);
 
 int z_stop_recv_loop(z_zenoh_t* z);
 
-z_zenoh_t * 
+z_zenoh_p_result_t 
 z_open_wup(char* locator, const char * uname, const char *passwd);
 
 z_sub_p_result_t 
