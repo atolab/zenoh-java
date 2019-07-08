@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import io.zenoh.Storage;
 import io.zenoh.DataInfo;
+import io.zenoh.Resource;
 
 public class JNIStorage {
 
@@ -21,15 +22,13 @@ public class JNIStorage {
 
     public void subscriberCallback(String rname, ByteBuffer data, DataInfo info) {
         sto.subscriberCallback(rname, data, info);
-
     }
 
-    public z_array_z_resource_t queryHandler(String rname, String predicate) {
+    public Resource[] queryHandler(String rname, String predicate) {
         return sto.queryHandler(rname, predicate);
     }
 
-    public void repliesCleaner(long repliesPtr) {
-        z_array_z_resource_t replies = new z_array_z_resource_t(repliesPtr, true);
+    public void repliesCleaner(Resource[] replies) {
         sto.repliesCleaner(replies);
     }
 

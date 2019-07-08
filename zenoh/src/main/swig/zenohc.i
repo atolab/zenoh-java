@@ -14,27 +14,10 @@
   return $jnicall;
 }
 %typemap(in) (const unsigned char *payload, size_t length) {
-  if ((*jenv)->CallIntMethod(jenv, $input, byte_buffer_is_direct_method)) {
-    $1 = (unsigned char *) (*jenv)->GetDirectBufferAddress(jenv, $input);
-  } else if ((*jenv)->CallIntMethod(jenv, $input, byte_buffer_has_array_method)) {
-    jarray array = (jbyteArray) (*jenv)->CallObjectMethod(jenv, $input, byte_buffer_array_method);
-    int offset = (int) (*jenv)->CallIntMethod(jenv, $input, byte_buffer_array_offset_method);
-    int position = (int) (*jenv)->CallIntMethod(jenv, $input, byte_buffer_position_method);
-    jboolean is_copy;
-    $1 = (unsigned char *) (*jenv)->GetByteArrayElements(jenv, array, &is_copy);
-    $1 = &$1[offset+position];
-  } else {
-    SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, "The ByteBuffer is neither a direct buffer, neither a wrap of an array - it's not supported");
-  }
-  $2 = (int) (*jenv)->CallIntMethod(jenv, $input, byte_buffer_remaining_method);
+  jbuffer_to_native(jenv, $input, $1, $2);
 }
 %typemap(freearg) (const unsigned char *payload, size_t length) {
-  if ((*jenv)->CallIntMethod(jenv, $input, byte_buffer_has_array_method)) {
-    jarray array = (jbyteArray) (*jenv)->CallObjectMethod(jenv, $input, byte_buffer_array_method);
-    int offset = (int) (*jenv)->CallIntMethod(jenv, $input, byte_buffer_array_offset_method);
-    int position = (int) (*jenv)->CallIntMethod(jenv, $input, byte_buffer_position_method);
-    (*jenv)->ReleaseByteArrayElements(jenv, array, (jbyte*) &$1[-offset-position], JNI_ABORT);
-  }
+  release_intermediate_byte_array(jenv, $input, $1, $2);
 }
 %typemap(memberin) (const unsigned char *payload, size_t length) {
   if ($input) {
@@ -60,6 +43,7 @@
   // that will be passed to jni_subscriber_callback() at each notification
   callback_arg *jarg = malloc(sizeof(callback_arg));
   jarg->callback_object = (*jenv)->NewGlobalRef(jenv, $input);
+  jarg->context = NULL;
   (*jenv)->DeleteLocalRef(jenv, $input);
 
   $1 = jni_subscriber_callback;
@@ -76,6 +60,7 @@
   // that will be passed to each call to jni_subscriber_callback, jni_query_handler and jni_replies_cleaner
   callback_arg *jarg = malloc(sizeof(callback_arg));
   jarg->callback_object = (*jenv)->NewGlobalRef(jenv, $input);
+  jarg->context = NULL;
   (*jenv)->DeleteLocalRef(jenv, $input);
 
   $1 = jni_storage_subscriber_callback;
@@ -94,6 +79,7 @@
   // that will be passed to jni_reply_callback() at each notification
   callback_arg *jarg = malloc(sizeof(callback_arg));
   jarg->callback_object = (*jenv)->NewGlobalRef(jenv, $input);
+  jarg->context = NULL;
   (*jenv)->DeleteLocalRef(jenv, $input);
 
   $1 = jni_reply_callback;
@@ -140,6 +126,10 @@ jmethodID storage_replies_cleaner_method = NULL;
 jmethodID reply_handle_method = NULL;
 jmethodID data_info_constr = NULL;
 jmethodID reply_value_constr = NULL;
+jmethodID resource_get_rname_method = NULL;
+jmethodID resource_get_data_method = NULL;
+jmethodID resource_get_encoding_method = NULL;
+jmethodID resource_get_kind_method = NULL;
 
 
 jint JNI_OnLoad(JavaVM* vm, void* reserved) {
@@ -170,6 +160,8 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
   jclass jni_storage_class = (*jenv)->FindClass(jenv, "io/zenoh/swig/JNIStorage");
   assert_no_exception;
   jclass jni_reply_callback_class = (*jenv)->FindClass(jenv, "io/zenoh/swig/JNIReplyCallback");
+  assert_no_exception;
+  jclass resource_class = (*jenv)->FindClass(jenv, "io/zenoh/Resource");
   assert_no_exception;
 
 
@@ -203,10 +195,10 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
     "subscriberCallback", "(Ljava/lang/String;Ljava/nio/ByteBuffer;Lio/zenoh/DataInfo;)V");
   assert_no_exception;
   storage_query_handler_method = (*jenv)->GetMethodID(jenv, jni_storage_class,
-    "queryHandler", "(Ljava/lang/String;Ljava/lang/String;)Lio/zenoh/swig/z_array_z_resource_t;");
+    "queryHandler", "(Ljava/lang/String;Ljava/lang/String;)[Lio/zenoh/Resource;");
   assert_no_exception;
   storage_replies_cleaner_method = (*jenv)->GetMethodID(jenv, jni_storage_class,
-    "repliesCleaner", "(J)V");
+    "repliesCleaner", "([Lio/zenoh/Resource;)V");
   assert_no_exception;
   reply_handle_method = (*jenv)->GetMethodID(jenv, jni_reply_callback_class,
    "handle", "(Lio/zenoh/ReplyValue;)V");
@@ -217,6 +209,14 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
   reply_value_constr = (*jenv)->GetMethodID(jenv, reply_value_class,
     "<init>", "(I[BJLjava/lang/String;Ljava/nio/ByteBuffer;Lio/zenoh/DataInfo;)V");
   assert_no_exception;
+  resource_get_rname_method = (*jenv)->GetMethodID(jenv, resource_class,
+   "getRname", "()Ljava/lang/String;");
+  resource_get_data_method = (*jenv)->GetMethodID(jenv, resource_class,
+   "getData", "()Ljava/nio/ByteBuffer;");
+  resource_get_encoding_method = (*jenv)->GetMethodID(jenv, resource_class,
+   "getEncoding", "()I");
+  resource_get_kind_method = (*jenv)->GetMethodID(jenv, resource_class,
+   "getKind", "()I");
 
   return JNI_VERSION_1_6;
 }
@@ -258,29 +258,56 @@ JNIEnv * attach_native_thread() {
   return jenv;
 }
 
+// Convert a Java ByteBuffer declared as 'jbuffer' into an 'unsigned char *data' and a 'int length'
+// NOTE: call release_intermediate_byte_array(jenv) after usage of jbuffer
+#define jbuffer_to_native(jenv, jbuffer, data, length) \
+  if ((*jenv)->CallIntMethod(jenv, jbuffer, byte_buffer_is_direct_method)) { \
+    data = (unsigned char *) (*jenv)->GetDirectBufferAddress(jenv, jbuffer); \
+  } else if ((*jenv)->CallIntMethod(jenv, jbuffer, byte_buffer_has_array_method)) { \
+    jarray array = (jbyteArray) (*jenv)->CallObjectMethod(jenv, jbuffer, byte_buffer_array_method); \
+    int offset = (int) (*jenv)->CallIntMethod(jenv, jbuffer, byte_buffer_array_offset_method); \
+    int position = (int) (*jenv)->CallIntMethod(jenv, jbuffer, byte_buffer_position_method); \
+    jboolean is_copy; \
+    data = (unsigned char *) (*jenv)->GetByteArrayElements(jenv, array, &is_copy); \
+    data = &data[offset+position]; \
+  } else { \
+    SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, "The ByteBuffer is neither a direct buffer, neither a wrap of an array - it's not supported"); \
+  } \
+  length = (int) (*jenv)->CallIntMethod(jenv, jbuffer, byte_buffer_remaining_method);
 
-#define native_to_jbuffer(jenv, data, length) \
-  jbyteArray jarray = (*jenv)->NewByteArray(jenv, length); \
+// Release an intermediate byte[] that may have been created by release_intermediate_byte_array
+#define release_intermediate_byte_array(jenv, jbuffer, data, length) \
+  if ((*jenv)->CallIntMethod(jenv, jbuffer, byte_buffer_has_array_method)) { \
+    jarray array = (jbyteArray) (*jenv)->CallObjectMethod(jenv, jbuffer, byte_buffer_array_method); \
+    int offset = (int) (*jenv)->CallIntMethod(jenv, jbuffer, byte_buffer_array_offset_method); \
+    int position = (int) (*jenv)->CallIntMethod(jenv, jbuffer, byte_buffer_position_method); \
+    (*jenv)->ReleaseByteArrayElements(jenv, array, (jbyte*) &data[-offset-position], JNI_ABORT); \
+  }
+
+// Convert an 'unsigned char *data' and a 'int length' into a Java ByteBuffer declared as 'jbuffer'
+#define native_to_jbuffer(jenv, data, length, jbuffer) \
+  jbyteArray jbuffer_array = (*jenv)->NewByteArray(jenv, length); \
   assert_no_exception; \
-  (*jenv)->SetByteArrayRegion(jenv, jarray, 0, length, (const jbyte*) data); \
+  (*jenv)->SetByteArrayRegion(jenv, jbuffer_array, 0, length, (const jbyte*) data); \
   assert_no_exception; \
-  jobject jbuffer = (*jenv)->CallStaticObjectMethod(jenv, byte_buffer_class, byte_buffer_wrap_method, jarray); \
+  jbuffer = (*jenv)->CallStaticObjectMethod(jenv, byte_buffer_class, byte_buffer_wrap_method, jbuffer_array); \
   assert_no_exception; \
 
-#define delete_jbuffer(jenv) \
+// delete a Java ByteBuffer created by native_to_jbuffer
+#define delete_jbuffer(jenv, jbuffer) \
   (*jenv)->DeleteLocalRef(jenv, jbuffer); \
-  (*jenv)->DeleteLocalRef(jenv, jarray); \
+  (*jenv)->DeleteLocalRef(jenv, jbuffer_array); \
   assert_no_exception;
 
 
 
 typedef struct {
-  JavaVM *jvm;
   jobject callback_object;
+  void *context;
 } callback_arg;
 
 
-void jni_subscriber_callback(const z_resource_id_t *rid, const unsigned char *data, size_t length, z_data_info_t info, void *arg) {
+void jni_subscriber_callback(const z_resource_id_t *rid, const unsigned char *data, size_t length, const z_data_info_t *info, void *arg) {
   callback_arg *jarg = arg;
   JNIEnv *jenv = attach_native_thread();
 
@@ -292,9 +319,10 @@ void jni_subscriber_callback(const z_resource_id_t *rid, const unsigned char *da
     return;
   }
 
-  native_to_jbuffer(jenv, data, length);
+  jobject jbuffer;
+  native_to_jbuffer(jenv, data, length, jbuffer);
 
-  jobject jinfo = (*jenv)->NewObject(jenv, data_info_class, data_info_constr, info.flags, info.encoding, info.kind);
+  jobject jinfo = (*jenv)->NewObject(jenv, data_info_class, data_info_constr, info->flags, info->encoding, info->kind);
   assert_no_exception;
 
   (*jenv)->CallVoidMethod(jenv, jarg->callback_object, subscriber_handle_method, jrname, jbuffer, jinfo);
@@ -302,12 +330,12 @@ void jni_subscriber_callback(const z_resource_id_t *rid, const unsigned char *da
 
   (*jenv)->DeleteLocalRef(jenv, jinfo);
   assert_no_exception;
-  delete_jbuffer(jenv);
+  delete_jbuffer(jenv, jbuffer);
   (*jenv)->DeleteLocalRef(jenv, jrname);
   assert_no_exception;
 }
 
-void jni_storage_subscriber_callback(const z_resource_id_t *rid, const unsigned char *data, size_t length, z_data_info_t info, void *arg) {
+void jni_storage_subscriber_callback(const z_resource_id_t *rid, const unsigned char *data, size_t length, const z_data_info_t *info, void *arg) {
   callback_arg *jarg = arg;
   JNIEnv *jenv = attach_native_thread();
 
@@ -319,15 +347,16 @@ void jni_storage_subscriber_callback(const z_resource_id_t *rid, const unsigned 
     return;
   }
 
-  native_to_jbuffer(jenv, data, length);
+  jobject jbuffer;
+  native_to_jbuffer(jenv, data, length, jbuffer);
 
-  jobject jinfo = (*jenv)->NewObject(jenv, data_info_class, data_info_constr, info.flags, info.encoding, info.kind);
+  jobject jinfo = (*jenv)->NewObject(jenv, data_info_class, data_info_constr, info->flags, info->encoding, info->kind);
   assert_no_exception;
 
   (*jenv)->CallVoidMethod(jenv, jarg->callback_object, storage_subscriber_callback_method, jrname, jbuffer, jinfo);
   assert_no_exception;
 
-  delete_jbuffer(jenv);
+  delete_jbuffer(jenv, jbuffer);
   (*jenv)->DeleteLocalRef(jenv, jrname);
   assert_no_exception;
 }
@@ -336,21 +365,88 @@ z_array_z_resource_t jni_storage_query_handler(const char *rname, const char *pr
   callback_arg *jarg = arg;
   JNIEnv *jenv = attach_native_thread();
 
+  if (jarg->context != NULL) {
+    printf("Internal error in jni_storage_query_handler: cannot serve query, as their is already an ongoing query (context is not NULL)\n");
+    Z_ARRAY_S_MAKE(z_resource_t, replies, 0);
+    return replies;
+  }
+
+  // Push a local frame that will be pop-ed at the end of jni_storage_replies_cleaner()
+  (*jenv)->PushLocalFrame(jenv, 1);
+  assert_no_exception;
+
   jstring jrname = (*jenv)->NewStringUTF(jenv, rname);
   jstring jpredicate = (*jenv)->NewStringUTF(jenv, predicate);
 
-  jobject jresult = (*jenv)->CallObjectMethod(jenv, jarg->callback_object, storage_query_handler_method, jrname, jpredicate);
+  // Call Storage.queryHandler()
+  jobjectArray jreplies = (jobjectArray) (*jenv)->CallObjectMethod(jenv, jarg->callback_object, storage_query_handler_method, jrname, jpredicate);
   assert_no_exception;
-  
-  z_array_z_resource_t *result = (z_array_z_resource_t *) 0;
-  result = *(z_array_z_resource_t **)&jresult;
+  // store jreplies in context to be used again in jni_storage_replies_cleaner()
+  jarg->context = (void*) jreplies;
 
-  return *result;
+  (*jenv)->DeleteLocalRef(jenv, jrname);
+  assert_no_exception;
+  (*jenv)->DeleteLocalRef(jenv, jpredicate);
+  assert_no_exception;
+
+  // Convert io.zenoh.Resource[] into z_array_z_resource_t
+  if (jreplies == NULL) {
+    Z_ARRAY_S_MAKE(z_resource_t, replies, 0);
+    return replies;
+  } else {
+    jsize len = (*jenv)->GetArrayLength(jenv, jreplies);
+    assert_no_exception;
+    Z_ARRAY_S_MAKE(z_resource_t, replies, len);
+    for (int i = 0; i < len; ++i) {
+      jobject jres = (*jenv)->GetObjectArrayElement(jenv, jreplies, i);
+
+      // rname
+      jstring jrname = (jstring) (*jenv)->CallObjectMethod(jenv, jres, resource_get_rname_method);
+      replies.elem[i].rname = (*jenv)->GetStringUTFChars(jenv, jrname, 0);
+      assert_no_exception;
+      replies.elem[i].context = (void*) jrname;
+
+      // data + length
+      jobject jbuffer = (*jenv)->CallObjectMethod(jenv, jres, resource_get_data_method);
+      assert_no_exception;
+      jbuffer_to_native(jenv, jbuffer, replies.elem[i].data, replies.elem[i].length);
+
+      // encoding and kind
+      replies.elem[i].encoding = (*jenv)->CallIntMethod(jenv, jres, resource_get_encoding_method);
+      assert_no_exception;
+      replies.elem[i].kind = (*jenv)->CallIntMethod(jenv, jres, resource_get_kind_method);
+      assert_no_exception;
+    }
+    return replies;
+  }
 }
 
 void jni_storage_replies_cleaner(z_array_z_resource_t replies, void *arg) {
+  callback_arg *jarg = arg;
+  JNIEnv *jenv = attach_native_thread();
 
-  // TODO.....
+  if (jarg->context == NULL) {
+    printf("Internal error in jni_storage_replies_cleaner: context is NULL ! No replies to clean\n");
+    return;
+  }
+
+  for (int i = 0; i < replies.length; ++i) {
+    jstring jrname = (jstring) replies.elem[i].context;
+    (*jenv)->ReleaseStringUTFChars(jenv, jrname, replies.elem[i].rname);
+    assert_no_exception;
+  }
+
+  // Call Storage.repliesCleaner()
+  jobjectArray jreplies = (jobjectArray) jarg->context;
+  (*jenv)->CallVoidMethod(jenv, jarg->callback_object, storage_replies_cleaner_method, jreplies);
+  assert_no_exception;
+
+  // reset context
+  jarg->context = NULL;
+
+  // Pop local Frame to release Resource[] allocated in jni_storage_query_handler()
+  (*jenv)->PopLocalFrame(jenv, NULL);
+  assert_no_exception;
 
 }
 
@@ -363,7 +459,8 @@ void jni_reply_callback(const z_reply_value_t *reply, void *arg) {
   (*jenv)->SetByteArrayRegion(jenv, jstoid, 0, reply->stoid_length, (const jbyte*) reply->stoid);
   assert_no_exception;
 
-  native_to_jbuffer(jenv, reply->data, reply->data_length);
+  jobject jbuffer;
+  native_to_jbuffer(jenv, reply->data, reply->data_length, jbuffer);
 
   jobject jinfo = (*jenv)->NewObject(jenv, data_info_class, data_info_constr,
     reply->info.flags, reply->info.encoding, reply->info.kind);
@@ -382,7 +479,7 @@ void jni_reply_callback(const z_reply_value_t *reply, void *arg) {
   assert_no_exception;
   (*jenv)->DeleteLocalRef(jenv, jinfo);
   assert_no_exception;
-  delete_jbuffer(jenv);
+  delete_jbuffer(jenv, jbuffer);
   (*jenv)->DeleteLocalRef(jenv, jstoid);
   assert_no_exception;
 }

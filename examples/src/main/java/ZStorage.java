@@ -14,17 +14,21 @@ class ZStorage extends Storage {
         this.stored.put(rname, data);
     }
 
-    public z_array_z_resource_t queryHandler(String rname, String predicate) {
+    public Resource[] queryHandler(String rname, String predicate) {
         System.out.println("Handling Query: " + rname);
 
-        return null;
-
+        // TODO: intersect operation
+        Resource[] replies = new Resource[stored.size()];
+        int i = 0;
+        for (Map.Entry<String, ByteBuffer> entry : stored.entrySet()) {
+            replies[i++] = new Resource(entry.getKey(), entry.getValue(), 0, 0);
+        }
+        return replies;
     }
 
-    public void repliesCleaner(z_array_z_resource_t replies) {
+    public void repliesCleaner(Resource[] replies) {
         System.out.println("Cleaning Replies.");
     }
-
 
 
     public static void main(String[] args) {
