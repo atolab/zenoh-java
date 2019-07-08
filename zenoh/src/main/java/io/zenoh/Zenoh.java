@@ -8,7 +8,6 @@ import io.zenoh.swig.SWIGTYPE_p_z_zenoh_t;
 import io.zenoh.swig.result_kind;
 import io.zenoh.swig.z_pub_p_result_t;
 import io.zenoh.swig.z_sto_p_result_t;
-import io.zenoh.swig.z_sub_mode_t;
 import io.zenoh.swig.z_sub_p_result_t;
 import io.zenoh.swig.z_zenoh_p_result_t;
 import io.zenoh.swig.zenohc;
@@ -68,7 +67,7 @@ public class Zenoh {
         return new Publisher(pub_result.getValue().getPub());
     }
 
-    public Subscriber declareSubscriber(String resource, z_sub_mode_t mode, SubscriberCallback callback) throws ZException {
+    public Subscriber declareSubscriber(String resource, SubMode mode, SubscriberCallback callback) throws ZException {
         LOG.debug("Call z_declare_subscriber for {}", resource);
         z_sub_p_result_t sub_result = zenohc.z_declare_subscriber(z, resource, mode, callback);
         if (sub_result.getTag().equals(result_kind.Z_ERROR_TAG)) {

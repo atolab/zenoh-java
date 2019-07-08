@@ -27,7 +27,7 @@ public class ReplyValue {
                 return Z_REPLY_FINAL;
             }
             else {
-                throw new ZException("INTERNAL ERROR: cannot create ReplyKind from int: "+numVal);
+                throw new ZException("INTERNAL ERROR: cannot create ReplyValue.Kind from int: "+numVal);
             }
         }
 
