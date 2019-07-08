@@ -89,7 +89,7 @@ $(SWIG_C_FILE): $(SWIG_FILE)
 
 
 
-all-cross: check-docker $(ZENOHC_COPY_DIR)/CMakeLists.txt \
+all-cross: all check-docker $(ZENOHC_COPY_DIR)/CMakeLists.txt \
 $(NATIVES_DIR)/linux_32/lib$(ZENOHC_LIB_NAME).so \
 $(NATIVES_DIR)/linux_64/lib$(ZENOHC_LIB_NAME).so \
 # $(NATIVES_DIR)/windows_32/$(ZENOHC_LIB_NAME).dll \

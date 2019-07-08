@@ -98,7 +98,9 @@
     </profile>
 
     <!-- default profile: zenoh-c is compiled in release mode
-         with ZENOH_DEBUG=0, and no Java exception check in JNI code -->
+         with ZENOH_DEBUG=0, and no Java exception check in JNI code.
+         Moreover, zenoh-c is cross-compiled for all supported platforms.
+    -->
     <profile>
       <id>release</id>
       <build>
@@ -116,6 +118,9 @@
                 </goals>
                 <configuration>
                   <executable>make</executable>
+                  <arguments>
+                    <argument>all-cross</argument>
+                  </arguments>
                   <environmentVariables>
                     <ZENOH_DEBUG>0</ZENOH_DEBUG>
                     <CMAKE_BUILD_TYPE>Release</CMAKE_BUILD_TYPE>
