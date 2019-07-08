@@ -2,8 +2,14 @@ package io.zenoh;
 
 import io.zenoh.swig.z_temporal_property_t;
 
+/**
+ * Subscription mode (used in {@link Zenoh#declareSubscriber(String, SubMode, SubscriberCallback)}).
+ */
 public class SubMode extends io.zenoh.swig.z_sub_mode_t {
 
+    /**
+     * The subscription mode kind.
+     */
     public enum Kind { 
         Z_PUSH_MODE((short)1),
         Z_PULL_MODE((short)2),

@@ -2,6 +2,9 @@ package io.zenoh;
 
 import java.nio.ByteBuffer;
 
+/**
+ * A resource with a name and a value (data).
+ */
 public class Resource {
 
     private String rname;
@@ -16,18 +19,30 @@ public class Resource {
         this.kind = kind;
     }
 
+    /**
+     * Return the resource name.
+     */
     public String getRname() {
         return rname;
     }
 
+    /**
+     * return the resource value.
+     */
     public ByteBuffer getData() {
         return data;
     }
 
+    /**
+     * Return the encoding of the resource value.
+     */
     public int getEncoding() {
         return encoding;
     }
 
+    /**
+     * Return the kind of the resource.
+     */
     public int getKind() {
         return kind;
     }

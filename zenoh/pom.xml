@@ -184,6 +184,34 @@
           </resources>
         </configuration>
       </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+            <execution>
+              <phase>prepare-package</phase>
+              <goals>
+                  <goal>javadoc</goal>
+              </goals>
+            </execution>
+        </executions>
+        <configuration>
+            <sourceFileIncludes>
+                <sourceFileInclude>io/zenoh/*.java</sourceFileInclude>
+            </sourceFileIncludes> 
+            <reportOutputDirectory>${project.build.directory}/site/docs/apidocs</reportOutputDirectory>
+            <additionalparam>-Xdoclint:none</additionalparam>
+            <groups>
+                <group>
+                    <title>Zenoh client API</title>
+                    <packages>io.zenoh.*</packages>
+                </group>
+            </groups>
+            <header>Zenoh ${project.version}</header>
+        </configuration>
+      </plugin> 
     </plugins>
   </build>
 

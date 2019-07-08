@@ -44,9 +44,7 @@ class ZSubThr {
             Zenoh z = Zenoh.open(locator);
 
             System.out.println("Declaring Subscriber...");
-            z_sub_mode_t mode = new z_sub_mode_t();
-            mode.setKind((short) 0x01);
-            Subscriber sub = z.declareSubscriber("/test/thr", mode, new Listener());
+            Subscriber sub = z.declareSubscriber("/test/thr", SubMode.push(), new Listener());
 
             Thread.sleep(60000);
 

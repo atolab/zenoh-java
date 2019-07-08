@@ -5,6 +5,9 @@ import java.nio.ByteBuffer;
 import io.zenoh.swig.z_pub_t;
 import io.zenoh.swig.zenohc;
 
+/**
+ * A Publisher associated to a resource (see {@link Zenoh#declarePublisher(String)}).
+ */
 public class Publisher {
 
     private z_pub_t pub;
@@ -13,24 +16,41 @@ public class Publisher {
         this.pub = pub;
     }
 
-    public void streamCompactData(ByteBuffer payload) throws ZException {
-        int result = zenohc.z_stream_compact_data(pub, payload);
+    /**
+     * Write a data with default encoding (0) and kind (0), using a Z_COMPACT_DATA message.
+     * @param data the data
+     * @throws ZException if write fails.
+     */
+    public void streamCompactData(ByteBuffer data) throws ZException {
+        int result = zenohc.z_stream_compact_data(pub, data);
         if (result != 0) {
-            throw new ZException("z_stream_compact_data of "+payload.capacity()+" bytes buffer failed", result);
+            throw new ZException("z_stream_compact_data of "+data.capacity()+" bytes buffer failed", result);
         }
     }
 
-    public void streamData(ByteBuffer payload) throws ZException {
-        int result = zenohc.z_stream_data(pub, payload);
+    /**
+     * Write a data with default encoding (0) and kind (0), using a Z_STREAM_DATA message.
+     * @param data the data
+     * @throws ZException if write fails.
+     */
+    public void streamData(ByteBuffer data) throws ZException {
+        int result = zenohc.z_stream_data(pub, data);
         if (result != 0) {
-            throw new ZException("z_stream_data of "+payload.capacity()+" bytes buffer failed", result);
+            throw new ZException("z_stream_data of "+data.capacity()+" bytes buffer failed", result);
         }
     }
 
-    public void streamData(ByteBuffer payload, short encoding, short kind) throws ZException {
-        int result = zenohc.z_stream_data_wo(pub, payload, encoding, kind);
+    /**
+     * Write a data with specified encoding and kind, using a Z_STREAM_DATA message.
+     * @param data the data
+     * @param encoding the data encoding.
+     * @param kind the data kind.
+     * @throws ZException if write fails.
+     */
+    public void streamData(ByteBuffer data, short encoding, short kind) throws ZException {
+        int result = zenohc.z_stream_data_wo(pub, data, encoding, kind);
         if (result != 0) {
-            throw new ZException("z_stream_data of "+payload.capacity()+" bytes buffer failed", result);
+            throw new ZException("z_stream_data of "+data.capacity()+" bytes buffer failed", result);
         }
     }
 

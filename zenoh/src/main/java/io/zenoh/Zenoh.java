@@ -13,6 +13,9 @@ import io.zenoh.swig.z_zenoh_p_result_t;
 import io.zenoh.swig.zenohc;
 
 
+/**
+ * The Zenoh client API.
+ */
 public class Zenoh {
 
     public static final char Z_STORAGE_DATA  = 0;
@@ -41,6 +44,12 @@ public class Zenoh {
         this.z = z;
     }
 
+    /**
+     * Open a connection to a Zenoh broker.
+     * @param locator the Zenoh broker's locator.
+     * @return a Zenoh object to be used for requests on the Zenoh broker.
+     * @throws ZException if connection fails.
+     */
     public static Zenoh open(String locator) throws ZException {
         LOG.debug("Call z_open on {}", locator);
         z_zenoh_p_result_t zenoh_result = zenohc.z_open(locator, null);
@@ -58,6 +67,12 @@ public class Zenoh {
         return new Zenoh(z);
     }
 
+    /**
+     * Declares a Publisher on a resource
+     * @param resource the resource published by the Publisher
+     * @return the Publisher to be used for publications.
+     * @throws ZException if declaration fails.
+     */
     public Publisher declarePublisher(String resource) throws ZException {
         LOG.debug("Call z_declare_publisher for {}", resource);
         z_pub_p_result_t pub_result = zenohc.z_declare_publisher(z, resource);
@@ -67,6 +82,14 @@ public class Zenoh {
         return new Publisher(pub_result.getValue().getPub());
     }
 
+    /**
+     * Declares a Subscriber on a resource
+     * @param resource the resource subscribed by the Subscriber.
+     * @param mode the subscription mode.
+     * @param callback the Subscriber's callback.
+     * @return the Subscriber.
+     * @throws ZException if declaration fails.
+     */
     public Subscriber declareSubscriber(String resource, SubMode mode, SubscriberCallback callback) throws ZException {
         LOG.debug("Call z_declare_subscriber for {}", resource);
         z_sub_p_result_t sub_result = zenohc.z_declare_subscriber(z, resource, mode, callback);
@@ -76,6 +99,12 @@ public class Zenoh {
         return new Subscriber(sub_result.getValue().getSub());
     }
 
+    /**
+     * Declares a Storage on a resource
+     * @param resource the resource stored by the Storage.
+     * @param storage the Storage implementation.
+     * @throws ZException if declaration fails.
+     */
     public void declareStorage(String resource, Storage storage)
         throws ZException
     {
@@ -87,6 +116,12 @@ public class Zenoh {
         storage.setZSto(sto_result.getValue().getSto());
     }
 
+    /**
+     * Write a data with default encoding (0) and kind (0) for a resource, using a Z_WRITE_DATA message.
+     * @param resource the resource.
+     * @param payload the data.
+     * @throws ZException if write fails.
+     */
     public void writeData(String resource, java.nio.ByteBuffer payload) throws ZException {
         int result = zenohc.z_write_data(z, resource, payload);
         if (result != 0) {
@@ -94,6 +129,14 @@ public class Zenoh {
         }
     }
 
+    /**
+     * Write a data with specified encoding and kind for a resource, using a Z_WRITE_DATA message.
+     * @param resource the resource.
+     * @param payload the data.
+     * @param encoding the data encoding.
+     * @param kind the data kind.
+     * @throws ZException if write fails.
+     */
     public void writeData(String resource, java.nio.ByteBuffer payload, short encoding, short kind) throws ZException {
         int result = zenohc.z_write_data_wo(z, resource, payload, encoding, kind);
         if (result != 0) {
@@ -101,11 +144,17 @@ public class Zenoh {
         }
     }
 
+    /**
+     * Query a resource with a predicate.
+     * @param resource the queried resource.
+     * @param predicate the predicate.
+     * @param callback the callback that will be called for the replies.
+     * @throws ZException
+     */
     public void query(String resource, String predicate, ReplyCallback callback) throws ZException {
         int result = zenohc.z_query(z, resource, predicate, callback);
         if (result != 0) {
             throw new ZException("z_query on "+resource+" failed", result);
         }
-
     }
 }

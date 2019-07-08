@@ -2,8 +2,15 @@ package io.zenoh;
 
 import java.nio.ByteBuffer;
 
+/**
+ * A reply to a query (see {@link Zenoh#query(String, String, ReplyCallback)}
+ * and {@link ReplyCallback#handle(ReplyValue)})
+ */
 public class ReplyValue {
 
+    /**
+     * The reply message kind.
+     */
     public enum Kind { 
         Z_STORAGE_DATA(0),
         Z_STORAGE_FINAL(1),
@@ -45,13 +52,13 @@ public class ReplyValue {
     private ByteBuffer data;
     private DataInfo info;
  
-    public ReplyValue(int kind, byte[] stoid, long rsn, String rname, ByteBuffer data, DataInfo info) 
+    protected ReplyValue(int kind, byte[] stoid, long rsn, String rname, ByteBuffer data, DataInfo info) 
         throws ZException
     {
         this(Kind.fromInt(kind), stoid, rsn, rname, data, info);
     }
 
-    public ReplyValue(Kind kind, byte[] stoid, long rsn, String rname, ByteBuffer data, DataInfo info) {
+    protected ReplyValue(Kind kind, byte[] stoid, long rsn, String rname, ByteBuffer data, DataInfo info) {
         this.kind = kind;
         this.stoid = stoid;
         this.rname = rname;
@@ -59,26 +66,45 @@ public class ReplyValue {
         this.info = info;
     }
 
+    /**
+     * Return the Reply message kind.
+     */
     public Kind getKind() {
         return kind;
     }
 
+    /**
+     * Return the StorageId of the storage that sent this reply.
+     */
     public byte[] getStoid() {
         return stoid;
     }
 
+    /**
+     * Return the request sequence number.
+     */
     public long getRsn() {
         return rsn;
     }
 
+    /**
+     * Return the resource name of this reply.
+     */
     public String getRname() {
         return rname;
     }
 
+    /**
+     * Return the data of this reply.
+     * @return
+     */
     public ByteBuffer getData() {
         return data;
     }
 
+    /**
+     * Return the DataInfo associated to this reply.
+     */
     public DataInfo getInfo() {
         return info;
     }
