@@ -1,7 +1,5 @@
 package io.zenoh;
 
-import java.io.IOException;
-
 import org.scijava.nativelib.NativeLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,9 +12,6 @@ import io.zenoh.swig.z_sub_mode_t;
 import io.zenoh.swig.z_sub_p_result_t;
 import io.zenoh.swig.z_zenoh_p_result_t;
 import io.zenoh.swig.zenohc;
-import io.zenoh.swig.JNIReplyCallback;
-import io.zenoh.swig.JNIStorage;
-import io.zenoh.swig.JNISubscriberCallback;
 
 
 public class Zenoh {
@@ -75,7 +70,7 @@ public class Zenoh {
 
     public Subscriber declareSubscriber(String resource, z_sub_mode_t mode, SubscriberCallback callback) throws ZException {
         LOG.debug("Call z_declare_subscriber for {}", resource);
-        z_sub_p_result_t sub_result = zenohc.z_declare_subscriber(z, resource, mode, new JNISubscriberCallback(callback));
+        z_sub_p_result_t sub_result = zenohc.z_declare_subscriber(z, resource, mode, callback);
         if (sub_result.getTag().equals(result_kind.Z_ERROR_TAG)) {
             throw new ZException("z_declare_subscriber on "+resource+" failed ", sub_result.getValue().getError());
         }
@@ -86,7 +81,7 @@ public class Zenoh {
         throws ZException
     {
         LOG.debug("Call z_declare_storage for {}", resource);
-        z_sto_p_result_t sto_result = zenohc.z_declare_storage(z, resource, new JNIStorage(storage));
+        z_sto_p_result_t sto_result = zenohc.z_declare_storage(z, resource, storage);
         if (sto_result.getTag().equals(result_kind.Z_ERROR_TAG)) {
             throw new ZException("z_declare_subscriber on "+resource+" failed ", sto_result.getValue().getError());
         }
@@ -108,7 +103,7 @@ public class Zenoh {
     }
 
     public void query(String resource, String predicate, ReplyCallback callback) throws ZException {
-        int result = zenohc.z_query(z, resource, predicate, new JNIReplyCallback(callback));
+        int result = zenohc.z_query(z, resource, predicate, callback);
         if (result != 0) {
             throw new ZException("z_query on "+resource+" failed", result);
         }
