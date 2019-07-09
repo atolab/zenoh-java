@@ -57,7 +57,7 @@
 %typemap(javain) (subscriber_callback_t callback, query_handler_t handler, replies_cleaner_t cleaner) "$javainput";
 %typemap(in,numinputs=1) (subscriber_callback_t callback, query_handler_t handler, replies_cleaner_t cleaner, void *arg) {
   // Store the Storage object in a callback_arg
-  // that will be passed to each call to jni_subscriber_callback, jni_query_handler and jni_replies_cleaner
+  // that will be passed to each call to jni_storage_subscriber_callback, jni_storage_query_handler and jni_storage_replies_cleaner
   callback_arg *jarg = malloc(sizeof(callback_arg));
   jarg->callback_object = (*jenv)->NewGlobalRef(jenv, $input);
   jarg->context = NULL;
@@ -361,14 +361,14 @@ void jni_storage_subscriber_callback(const z_resource_id_t *rid, const unsigned 
   assert_no_exception;
 }
 
-z_array_resource_t *jni_storage_query_handler(const char *rname, const char *predicate, void *arg) {
+void jni_storage_query_handler(const char *rname, const char *predicate, z_array_resource_t *replies, void *arg) {
   callback_arg *jarg = arg;
   JNIEnv *jenv = attach_native_thread();
 
   if (jarg->context != NULL) {
     printf("Internal error in jni_storage_query_handler: cannot serve query, as their is already an ongoing query (context is not NULL)\n");
-    Z_ARRAY_H_MAKE_Z_TYPE(resource_t, replies, 0);
-    return replies;
+    Z_ARRAY_H_INIT(z_resource_t, replies, 0);
+    return;
   }
 
   // Push a local frame that will be pop-ed at the end of jni_storage_replies_cleaner()
@@ -391,12 +391,12 @@ z_array_resource_t *jni_storage_query_handler(const char *rname, const char *pre
 
   // Convert io.zenoh.Resource[] into z_array_resource_t
   if (jreplies == NULL) {
-    Z_ARRAY_H_MAKE_Z_TYPE(resource_t, replies, 0);
-    return replies;
+    Z_ARRAY_H_INIT(z_resource_t, replies, 0);
+    return;
   } else {
     jsize len = (*jenv)->GetArrayLength(jenv, jreplies);
     assert_no_exception;
-    Z_ARRAY_H_MAKE_Z_TYPE(resource_t, replies, len);
+    Z_ARRAY_H_INIT(z_resource_t, replies, len);
     for (int i = 0; i < len; ++i) {
       jobject jres = (*jenv)->GetObjectArrayElement(jenv, jreplies, i);
 
@@ -417,7 +417,7 @@ z_array_resource_t *jni_storage_query_handler(const char *rname, const char *pre
       replies->elem[i].kind = (*jenv)->CallIntMethod(jenv, jres, resource_get_kind_method);
       assert_no_exception;
     }
-    return replies;
+    return;
   }
 }
 
