@@ -3,7 +3,9 @@ import io.zenoh.swig.*;
 
 import java.nio.ByteBuffer;
 import java.util.Map;
+import java.util.Vector;
 import java.util.HashMap;
+import java.util.List;
 
 class ZStorage extends Storage {
 
@@ -17,13 +19,13 @@ class ZStorage extends Storage {
     public Resource[] queryHandler(String rname, String predicate) {
         System.out.println("Handling Query: " + rname);
 
-        // TODO: intersect operation
-        Resource[] replies = new Resource[stored.size()];
-        int i = 0;
+        List<Resource> replies = new Vector<Resource>();
         for (Map.Entry<String, ByteBuffer> entry : stored.entrySet()) {
-            replies[i++] = new Resource(entry.getKey(), entry.getValue(), 0, 0);
+            if (Rname.intersect(rname, entry.getKey())) {
+                replies.add(new Resource(entry.getKey(), entry.getValue(), 0, 0));
+            }
         }
-        return replies;
+        return replies.toArray(new Resource[replies.size()]);
     }
 
     public void repliesCleaner(Resource[] replies) {
