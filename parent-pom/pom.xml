@@ -9,8 +9,8 @@
 	<version>0.3.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
-	<name>Zenoh</name>
-	<description>This is a parent POM with recommended dependencies for Zenoh API</description>
+	<name>Zenoh parent-pom</name>
+	<description>Parent POM for Zenoh</description>
 
 	<organization>
 		<name>ADLINK Technology</name>
