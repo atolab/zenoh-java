@@ -97,9 +97,9 @@
       </build>
     </profile>
 
-    <!-- default profile: zenoh-c is compiled in release mode
-         with ZENOH_DEBUG=0, and no Java exception check in JNI code.
-         Moreover, zenoh-c is cross-compiled for all supported platforms.
+    <!-- default profile: zenoh-c is cross-compiled for all supported platforms
+         in release mode with ZENOH_DEBUG=0, and no Java exception check in JNI code.
+         Moreover, the javadoc is generated.
     -->
     <profile>
       <id>release</id>
@@ -130,11 +130,41 @@
               </execution>
             </executions>
           </plugin>
+
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>3.1.0</version>
+            <executions>
+                <execution>
+                  <phase>prepare-package</phase>
+                  <goals>
+                      <goal>javadoc</goal>
+                  </goals>
+                </execution>
+            </executions>
+            <configuration>
+                <sourceFileIncludes>
+                    <sourceFileInclude>io/zenoh/*.java</sourceFileInclude>
+                </sourceFileIncludes> 
+                <reportOutputDirectory>${project.build.directory}/site/docs/apidocs</reportOutputDirectory>
+                <doclint>none</doclint>
+                <groups>
+                    <group>
+                        <title>Zenoh client API</title>
+                        <packages>io.zenoh.*</packages>
+                    </group>
+                </groups>
+                <header>Zenoh ${project.version}</header>
+            </configuration>
+          </plugin> 
         </plugins>
       </build>
     </profile>
   </profiles>
 
+
+  <!-- plugins for all profiles -->
   <build>
     <plugins>
       <plugin>
@@ -190,33 +220,6 @@
         </configuration>
       </plugin>
 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <version>3.1.0</version>
-        <executions>
-            <execution>
-              <phase>prepare-package</phase>
-              <goals>
-                  <goal>javadoc</goal>
-              </goals>
-            </execution>
-        </executions>
-        <configuration>
-            <sourceFileIncludes>
-                <sourceFileInclude>io/zenoh/*.java</sourceFileInclude>
-            </sourceFileIncludes> 
-            <reportOutputDirectory>${project.build.directory}/site/docs/apidocs</reportOutputDirectory>
-            <additionalparam>-Xdoclint:none</additionalparam>
-            <groups>
-                <group>
-                    <title>Zenoh client API</title>
-                    <packages>io.zenoh.*</packages>
-                </group>
-            </groups>
-            <header>Zenoh ${project.version}</header>
-        </configuration>
-      </plugin> 
     </plugins>
   </build>
 

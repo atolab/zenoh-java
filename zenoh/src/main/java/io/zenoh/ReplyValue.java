@@ -96,7 +96,6 @@ public class ReplyValue {
 
     /**
      * Return the data of this reply.
-     * @return
      */
     public ByteBuffer getData() {
         return data;
