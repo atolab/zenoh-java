@@ -68,7 +68,7 @@
       </build>
     </profile>
 
-    <!-- default profile: zenoh-c is compiled in debug mode
+    <!-- debug profile: zenoh-c is compiled in debug mode
          with ZENOH_DEBUG=2 -->
     <profile>
       <id>debug</id>
@@ -99,7 +99,7 @@
       </build>
     </profile>
 
-    <!-- default profile: zenoh-c is cross-compiled for all supported platforms
+    <!-- release profile: zenoh-c is cross-compiled for all supported platforms
          in release mode with ZENOH_DEBUG=0, and no Java exception check in JNI code.
          Moreover, the javadoc is generated.
     -->
