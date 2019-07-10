@@ -74,6 +74,7 @@
 
 
 	<modules>
+		<module>parent-pom</module>                
 		<module>zenoh</module>                
 		<module>examples</module>
 	</modules>
