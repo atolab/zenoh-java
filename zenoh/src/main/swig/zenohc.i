@@ -367,7 +367,8 @@ void jni_storage_query_handler(const char *rname, const char *predicate, z_array
 
   if (jarg->context != NULL) {
     printf("Internal error in jni_storage_query_handler: cannot serve query, as their is already an ongoing query (context is not NULL)\n");
-    Z_ARRAY_H_INIT(z_resource_t, replies, 0);
+    replies->length = 0;
+    replies->elem = NULL;
     return;
   }
 
@@ -391,30 +392,33 @@ void jni_storage_query_handler(const char *rname, const char *predicate, z_array
 
   // Convert io.zenoh.Resource[] into z_array_resource_t
   if (jreplies == NULL) {
-    Z_ARRAY_H_INIT(z_resource_t, replies, 0);
+    replies->length = 0;
+    replies->elem = NULL;
     return;
   } else {
     jsize len = (*jenv)->GetArrayLength(jenv, jreplies);
     assert_no_exception;
-    Z_ARRAY_H_INIT(z_resource_t, replies, len);
+    replies->length = len;
+    replies->elem = (z_resource_t**)malloc(sizeof(z_resource_t *) * replies->length);
     for (int i = 0; i < len; ++i) {
       jobject jres = (*jenv)->GetObjectArrayElement(jenv, jreplies, i);
+      replies->elem[i] = (z_resource_t *)malloc(sizeof(z_resource_t));
 
       // rname
       jstring jrname = (jstring) (*jenv)->CallObjectMethod(jenv, jres, resource_get_rname_method);
-      replies->elem[i].rname = (*jenv)->GetStringUTFChars(jenv, jrname, 0);
+      replies->elem[i]->rname = (*jenv)->GetStringUTFChars(jenv, jrname, 0);
       assert_no_exception;
-      replies->elem[i].context = (void*) jrname;
+      replies->elem[i]->context = (void*) jrname;
 
       // data + length
       jobject jbuffer = (*jenv)->CallObjectMethod(jenv, jres, resource_get_data_method);
       assert_no_exception;
-      jbuffer_to_native(jenv, jbuffer, replies->elem[i].data, replies->elem[i].length);
+      jbuffer_to_native(jenv, jbuffer, replies->elem[i]->data, replies->elem[i]->length);
 
       // encoding and kind
-      replies->elem[i].encoding = (*jenv)->CallIntMethod(jenv, jres, resource_get_encoding_method);
+      replies->elem[i]->encoding = (*jenv)->CallIntMethod(jenv, jres, resource_get_encoding_method);
       assert_no_exception;
-      replies->elem[i].kind = (*jenv)->CallIntMethod(jenv, jres, resource_get_kind_method);
+      replies->elem[i]->kind = (*jenv)->CallIntMethod(jenv, jres, resource_get_kind_method);
       assert_no_exception;
     }
     return;
@@ -437,8 +441,8 @@ void jni_storage_replies_cleaner(z_array_resource_t *replies, void *arg) {
 
   // clean java rname for each resource
   for (int i = 0; i < replies->length; ++i) {
-    jstring jrname = (jstring) replies->elem[i].context;
-    (*jenv)->ReleaseStringUTFChars(jenv, jrname, replies->elem[i].rname);
+    jstring jrname = (jstring) replies->elem[i]->context;
+    (*jenv)->ReleaseStringUTFChars(jenv, jrname, replies->elem[i]->rname);
     assert_no_exception;
   }
 
@@ -450,7 +454,14 @@ void jni_storage_replies_cleaner(z_array_resource_t *replies, void *arg) {
   assert_no_exception;
 
   // Free the C z_array_resource_t replies
-  Z_ARRAY_H_FREE(replies);
+  for (int i = 0; i < replies->length; ++i) {
+    free(replies->elem[i]);
+  }
+  if (replies->elem != NULL) {
+    free(replies->elem);
+    replies->length = 0;
+    replies->elem = NULL;
+  }
 }
 
 void jni_reply_callback(const z_reply_value_t *reply, void *arg) {
@@ -505,49 +516,9 @@ typedef struct {
   z_temporal_property_t tprop;
 } z_sub_mode_t;
 
-
-typedef struct {
-  unsigned int flags;
-  // TODO: Add support for timestamp
-  // unsigned long long timestamp;
-  unsigned short encoding;
-  unsigned short kind;  
-} z_data_info_t;
-
-typedef struct {
-  char kind;
-  const unsigned char *stoid; 
-  size_t stoid_length; 
-  z_vle_t rsn;
-  const char* rname;
-  const unsigned char *data;
-  size_t data_length;
-  z_data_info_t info;
-} z_reply_value_t;
-
-typedef union {  
-  z_vle_t rid;
-  char *rname;
-} z_res_id_t;
-
-typedef struct {
-  int kind;
-  z_res_id_t id; 
-} z_resource_id_t;
-
 typedef void (*z_reply_callback_t)(const z_reply_value_t *reply, void *arg);
 
 typedef void (*subscriber_callback_t)(const z_resource_id_t *rid, const unsigned char *data, size_t length, z_data_info_t info, void *arg);
-
-typedef struct {
-  const char* rname;
-  const unsigned char *data;
-  size_t length;
-  unsigned short encoding;
-  unsigned short kind; 
-} z_resource_t;
-
-typedef struct { unsigned int length; z_resource_t* elem; } z_array_resource_t;
 
 typedef z_array_resource_t (*query_handler_t)(const char *rname, const char *predicate, void *arg);
 typedef void (*replies_cleaner_t)(z_array_resource_t replies, void *arg);
@@ -588,7 +559,6 @@ z_zenoh_p_result_t
 z_open(char* locator, on_disconnect_t on_disconnect, const z_vec_t *ps);
 
 int z_start_recv_loop(z_zenoh_t* z);
-
 int z_stop_recv_loop(z_zenoh_t* z);
 
 z_zenoh_p_result_t 
