@@ -78,8 +78,6 @@
   </modules>
 
   <profiles>
-    <!-- default profile: zenoh-c is compiled in debug mode
-         with ZENOH_DEBUG unset (i.e. default value) -->
     <profile>
       <id>release</id>
       <modules>
