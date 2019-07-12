@@ -1,106 +1,105 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0" 
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
 
-	<groupId>io.zenoh</groupId>
-	<artifactId>parent-pom</artifactId>
-	<version>0.3.0-SNAPSHOT</version>
-	<packaging>pom</packaging>
+  <groupId>io.zenoh</groupId>
+  <artifactId>parent-pom</artifactId>
+  <version>0.3.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
 
-	<name>Zenoh parent-pom</name>
-	<description>Parent POM for Zenoh</description>
+  <name>Zenoh parent-pom</name>
+  <description>Parent POM for Zenoh</description>
 
-	<organization>
-		<name>ADLINK Technology</name>
-		<url>https://www.adlinktech.com/</url>
-	</organization>
+  <organization>
+    <name>ADLINK Technology</name>
+    <url>https://www.adlinktech.com/</url>
+  </organization>
 
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<maven.compiler.source>1.8</maven.compiler.source>
-		<maven.compiler.target>1.8</maven.compiler.target>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
 
-		<slf4j-version>1.7.25</slf4j-version>
-		<native-lib-loader-version>2.3.4</native-lib-loader-version>
-		<junit-version>4.12</junit-version>
-		<logback-version>1.2.3</logback-version>
+    <slf4j-version>1.7.25</slf4j-version>
+    <native-lib-loader-version>2.3.4</native-lib-loader-version>
+    <junit-version>4.12</junit-version>
+    <logback-version>1.2.3</logback-version>
 
-		<maven-surefire-plugin-version>2.22.0</maven-surefire-plugin-version>
-		<exec-maven-plugin-version>1.6.0</exec-maven-plugin-version>
-		<build-helper-maven-plugin-version>3.0.0</build-helper-maven-plugin-version>
-		<maven-resources-plugin-version>3.1.0</maven-resources-plugin-version>
-		<maven-javadoc-plugin-version>3.1.0</maven-javadoc-plugin-version>
-	</properties>
+    <maven-surefire-plugin-version>2.22.0</maven-surefire-plugin-version>
+    <exec-maven-plugin-version>1.6.0</exec-maven-plugin-version>
+    <build-helper-maven-plugin-version>3.0.0</build-helper-maven-plugin-version>
+    <maven-resources-plugin-version>3.1.0</maven-resources-plugin-version>
+    <maven-javadoc-plugin-version>3.1.0</maven-javadoc-plugin-version>
+  </properties>
 
-	<dependencyManagement>
-		<dependencies>
-			<!-- for logging -->
-			<dependency>
-				<groupId>org.slf4j</groupId>
-				<artifactId>slf4j-api</artifactId>
-				<version>${slf4j-version}</version>
-			</dependency>
+  <dependencyManagement>
+    <dependencies>
+      <!-- for logging -->
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>${slf4j-version}</version>
+      </dependency>
 
-			<!-- for native libraries loading -->
-			<dependency>
-				<groupId>org.scijava</groupId>
-				<artifactId>native-lib-loader</artifactId>
-				<version>${native-lib-loader-version}</version>
-			</dependency>
+      <!-- for native libraries loading -->
+      <dependency>
+        <groupId>org.scijava</groupId>
+        <artifactId>native-lib-loader</artifactId>
+        <version>${native-lib-loader-version}</version>
+      </dependency>
 
-			<!-- for testing -->
-			<dependency>
-				<groupId>junit</groupId>
-				<artifactId>junit</artifactId>
-				<version>${junit-version}</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>ch.qos.logback</groupId>
-				<artifactId>logback-core</artifactId>
-				<version>${logback-version}</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>ch.qos.logback</groupId>
-				<artifactId>logback-classic</artifactId>
-				<version>${logback-version}</version>
-				<scope>test</scope>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
+      <!-- for testing -->
+      <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>${junit-version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-core</artifactId>
+        <version>${logback-version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-classic</artifactId>
+        <version>${logback-version}</version>
+        <scope>test</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
-	<build>
-		<pluginManagement>
-			<plugins>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-surefire-plugin</artifactId>
-					<version>${maven-surefire-plugin-version}</version>
-				</plugin>
-				<plugin>
-					<groupId>org.codehaus.mojo</groupId>
-					<artifactId>exec-maven-plugin</artifactId>
-					<version>${exec-maven-plugin-version}</version> 
-				</plugin>
-				<plugin>
-					<groupId>org.codehaus.mojo</groupId>
-					<artifactId>build-helper-maven-plugin</artifactId>
-					<version>${build-helper-maven-plugin-version}</version>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-resources-plugin</artifactId>
-					<version>${maven-resources-plugin-version}</version>
-				</plugin>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-javadoc-plugin</artifactId>
-					<version>${maven-javadoc-plugin-version}</version>
-				</plugin>
-			</plugins>
-		</pluginManagement>
-	</build>
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>${maven-surefire-plugin-version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>exec-maven-plugin</artifactId>
+          <version>${exec-maven-plugin-version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>build-helper-maven-plugin</artifactId>
+          <version>${build-helper-maven-plugin-version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-resources-plugin</artifactId>
+          <version>${maven-resources-plugin-version}</version>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>${maven-javadoc-plugin-version}</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
 </project>
