@@ -121,6 +121,7 @@
 #include "zenoh/msg.h"
 #include "zenoh/codec.h"
 #include "zenoh/recv_loop.h"
+#include "zenoh/rname.h"
 #include "zenoh.h"
 #include <assert.h>
 
