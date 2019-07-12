@@ -51,7 +51,8 @@ class ZQuery {
             System.out.println("Send query for "+uri);
             z.query(uri,  "", new ReplyHandler());
 
-            Thread.sleep(60000);
+            Thread.sleep(1000);
+            z.close();
         } catch (Throwable e) {
             e.printStackTrace();
         }

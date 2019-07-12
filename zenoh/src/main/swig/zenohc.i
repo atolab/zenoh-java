@@ -4,28 +4,55 @@
 /*----- typemap for basic types -------*/
 %include "stdint.i"
 
+/*----- typemap for z_vec_t to Properties -------*/
+%typemap(jni) z_vec_t "jobject"
+%typemap(jtype) z_vec_t "java.util.Properties"
+%typemap(jstype) z_vec_t "java.util.Properties"
+%typemap(out) z_vec_t {
+  // TODO: copy all properties from z_vec_t
+  jobject jprops = (*jenv)->NewObject(jenv, properties_class, properties_constr);
+
+  z_array_uint8_t peer_pid_array = ((z_property_t *)z_vec_get(&$1, Z_INFO_PEER_PID_KEY))->value;
+  char *peer_pid = malloc((peer_pid_array.length*2+1)*sizeof(char));
+  for(int i = 0; i < peer_pid_array.length; ++i){
+    sprintf(peer_pid + 2*i, "%02x", peer_pid_array.elem[i]);
+  }
+  peer_pid[peer_pid_array.length*2+1] = 0;
+  printf("PEER PID : %s\n", peer_pid);
+
+  jstring peer_pid_key = (*jenv)->NewStringUTF(jenv, "peer_pid");
+  jstring peer_pid_val = (*jenv)->NewStringUTF(jenv, peer_pid);
+  (*jenv)->CallObjectMethod(jenv, jprops, set_property_method, peer_pid_key, peer_pid_val);
+  free(peer_pid);
+  $result = jprops;
+}
+%typemap(javaout) z_vec_t {
+    return $jnicall;
+}
+// TODO: typemap(in) for z_open()
+
 
 /*----- typemap for payload+length IN argument to ByteBuffer -------*/
 %typemap(jni) (const unsigned char *payload, size_t length) "jobject"
 %typemap(jtype) (const unsigned char *payload, size_t length) "java.nio.ByteBuffer"
 %typemap(jstype) (const unsigned char *payload, size_t length) "java.nio.ByteBuffer"
 %typemap(javain, pre="  assert $javainput.isDirect() : \"Buffer must be allocated direct.\";") (const unsigned char *payload, size_t length) "$javainput"
-%typemap(javaout) (const unsigned char *payload, size_t length) {
-  return $jnicall;
-}
+// %typemap(javaout) (const unsigned char *payload, size_t length) {
+//   return $jnicall;
+// }
 %typemap(in) (const unsigned char *payload, size_t length) {
   jbuffer_to_native(jenv, $input, $1, $2);
 }
 %typemap(freearg) (const unsigned char *payload, size_t length) {
   release_intermediate_byte_array(jenv, $input, $1, $2);
 }
-%typemap(memberin) (const unsigned char *payload, size_t length) {
-  if ($input) {
-    $1 = $input;
-  } else {
-    $1 = 0;
-  }
-}
+// %typemap(memberin) (const unsigned char *payload, size_t length) {
+//   if ($input) {
+//     $1 = $input;
+//   } else {
+//     $1 = 0;
+//   }
+// }
 
 /*----- typemap for on_disconnect_t : erase it in Java and pass NULL to C -------*/
 %typemap(in, numinputs=0) on_disconnect_t on_disconnect {
@@ -109,9 +136,12 @@
 
 /*------ Caching of Java VM, classes, methods... ------*/
 JavaVM *jvm = NULL;
+jclass properties_class = NULL;
 jclass byte_buffer_class = NULL;
 jclass data_info_class = NULL;
 jclass reply_value_class = NULL;
+jmethodID properties_constr = NULL;
+jmethodID set_property_method = NULL;
 jmethodID byte_buffer_is_direct_method = NULL;
 jmethodID byte_buffer_has_array_method = NULL;
 jmethodID byte_buffer_array_method = NULL;
@@ -141,6 +171,10 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
   }
 
   // Caching classes. Note that we need to convert those as a GlobalRef since they are local by default and might be GCed.
+  jclass prop_class = (*jenv)->FindClass(jenv, "java/util/Properties");
+  assert_no_exception;
+  properties_class = (jclass) (*jenv)->NewGlobalRef(jenv, prop_class);
+  assert_no_exception;
   jclass bb_class = (*jenv)->FindClass(jenv, "java/nio/ByteBuffer");
   assert_no_exception;
   byte_buffer_class = (jclass) (*jenv)->NewGlobalRef(jenv, bb_class);
@@ -166,8 +200,11 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
 
 
   // Caching methods IDs.
-  byte_buffer_position_method = (*jenv)->GetMethodID(jenv, byte_buffer_class,
-    "position", "()I");
+  properties_constr = (*jenv)->GetMethodID(jenv, properties_class,
+    "<init>", "()V");
+  assert_no_exception;
+  set_property_method = (*jenv)->GetMethodID(jenv, properties_class,
+    "setProperty", "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Object;");
   assert_no_exception;
   byte_buffer_is_direct_method = (*jenv)->GetMethodID(jenv, byte_buffer_class,
     "isDirect", "()Z");
@@ -180,6 +217,9 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
   assert_no_exception;
   byte_buffer_array_offset_method = (*jenv)->GetMethodID(jenv, byte_buffer_class,
     "arrayOffset", "()I");
+  assert_no_exception;
+  byte_buffer_position_method = (*jenv)->GetMethodID(jenv, byte_buffer_class,
+    "position", "()I");
   assert_no_exception;
   byte_buffer_remaining_method = (*jenv)->GetMethodID(jenv, byte_buffer_class,
     "remaining", "()I");
@@ -553,16 +593,17 @@ typedef struct { enum result_kind tag; union { z_sub_t * sub; int error; } value
 typedef struct { enum result_kind tag; union { z_pub_t * pub; int error; } value;} z_pub_p_result_t; 
 typedef struct { enum result_kind tag; union { z_sto_t * sto; int error; } value;} z_sto_p_result_t; 
 
-
-
-z_zenoh_p_result_t 
-z_open(char* locator, on_disconnect_t on_disconnect, const z_vec_t *ps);
-
 int z_start_recv_loop(z_zenoh_t* z);
 int z_stop_recv_loop(z_zenoh_t* z);
 
 z_zenoh_p_result_t 
+z_open(char* locator, on_disconnect_t on_disconnect, const z_vec_t *ps);
+
+z_zenoh_p_result_t 
 z_open_wup(char* locator, const char * uname, const char *passwd);
+
+z_vec_t
+z_info(z_zenoh_t *z);
 
 z_sub_p_result_t 
 z_declare_subscriber(z_zenoh_t *z, const char* resource, const z_sub_mode_t *sm, subscriber_callback_t callback, void *arg);

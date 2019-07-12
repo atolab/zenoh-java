@@ -12,6 +12,7 @@ import io.zenoh.swig.z_sub_p_result_t;
 import io.zenoh.swig.z_zenoh_p_result_t;
 import io.zenoh.swig.zenohc;
 
+import java.util.Properties;
 
 /**
  * The Zenoh client API.
@@ -91,6 +92,19 @@ public class Zenoh {
 
         return new Zenoh(z);
     }
+
+    public void close() throws ZException {
+        LOG.debug("Call z_stop_recv_loop");
+        int stop_result = zenohc.z_stop_recv_loop(z);
+        if (stop_result != 0) {
+            throw new ZException("z_stop_recv_loop failed", stop_result);
+        }
+    }
+
+    public Properties info() {
+        return zenohc.z_info(z);
+    }
+
 
     /**
      * Declares a Publisher on a resource
