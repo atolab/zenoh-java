@@ -15,7 +15,7 @@ class ZStorage extends Storage {
         this.stored.put(rname, data);
     }
 
-    public Resource[] queryHandler(String rname, String predicate) {
+    public void queryHandler(String rname, String predicate, RepliesSender repliesSender) {
         System.out.println("Handling Query: " + rname);
 
         List<Resource> replies = new Vector<Resource>();
@@ -24,7 +24,7 @@ class ZStorage extends Storage {
                 replies.add(new Resource(entry.getKey(), entry.getValue(), 0, 0));
             }
         }
-        return replies.toArray(new Resource[replies.size()]);
+        repliesSender.sendReplies(replies.toArray(new Resource[replies.size()]));
     }
 
     public void repliesCleaner(Resource[] replies) {

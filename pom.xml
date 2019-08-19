@@ -78,6 +78,7 @@
   </modules>
 
   <profiles>
+    <!-- In release profile, add assembly module -->
     <profile>
       <id>release</id>
       <modules>
