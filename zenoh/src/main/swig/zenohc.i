@@ -333,11 +333,12 @@ JNIEnv * attach_native_thread() {
   assert_no_exception; \
   jbuffer = (*jenv)->CallStaticObjectMethod(jenv, byte_buffer_class, byte_buffer_wrap_method, jbuffer_array); \
   assert_no_exception; \
+  (*jenv)->DeleteLocalRef(jenv, jbuffer_array); \
+  assert_no_exception;
 
 // delete a Java ByteBuffer created by native_to_jbuffer
 #define delete_jbuffer(jenv, jbuffer) \
   (*jenv)->DeleteLocalRef(jenv, jbuffer); \
-  (*jenv)->DeleteLocalRef(jenv, jbuffer_array); \
   assert_no_exception;
 
 
@@ -515,7 +516,11 @@ void jni_reply_callback(const z_reply_value_t *reply, void *arg) {
   assert_no_exception;
 
   jobject jbuffer;
-  native_to_jbuffer(jenv, reply->data, reply->data_length, jbuffer);
+  if (reply->kind == Z_STORAGE_DATA) {
+    native_to_jbuffer(jenv, reply->data, reply->data_length, jbuffer);
+  } else {
+    jbuffer = 0;
+  }
 
   jobject jinfo = (*jenv)->NewObject(jenv, data_info_class, data_info_constr,
     reply->info.flags, reply->info.encoding, reply->info.kind);
@@ -534,7 +539,9 @@ void jni_reply_callback(const z_reply_value_t *reply, void *arg) {
   assert_no_exception;
   (*jenv)->DeleteLocalRef(jenv, jinfo);
   assert_no_exception;
-  delete_jbuffer(jenv, jbuffer);
+  if (reply->kind == Z_STORAGE_DATA) {
+    delete_jbuffer(jenv, jbuffer);
+  }
   (*jenv)->DeleteLocalRef(jenv, jstoid);
   assert_no_exception;
 }

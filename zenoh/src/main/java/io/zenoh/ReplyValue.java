@@ -95,7 +95,8 @@ public class ReplyValue {
     }
 
     /**
-     * Return the data of this reply.
+     * If the Reply message kind is Z_STORAGE_DATA this operation returns the data of this reply.
+     * Otherwise, it returns null.
      */
     public ByteBuffer getData() {
         return data;
