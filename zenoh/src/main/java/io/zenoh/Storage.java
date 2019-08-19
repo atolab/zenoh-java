@@ -19,22 +19,16 @@ public abstract class Storage {
     public abstract void subscriberCallback(String rname, ByteBuffer data, DataInfo info);
 
     /**
-     * The callback called for each query that matvches (partially or totally) the storage's resource
-     * (see {@link Zenoh#query(String, String, ReplyCallback)})
+     * The callback called for each query that matches (partially or totally) the storage's resource
+     * (see {@link Zenoh#query(String, String, ReplyCallback)}).
+     * The Storage implementer shall call the {@link RepliesSender#sendReplies(Resource[])} operation
+     * to return the results of the query. This call can be made in the current Thread or in a different Thread.
      * @param rname the queried resource.
      * @param predicate the query predicate.
+     * @param repliesSender the RepliesSender object to be used for sending replies to the query.
      */
-    public abstract Resource[] queryHandler(String rname, String predicate);
+    public abstract void queryHandler(String rname, String predicate, RepliesSender repliesSender);
 
-    /**
-     * The callback called after each call to {@link #queryHandler(String, String)},
-     * for possible cleanup of Resources created in the queryHandler.
-     * @param replies
-     */
-    public void repliesCleaner(Resource[] replies) {
-        // Do nothing by default.
-        // Overwrite this method if required.
-    }
 
     // For internal management
 
