@@ -510,16 +510,17 @@ void jni_reply_callback(const z_reply_value_t *reply, void *arg) {
   callback_arg *jarg = arg;
   JNIEnv *jenv = attach_native_thread();
 
-  jbyteArray jstoid = (*jenv)->NewByteArray(jenv, reply->stoid_length);
-  assert_no_exception;
-  (*jenv)->SetByteArrayRegion(jenv, jstoid, 0, reply->stoid_length, (const jbyte*) reply->stoid);
-  assert_no_exception;
+  jbyteArray jstoid = 0;
+  if (reply->kind != Z_REPLY_FINAL) {
+    jstoid = (*jenv)->NewByteArray(jenv, reply->stoid_length);
+    assert_no_exception;
+    (*jenv)->SetByteArrayRegion(jenv, jstoid, 0, reply->stoid_length, (const jbyte*) reply->stoid);
+    assert_no_exception;
+  }
 
-  jobject jbuffer;
+  jobject jbuffer = 0;
   if (reply->kind == Z_STORAGE_DATA) {
     native_to_jbuffer(jenv, reply->data, reply->data_length, jbuffer);
-  } else {
-    jbuffer = 0;
   }
 
   jobject jinfo = (*jenv)->NewObject(jenv, data_info_class, data_info_constr,
