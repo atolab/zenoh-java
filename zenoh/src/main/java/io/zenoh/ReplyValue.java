@@ -61,6 +61,7 @@ public class ReplyValue {
     protected ReplyValue(Kind kind, byte[] stoid, long rsn, String rname, ByteBuffer data, DataInfo info) {
         this.kind = kind;
         this.stoid = stoid;
+        this.rsn = rsn;
         this.rname = rname;
         this.data = data;
         this.info = info;
