@@ -6,7 +6,7 @@ import java.util.Vector;
 import java.util.HashMap;
 import java.util.List;
 
-class ZStorage extends Storage {
+class ZStorage implements StorageCallback {
 
     private Map<String, ByteBuffer> stored = new HashMap<String, ByteBuffer>();
 

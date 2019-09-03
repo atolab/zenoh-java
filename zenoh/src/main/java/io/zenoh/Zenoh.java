@@ -93,11 +93,19 @@ public class Zenoh {
         return new Zenoh(z);
     }
 
+    /**
+     * Close the connection to the Zenoh broker.
+     * @throws ZException if close failed.
+     */
     public void close() throws ZException {
         LOG.debug("Call z_stop_recv_loop");
         int stop_result = zenohc.z_stop_recv_loop(z);
         if (stop_result != 0) {
             throw new ZException("z_stop_recv_loop failed", stop_result);
+        }
+        int close_result = zenohc.z_close(z);
+        if (close_result != 0) {
+            throw new ZException("close_result failed", stop_result);
         }
     }
 
@@ -141,18 +149,19 @@ public class Zenoh {
     /**
      * Declares a Storage on a resource
      * @param resource the resource stored by the Storage.
-     * @param storage the Storage implementation.
+     * @param callback the Storage's callbacks.
+     * @return the Storage.
      * @throws ZException if declaration fails.
      */
-    public void declareStorage(String resource, Storage storage)
+    public Storage declareStorage(String resource, StorageCallback callback)
         throws ZException
     {
         LOG.debug("Call z_declare_storage for {}", resource);
-        z_sto_p_result_t sto_result = zenohc.z_declare_storage(z, resource, storage);
+        z_sto_p_result_t sto_result = zenohc.z_declare_storage(z, resource, callback);
         if (sto_result.getTag().equals(result_kind.Z_ERROR_TAG)) {
             throw new ZException("z_declare_subscriber on "+resource+" failed ", sto_result.getValue().getError());
         }
-        storage.setZSto(sto_result.getValue().getSto());
+        return new Storage(sto_result.getValue().getSto());
     }
 
     /**

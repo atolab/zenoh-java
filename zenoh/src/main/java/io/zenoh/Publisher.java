@@ -17,6 +17,17 @@ public class Publisher {
     }
 
     /**
+     * Undeclare the Publisher.
+     * @throws ZException if undeclaration failed.
+     */
+    public void undeclare() throws ZException {
+        int error = zenohc.z_undeclare_publisher(pub);
+        if (error != 0) {
+            throw new ZException("z_undeclare_publisher failed ", error);
+        }
+    }
+
+    /**
      * Write a data with default encoding (0) and kind (0), using a Z_COMPACT_DATA message.
      * @param data the data
      * @throws ZException if write fails.

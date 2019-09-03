@@ -79,11 +79,11 @@
 
 /*----- typemap for subscriber_callback_t + query_handler_t + arg in z_declare_storage -------*/
 %typemap(jni) (subscriber_callback_t callback, query_handler_t handler) "jobject";
-%typemap(jtype) (subscriber_callback_t callback, query_handler_t handler) "io.zenoh.Storage";
-%typemap(jstype) (subscriber_callback_t callback, query_handler_t handler) "io.zenoh.Storage";
+%typemap(jtype) (subscriber_callback_t callback, query_handler_t handler) "io.zenoh.StorageCallback";
+%typemap(jstype) (subscriber_callback_t callback, query_handler_t handler) "io.zenoh.StorageCallback";
 %typemap(javain) (subscriber_callback_t callback, query_handler_t handler) "$javainput";
 %typemap(in,numinputs=1) (subscriber_callback_t callback, query_handler_t handler, void *arg) {
-  // Store the Storage object in a callback_arg
+  // Store the StorageCallback object in a callback_arg
   // that will be passed to each call to jni_storage_subscriber_callback and jni_storage_query_handler
   callback_arg *jarg = malloc(sizeof(callback_arg));
   jarg->callback_object = (*jenv)->NewGlobalRef(jenv, $input);
@@ -239,7 +239,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
   // Non-cached classes that are used below to get methods IDs
   jclass subscriber_callback_class = (*jenv)->FindClass(jenv, "io/zenoh/SubscriberCallback");
   assert_no_exception;
-  jclass storage_class = (*jenv)->FindClass(jenv, "io/zenoh/Storage");
+  jclass storage_callback_class = (*jenv)->FindClass(jenv, "io/zenoh/StorageCallback");
   assert_no_exception;
   jclass reply_callback_class = (*jenv)->FindClass(jenv, "io/zenoh/ReplyCallback");
   assert_no_exception;
@@ -279,10 +279,10 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
   subscriber_handle_method = (*jenv)->GetMethodID(jenv, subscriber_callback_class,
     "handle", "(Ljava/lang/String;Ljava/nio/ByteBuffer;Lio/zenoh/DataInfo;)V");
   assert_no_exception;
-  storage_subscriber_callback_method = (*jenv)->GetMethodID(jenv, storage_class,
+  storage_subscriber_callback_method = (*jenv)->GetMethodID(jenv, storage_callback_class,
     "subscriberCallback", "(Ljava/lang/String;Ljava/nio/ByteBuffer;Lio/zenoh/DataInfo;)V");
   assert_no_exception;
-  storage_query_handler_method = (*jenv)->GetMethodID(jenv, storage_class,
+  storage_query_handler_method = (*jenv)->GetMethodID(jenv, storage_callback_class,
     "queryHandler", "(Ljava/lang/String;Ljava/lang/String;Lio/zenoh/RepliesSender;)V");
   assert_no_exception;
   replies_sender_constr = (*jenv)->GetMethodID(jenv, replies_sender_class,
@@ -473,7 +473,7 @@ void jni_storage_query_handler(const char *rname, const char *predicate, replies
     send_replies_ptr, query_handle_ptr);
   assert_no_exception;
 
-  // Call Storage.queryHandler()
+  // Call StorageCallback.queryHandler()
   (*jenv)->CallVoidMethod(jenv, jarg->callback_object, storage_query_handler_method, jrname, jpredicate, jrepliesSender);
   assert_no_exception;
 
@@ -615,6 +615,12 @@ int z_stream_data_wo(z_pub_t *pub, const unsigned char *payload, size_t length, 
 int z_write_data_wo(z_zenoh_t *z, const char* resource, const unsigned char *payload, size_t length, uint8_t encoding, uint8_t kind);
 
 int z_query(z_zenoh_t *z, const char* resource, const char* predicate, z_reply_callback_t callback, void *arg);
+
+int z_undeclare_subscriber(z_sub_t *z);
+int z_undeclare_publisher(z_pub_t *z);
+int z_undeclare_storage(z_sto_t *z);
+
+int z_close(z_zenoh_t *z);
 
 int intersect(char *c1, char *c2);
 
