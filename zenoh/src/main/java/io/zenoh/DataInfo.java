@@ -7,11 +7,13 @@ public class DataInfo {
 
     private long flags;
     private int encoding;
+    private long time;
     private int kind;
 
-    protected DataInfo(long flags, int encoding, int kind) {
+    protected DataInfo(long flags, int encoding, long time, int kind) {
         this.flags = flags;
         this.encoding = encoding;
+        this.time = time;
         this.kind = kind;
     }
 
@@ -27,6 +29,13 @@ public class DataInfo {
      */
     public int getEncoding() {
         return encoding;
+    }
+
+    /**
+     * Return the time.
+     */
+    public long getTime() {
+        return time;
     }
 
     /**

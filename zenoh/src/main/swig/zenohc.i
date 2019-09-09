@@ -292,7 +292,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
    "handle", "(Lio/zenoh/ReplyValue;)V");
   assert_no_exception;
   data_info_constr = (*jenv)->GetMethodID(jenv, data_info_class,
-    "<init>", "(JII)V");
+    "<init>", "(JIJI)V");
   assert_no_exception;
   reply_value_constr = (*jenv)->GetMethodID(jenv, reply_value_class,
     "<init>", "(I[BJLjava/lang/String;Ljava/nio/ByteBuffer;Lio/zenoh/DataInfo;)V");
@@ -411,7 +411,7 @@ void jni_subscriber_callback(const z_resource_id_t *rid, const unsigned char *da
   jobject jbuffer;
   native_to_jbuffer(jenv, data, length, jbuffer);
 
-  jobject jinfo = (*jenv)->NewObject(jenv, data_info_class, data_info_constr, info->flags, info->encoding, info->kind);
+  jobject jinfo = (*jenv)->NewObject(jenv, data_info_class, data_info_constr, info->flags, info->encoding, info->tstamp.time, info->kind);
   assert_no_exception;
 
   (*jenv)->CallVoidMethod(jenv, jarg->callback_object, subscriber_handle_method, jrname, jbuffer, jinfo);
@@ -439,7 +439,7 @@ void jni_storage_subscriber_callback(const z_resource_id_t *rid, const unsigned 
   jobject jbuffer;
   native_to_jbuffer(jenv, data, length, jbuffer);
 
-  jobject jinfo = (*jenv)->NewObject(jenv, data_info_class, data_info_constr, info->flags, info->encoding, info->kind);
+  jobject jinfo = (*jenv)->NewObject(jenv, data_info_class, data_info_constr, info->flags, info->encoding, info->tstamp.time, info->kind);
   assert_no_exception;
 
   (*jenv)->CallVoidMethod(jenv, jarg->callback_object, storage_subscriber_callback_method, jrname, jbuffer, jinfo);
@@ -503,7 +503,7 @@ void jni_reply_callback(const z_reply_value_t *reply, void *arg) {
   }
 
   jobject jinfo = (*jenv)->NewObject(jenv, data_info_class, data_info_constr,
-    reply->info.flags, reply->info.encoding, reply->info.kind);
+    reply->info.flags, reply->info.encoding, reply->info.tstamp.time, reply->info.kind);
   assert_no_exception;
 
   jstring jrname = (*jenv)->NewStringUTF(jenv, reply->rname);
