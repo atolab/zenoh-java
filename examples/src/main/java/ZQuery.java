@@ -47,11 +47,6 @@ class ZQuery {
             uri = args[1];
         }
 
-        String value = "Hello World!";
-        if (args.length > 2) {
-            value = args[2];
-        }
-
         try {
             System.out.println("Connecting to "+locator+"...");
             Zenoh z = Zenoh.open(locator);
