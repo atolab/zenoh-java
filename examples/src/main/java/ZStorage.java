@@ -27,11 +27,6 @@ class ZStorage implements StorageCallback {
         repliesSender.sendReplies(replies.toArray(new Resource[replies.size()]));
     }
 
-    public void repliesCleaner(Resource[] replies) {
-        System.out.println("Cleaning Replies.");
-    }
-
-
     public static void main(String[] args) {
         String locator = "tcp/127.0.0.1:7447";
         if (args.length > 0) {

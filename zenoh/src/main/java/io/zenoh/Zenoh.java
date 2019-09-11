@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 
 import io.zenoh.swig.SWIGTYPE_p_z_zenoh_t;
 import io.zenoh.swig.result_kind;
+import io.zenoh.swig.z_eval_p_result_t;
 import io.zenoh.swig.z_pub_p_result_t;
 import io.zenoh.swig.z_sto_p_result_t;
 import io.zenoh.swig.z_sub_p_result_t;
@@ -19,11 +20,6 @@ import java.util.Properties;
  */
 public class Zenoh {
 
-    public static final char Z_STORAGE_DATA  = 0;
-    public static final char Z_STORAGE_FINAL = 1;
-    public static final char Z_REPLY_FINAL   = 2;
-
-   
     private static final Logger LOG = LoggerFactory.getLogger("io.zenoh");
 
     static {
@@ -162,6 +158,23 @@ public class Zenoh {
             throw new ZException("z_declare_subscriber on "+resource+" failed ", sto_result.getValue().getError());
         }
         return new Storage(sto_result.getValue().getSto());
+    }
+
+    /**
+     * Declares a Eval on a resource
+     * @param callback the Eval's callbacks.
+     * @return the Eval.
+     * @throws ZException if declaration fails.
+     */
+    public Eval declareEval(String resource, EvalCallback callback)
+        throws ZException
+    {
+        LOG.debug("Call z_declare_eval for {}", resource);
+        z_eval_p_result_t eval_result = zenohc.z_declare_eval(z, resource, callback);
+        if (eval_result.getTag().equals(result_kind.Z_ERROR_TAG)) {
+            throw new ZException("z_declare_eval on "+resource+" failed ", eval_result.getValue().getError());
+        }
+        return new Eval(eval_result.getValue().getEval());
     }
 
     /**

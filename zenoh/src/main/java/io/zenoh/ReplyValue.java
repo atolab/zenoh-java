@@ -14,7 +14,9 @@ public class ReplyValue {
     public enum Kind { 
         Z_STORAGE_DATA(0),
         Z_STORAGE_FINAL(1),
-        Z_REPLY_FINAL(2);
+        Z_EVAL_DATA(2),
+        Z_EVAL_FINAL(3),
+        Z_REPLY_FINAL(4);
 
         private int numVal;
 
@@ -29,6 +31,12 @@ public class ReplyValue {
             }
             else if (numVal == Z_STORAGE_FINAL.value()) {
                 return Z_STORAGE_FINAL;
+            }
+            if (numVal == Z_EVAL_DATA.value()) {
+                return Z_EVAL_DATA;
+            }
+            else if (numVal == Z_EVAL_FINAL.value()) {
+                return Z_EVAL_FINAL;
             }
             else if (numVal == Z_REPLY_FINAL.value()) {
                 return Z_REPLY_FINAL;

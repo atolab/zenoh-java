@@ -95,6 +95,23 @@
   $3 = jarg;
 };
 
+/*----- typemap for query_handler_t + arg in z_declare_eval -------*/
+%typemap(jni) (query_handler_t handler) "jobject";
+%typemap(jtype) (query_handler_t handler) "io.zenoh.EvalCallback";
+%typemap(jstype) (query_handler_t handler) "io.zenoh.EvalCallback";
+%typemap(javain) (query_handler_t handler) "$javainput";
+%typemap(in,numinputs=1) (query_handler_t handler, void *arg) {
+  // Store the EvalCallback object in a callback_arg
+  // that will be passed to each call to jni_eval_query_handler
+  callback_arg *jarg = malloc(sizeof(callback_arg));
+  jarg->callback_object = (*jenv)->NewGlobalRef(jenv, $input);
+  jarg->context = NULL;
+  (*jenv)->DeleteLocalRef(jenv, $input);
+
+  $1 = jni_eval_query_handler;
+  $2 = jarg;
+};
+
 /*----- typemap for z_reply_callback_t + arg in z_query -------*/
 %typemap(jni) z_reply_callback_t callback "jobject";
 %typemap(jtype) z_reply_callback_t callback "io.zenoh.ReplyCallback";
@@ -196,6 +213,7 @@ jmethodID byte_buffer_wrap_method = NULL;
 jmethodID subscriber_handle_method = NULL;
 jmethodID storage_subscriber_callback_method = NULL;
 jmethodID storage_query_handler_method = NULL;
+jmethodID eval_query_handler_method = NULL;
 jmethodID replies_sender_constr = NULL;
 jmethodID reply_handle_method = NULL;
 jmethodID data_info_constr = NULL;
@@ -241,6 +259,8 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
   assert_no_exception;
   jclass storage_callback_class = (*jenv)->FindClass(jenv, "io/zenoh/StorageCallback");
   assert_no_exception;
+  jclass eval_callback_class = (*jenv)->FindClass(jenv, "io/zenoh/EvalCallback");
+  assert_no_exception;
   jclass reply_callback_class = (*jenv)->FindClass(jenv, "io/zenoh/ReplyCallback");
   assert_no_exception;
   jclass resource_class = (*jenv)->FindClass(jenv, "io/zenoh/Resource");
@@ -283,6 +303,9 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
     "subscriberCallback", "(Ljava/lang/String;Ljava/nio/ByteBuffer;Lio/zenoh/DataInfo;)V");
   assert_no_exception;
   storage_query_handler_method = (*jenv)->GetMethodID(jenv, storage_callback_class,
+    "queryHandler", "(Ljava/lang/String;Ljava/lang/String;Lio/zenoh/RepliesSender;)V");
+  assert_no_exception;
+  eval_query_handler_method = (*jenv)->GetMethodID(jenv, eval_callback_class,
     "queryHandler", "(Ljava/lang/String;Ljava/lang/String;Lio/zenoh/RepliesSender;)V");
   assert_no_exception;
   replies_sender_constr = (*jenv)->GetMethodID(jenv, replies_sender_class,
@@ -485,6 +508,41 @@ void jni_storage_query_handler(const char *rname, const char *predicate, replies
   assert_no_exception;
 }
 
+void jni_eval_query_handler(const char *rname, const char *predicate, replies_sender_t send_replies, void *query_handle, void *arg) {
+  callback_arg *jarg = arg;
+  JNIEnv *jenv = attach_native_thread();
+
+  if (jarg->context != NULL) {
+    printf("Internal error in jni_eval_query_handler: cannot serve query, as their is already an ongoing query (context is not NULL)\n");
+    z_array_resource_t replies;
+    replies.length = 0;
+    replies.elem = NULL;
+    send_replies(query_handle, replies);
+    return;
+  }
+
+  jstring jrname = (*jenv)->NewStringUTF(jenv, rname);
+  jstring jpredicate = (*jenv)->NewStringUTF(jenv, predicate);
+
+  // Create RepliesSender object
+  jlong send_replies_ptr = (jlong)send_replies;
+  jlong query_handle_ptr = (jlong)query_handle;
+  jobject jrepliesSender = (*jenv)->NewObject(jenv, replies_sender_class, replies_sender_constr,
+    send_replies_ptr, query_handle_ptr);
+  assert_no_exception;
+
+  // Call EvalCallback.queryHandler()
+  (*jenv)->CallVoidMethod(jenv, jarg->callback_object, eval_query_handler_method, jrname, jpredicate, jrepliesSender);
+  assert_no_exception;
+
+  (*jenv)->DeleteLocalRef(jenv, jrepliesSender);
+  assert_no_exception;
+  (*jenv)->DeleteLocalRef(jenv, jrname);
+  assert_no_exception;
+  (*jenv)->DeleteLocalRef(jenv, jpredicate);
+  assert_no_exception;
+}
+
 void jni_reply_callback(const z_reply_value_t *reply, void *arg) {
   callback_arg *jarg = arg;
   JNIEnv *jenv = attach_native_thread();
@@ -498,7 +556,7 @@ void jni_reply_callback(const z_reply_value_t *reply, void *arg) {
   }
 
   jobject jbuffer = 0;
-  if (reply->kind == Z_STORAGE_DATA) {
+  if (reply->kind == Z_STORAGE_DATA || reply->kind == Z_EVAL_DATA) {
     native_to_jbuffer(jenv, reply->data, reply->data_length, jbuffer);
   }
 
@@ -519,7 +577,7 @@ void jni_reply_callback(const z_reply_value_t *reply, void *arg) {
   assert_no_exception;
   (*jenv)->DeleteLocalRef(jenv, jinfo);
   assert_no_exception;
-  if (reply->kind == Z_STORAGE_DATA) {
+  if (reply->kind == Z_STORAGE_DATA || reply->kind == Z_EVAL_DATA) {
     delete_jbuffer(jenv, jbuffer);
   }
   (*jenv)->DeleteLocalRef(jenv, jstoid);
@@ -575,6 +633,12 @@ typedef struct {
   z_vle_t id;
 } z_pub_t;
 
+typedef struct {
+  z_zenoh_t *z;
+  z_vle_t rid;
+  z_vle_t id;
+} z_eva_t;
+
 enum result_kind {
   Z_OK_TAG,
   Z_ERROR_TAG
@@ -585,6 +649,7 @@ typedef struct { enum result_kind tag; union { z_zenoh_t * zenoh; int error; } v
 typedef struct { enum result_kind tag; union { z_sub_t * sub; int error; } value;} z_sub_p_result_t;
 typedef struct { enum result_kind tag; union { z_pub_t * pub; int error; } value;} z_pub_p_result_t; 
 typedef struct { enum result_kind tag; union { z_sto_t * sto; int error; } value;} z_sto_p_result_t; 
+typedef struct { enum result_kind tag; union { z_eva_t * eval; int error; } value;} z_eval_p_result_t; 
 
 int z_start_recv_loop(z_zenoh_t* z);
 int z_stop_recv_loop(z_zenoh_t* z);
@@ -607,6 +672,9 @@ z_declare_publisher(z_zenoh_t *z, const char *resource);
 z_sto_p_result_t 
 z_declare_storage(z_zenoh_t *z, const char* resource, subscriber_callback_t callback, query_handler_t handler, void *arg);
 
+z_eval_p_result_t 
+z_declare_eval(z_zenoh_t *z, const char* resource, query_handler_t handler, void *arg);
+
 int z_stream_compact_data(z_pub_t *pub, const unsigned char *payload, size_t length);
 int z_stream_data(z_pub_t *pub, const unsigned char *payload, size_t length);
 int z_write_data(z_zenoh_t *z, const char* resource, const unsigned char *payload, size_t length);
@@ -619,6 +687,7 @@ int z_query(z_zenoh_t *z, const char* resource, const char* predicate, z_reply_c
 int z_undeclare_subscriber(z_sub_t *z);
 int z_undeclare_publisher(z_pub_t *z);
 int z_undeclare_storage(z_sto_t *z);
+int z_undeclare_eval(z_eva_t *z);
 
 int z_close(z_zenoh_t *z);
 
