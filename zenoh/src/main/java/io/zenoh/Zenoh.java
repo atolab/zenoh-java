@@ -218,4 +218,10 @@ public class Zenoh {
             throw new ZException("z_query on "+resource+" failed", result);
         }
     }
+
+    protected static void LogException(Throwable e, String message) {
+        LOG.warn(message, e);
+    }
+
+
 }

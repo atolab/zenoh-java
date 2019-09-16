@@ -194,13 +194,16 @@
   }
 #endif
 
+
 /*------ Caching of Java VM, classes, methods... ------*/
 JavaVM *jvm = NULL;
+jclass zenoh_class = NULL;
 jclass properties_class = NULL;
 jclass byte_buffer_class = NULL;
 jclass data_info_class = NULL;
 jclass reply_value_class = NULL;
 jclass replies_sender_class = NULL;
+jmethodID log_exception_method = NULL;
 jmethodID properties_constr = NULL;
 jmethodID set_property_method = NULL;
 jmethodID byte_buffer_is_direct_method = NULL;
@@ -233,6 +236,10 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
   }
 
   // Caching classes. Note that we need to convert those as a GlobalRef since they are local by default and might be GCed.
+  jclass z_class = (*jenv)->FindClass(jenv, "io/zenoh/Zenoh");
+  assert_no_exception;
+  zenoh_class = (jclass) (*jenv)->NewGlobalRef(jenv, z_class);
+  assert_no_exception;
   jclass prop_class = (*jenv)->FindClass(jenv, "java/util/Properties");
   assert_no_exception;
   properties_class = (jclass) (*jenv)->NewGlobalRef(jenv, prop_class);
@@ -268,6 +275,9 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
 
 
   // Caching methods IDs.
+  log_exception_method = (*jenv)->GetStaticMethodID(jenv, zenoh_class,
+    "LogException", "(Ljava/lang/Throwable;Ljava/lang/String;)V");
+  assert_no_exception;
   properties_constr = (*jenv)->GetMethodID(jenv, properties_class,
     "<init>", "()V");
   assert_no_exception;
@@ -369,6 +379,18 @@ JNIEnv * attach_native_thread() {
   return jenv;
 }
 
+void catch_and_log_exception(JNIEnv* jenv, const char* msg) {
+  if ((*jenv)->ExceptionCheck(jenv)) {
+    jthrowable jex = (*jenv)->ExceptionOccurred(jenv);
+    jstring jmsg = (*jenv)->NewStringUTF(jenv, msg);
+    (*jenv)->CallStaticVoidMethod(jenv, zenoh_class, log_exception_method, jex, jmsg);
+    (*jenv)->ExceptionClear(jenv);
+    (*jenv)->DeleteLocalRef(jenv, jmsg);
+    assert_no_exception;
+  }
+}
+
+
 // Convert a Java ByteBuffer declared as 'jbuffer' into an 'unsigned char *data' and a 'int length'
 // NOTE: call release_intermediate_byte_array(jenv) after usage of jbuffer
 #define jbuffer_to_native(jenv, jbuffer, data, length) \
@@ -437,8 +459,9 @@ void jni_subscriber_callback(const z_resource_id_t *rid, const unsigned char *da
   jobject jinfo = (*jenv)->NewObject(jenv, data_info_class, data_info_constr, info->flags, info->encoding, info->tstamp.time, info->kind);
   assert_no_exception;
 
+  // Call SubscriberCallback.handle()
   (*jenv)->CallVoidMethod(jenv, jarg->callback_object, subscriber_handle_method, jrname, jbuffer, jinfo);
-  assert_no_exception;
+  catch_and_log_exception(jenv, "Exception caught calling SubscriberCallback.handle()");
 
   (*jenv)->DeleteLocalRef(jenv, jinfo);
   assert_no_exception;
@@ -465,8 +488,9 @@ void jni_storage_subscriber_callback(const z_resource_id_t *rid, const unsigned 
   jobject jinfo = (*jenv)->NewObject(jenv, data_info_class, data_info_constr, info->flags, info->encoding, info->tstamp.time, info->kind);
   assert_no_exception;
 
+  // Call StorageCallback.subscriberCallback()
   (*jenv)->CallVoidMethod(jenv, jarg->callback_object, storage_subscriber_callback_method, jrname, jbuffer, jinfo);
-  assert_no_exception;
+  catch_and_log_exception(jenv, "Exception caught calling StorageCallback.subscriberCallback()");
 
   delete_jbuffer(jenv, jbuffer);
   (*jenv)->DeleteLocalRef(jenv, jrname);
@@ -498,7 +522,7 @@ void jni_storage_query_handler(const char *rname, const char *predicate, replies
 
   // Call StorageCallback.queryHandler()
   (*jenv)->CallVoidMethod(jenv, jarg->callback_object, storage_query_handler_method, jrname, jpredicate, jrepliesSender);
-  assert_no_exception;
+  catch_and_log_exception(jenv, "Exception caught calling StorageCallback.queryHandler()");
 
   (*jenv)->DeleteLocalRef(jenv, jrepliesSender);
   assert_no_exception;
@@ -533,7 +557,7 @@ void jni_eval_query_handler(const char *rname, const char *predicate, replies_se
 
   // Call EvalCallback.queryHandler()
   (*jenv)->CallVoidMethod(jenv, jarg->callback_object, eval_query_handler_method, jrname, jpredicate, jrepliesSender);
-  assert_no_exception;
+  catch_and_log_exception(jenv, "Exception caught calling EvalCallback.queryHandler()");
 
   (*jenv)->DeleteLocalRef(jenv, jrepliesSender);
   assert_no_exception;
@@ -569,7 +593,9 @@ void jni_reply_callback(const z_reply_value_t *reply, void *arg) {
   jobject jreply = (*jenv)->NewObject(jenv, reply_value_class, reply_value_constr,
     reply->kind, jstoid, reply->rsn, jrname, jbuffer, jinfo);
 
+  // Call ReplyCallback.queryHandler()
   (*jenv)->CallVoidMethod(jenv, jarg->callback_object, reply_handle_method, jreply);
+  catch_and_log_exception(jenv, "Exception caught calling ReplyCallback.handle()");
 
   (*jenv)->DeleteLocalRef(jenv, jreply);
   assert_no_exception;
