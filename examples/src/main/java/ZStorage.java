@@ -1,5 +1,6 @@
 import io.zenoh.*;
 
+import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.Vector;
@@ -11,12 +12,12 @@ class ZStorage implements StorageCallback {
     private Map<String, ByteBuffer> stored = new HashMap<String, ByteBuffer>();
 
     public void subscriberCallback(String rname, ByteBuffer data, DataInfo info) {
-        System.out.println("Received data: " + rname);
+        System.out.printf(">> [Storage listener] Received ('%20s' : '%s')\n", rname, data.toString());
         this.stored.put(rname, data);
     }
 
     public void queryHandler(String rname, String predicate, RepliesSender repliesSender) {
-        System.out.println("Handling Query: " + rname);
+        System.out.printf(">> [Query handler   ] Handling '%s?%s'\n", rname, predicate);
 
         List<Resource> replies = new Vector<Resource>();
         for (Map.Entry<String, ByteBuffer> entry : stored.entrySet()) {
@@ -33,7 +34,7 @@ class ZStorage implements StorageCallback {
             locator = args[0];
         }
 
-        String uri = "/demo/**";
+        String uri = "/demo/example/**";
         if (args.length > 1) {
             uri = args[1];
         }
@@ -42,12 +43,14 @@ class ZStorage implements StorageCallback {
             System.out.println("Connecting to "+locator+"...");
             Zenoh z = Zenoh.open(locator);
 
-            System.out.println("Declaring Storage: "+uri);
-            z.declareStorage(uri, new ZStorage());
+            System.out.println("Declaring Storage on '"+uri+"'...");
+            Storage s = z.declareStorage(uri, new ZStorage());
 
-            while (true) {    
-                Thread.sleep(1000);
-            }
+            InputStreamReader stdin = new InputStreamReader(System.in);
+            while ((char) stdin.read() != 'q');
+
+            s.undeclare();
+            z.close();
         } catch (Throwable e) {
             e.printStackTrace();
         }

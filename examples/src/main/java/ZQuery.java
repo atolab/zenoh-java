@@ -10,27 +10,26 @@ class ZQuery {
                 case Z_EVAL_DATA:
                     java.nio.ByteBuffer data = reply.getData();
                     try {
-                        int len = Vle.decode(data);
-                        byte[] buf = new byte[len];
+                        byte[] buf = new byte[data.remaining()];
                         data.get(buf);
                         String s = new String(buf, "UTF-8");
                         if (reply.getKind() == ReplyValue.Kind.Z_STORAGE_DATA) {
-                            System.out.println("Received Storage Data. " + reply.getRname() + ":"+ s);
+                            System.out.printf(">> [Reply handler] received -Storage Data- ('%s': '%s')\n", reply.getRname(), s);
                         } else {
-                            System.out.println("Received Eval Data. " + reply.getRname() + ":"+ s);
+                            System.out.printf(">> [Reply handler] received -Eval Data-    ('%s': '%s')\n", reply.getRname(), s);
                         }
                     } catch (java.io.UnsupportedEncodingException e) {
-                        System.out.println("Error decoding data: "+e);
+                        System.out.println(">> [Reply handler] error decoding data: "+e);
                     }
                     break;
                 case Z_STORAGE_FINAL:
-                    System.out.println("Received Storage Final.");
+                    System.out.println(">> [Reply handler] received -Storage Final-");
                     break;
                 case Z_EVAL_FINAL:
-                    System.out.println("Received Eval Final.");
+                    System.out.println(">> [Reply handler] received -Eval Final-");
                     break;
                 case Z_REPLY_FINAL:
-                    System.out.println("Received Reply Final.");
+                    System.out.println(">> [Reply handler] received -Reply Final-");
                     break;
             }
         }
@@ -42,7 +41,7 @@ class ZQuery {
             locator = args[0];
         }
 
-        String uri = "/demo/**";
+        String uri = "/demo/example/**";
         if (args.length > 1) {
             uri = args[1];
         }
@@ -51,10 +50,11 @@ class ZQuery {
             System.out.println("Connecting to "+locator+"...");
             Zenoh z = Zenoh.open(locator);
 
-            System.out.println("Send query for "+uri);
+            System.out.println("Send query '"+uri+"'...");
             z.query(uri,  "", new ReplyHandler());
 
             Thread.sleep(1000);
+
             z.close();
         } catch (Throwable e) {
             e.printStackTrace();

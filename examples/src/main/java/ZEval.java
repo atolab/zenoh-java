@@ -1,15 +1,16 @@
 import io.zenoh.*;
 
+import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 
 class ZEval implements EvalCallback {
 
-    private static String uri = "/demo/eval";
+    private static String uri = "/demo/example/zenoh-java-eval";
 
     public void queryHandler(String rname, String predicate, RepliesSender repliesSender) {
-        System.out.println("Handling Query: " + rname);
+        System.out.printf(">> [Query handler] Handling '%s?%s'\n", rname, predicate);
     
-        ByteBuffer data = ByteBuffer.wrap("\13EVAL_RESULT".getBytes());
+        ByteBuffer data = ByteBuffer.wrap("Eval from Java!".getBytes());
         Resource[] replies = {
             new Resource(uri, data, 0, 0)
         };
@@ -31,12 +32,15 @@ class ZEval implements EvalCallback {
             System.out.println("Connecting to "+locator+"...");
             Zenoh z = Zenoh.open(locator);
 
-            System.out.println("Declaring Eval: "+uri);
-            z.declareEval(uri, new ZEval());
+            System.out.println("Declaring Eval on '"+uri+"'...");
+            Eval e = z.declareEval(uri, new ZEval());
 
-            while (true) {    
-                Thread.sleep(1000);
-            }
+            InputStreamReader stdin = new InputStreamReader(System.in);
+            while ((char) stdin.read() != 'q');
+
+            e.undeclare();
+            z.close();
+
         } catch (Throwable e) {
             e.printStackTrace();
         }
