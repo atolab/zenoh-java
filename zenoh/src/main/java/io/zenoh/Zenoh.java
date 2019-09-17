@@ -84,11 +84,15 @@ public class Zenoh {
         }
         SWIGTYPE_p_z_zenoh_t z = zenoh_result.getValue().getZenoh();
 
-        LOG.debug("Call z_start_recv_loop");
-        int loop_result = zenohc.z_start_recv_loop(z);
-        if (loop_result != 0) {
-            throw new ZException("z_start_recv_loop failed", loop_result);
-        }
+        new Thread(new Runnable(){
+            @Override
+            public void run() {
+                {
+                    LOG.debug("Run z_recv_loop");
+                    zenohc.z_recv_loop(z);
+                }
+            }
+        }).start();
 
         return new Zenoh(z);
     }
