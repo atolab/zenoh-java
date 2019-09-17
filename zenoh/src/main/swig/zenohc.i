@@ -356,18 +356,14 @@ void JNI_OnUnload(JavaVM *vm, void *reserved) {
   }
 }
 
-JNIEnv * attach_native_thread() {
-  // NOTE: a native thread calling Java must be attached to the JVM.
-  // Each callback from Zenoh should call this operation.
-  // We don't detach the thread as it causes huge impact on performances...
-
+JNIEnv * get_jenv() {
   JNIEnv * jenv;
   int getEnvStat = (*jvm)->GetEnv(jvm, (void **)&jenv, JNI_VERSION_1_8);
-  if (getEnvStat == JNI_EDETACHED) {
-    int status = (*jvm)->AttachCurrentThread(jvm, (void **) &jenv, NULL);
-    assert(status == 0);
-  } else if (getEnvStat == JNI_OK) {
+  if (getEnvStat == JNI_OK) {
     // nothing to do
+  } else if (getEnvStat == JNI_EDETACHED) {
+    printf("JNI ERROR: the current thread is not attached to the JVM. Either attach it or use a Java thread.\n");
+    assert(0);
   } else if (getEnvStat == JNI_EVERSION) {
     printf("JNI ERROR: JNI_VERSION_1_8 not supported\n");
     assert(0);
@@ -443,7 +439,7 @@ typedef struct {
 
 void jni_subscriber_callback(const z_resource_id_t *rid, const unsigned char *data, size_t length, const z_data_info_t *info, void *arg) {
   callback_arg *jarg = arg;
-  JNIEnv *jenv = attach_native_thread();
+  JNIEnv *jenv = get_jenv();
 
   jstring jrname = NULL;
   if (rid->kind == Z_STR_RES_ID) {
@@ -472,7 +468,7 @@ void jni_subscriber_callback(const z_resource_id_t *rid, const unsigned char *da
 
 void jni_storage_subscriber_callback(const z_resource_id_t *rid, const unsigned char *data, size_t length, const z_data_info_t *info, void *arg) {
   callback_arg *jarg = arg;
-  JNIEnv *jenv = attach_native_thread();
+  JNIEnv *jenv = get_jenv();
 
   jstring jrname = NULL;
   if (rid->kind == Z_STR_RES_ID) {
@@ -499,7 +495,7 @@ void jni_storage_subscriber_callback(const z_resource_id_t *rid, const unsigned 
 
 void jni_storage_query_handler(const char *rname, const char *predicate, replies_sender_t send_replies, void *query_handle, void *arg) {
   callback_arg *jarg = arg;
-  JNIEnv *jenv = attach_native_thread();
+  JNIEnv *jenv = get_jenv();
 
   if (jarg->context != NULL) {
     printf("Internal error in jni_storage_query_handler: cannot serve query, as their is already an ongoing query (context is not NULL)\n");
@@ -534,7 +530,7 @@ void jni_storage_query_handler(const char *rname, const char *predicate, replies
 
 void jni_eval_query_handler(const char *rname, const char *predicate, replies_sender_t send_replies, void *query_handle, void *arg) {
   callback_arg *jarg = arg;
-  JNIEnv *jenv = attach_native_thread();
+  JNIEnv *jenv = get_jenv();
 
   if (jarg->context != NULL) {
     printf("Internal error in jni_eval_query_handler: cannot serve query, as their is already an ongoing query (context is not NULL)\n");
@@ -569,7 +565,7 @@ void jni_eval_query_handler(const char *rname, const char *predicate, replies_se
 
 void jni_reply_callback(const z_reply_value_t *reply, void *arg) {
   callback_arg *jarg = arg;
-  JNIEnv *jenv = attach_native_thread();
+  JNIEnv *jenv = get_jenv();
 
   jbyteArray jstoid = 0;
   if (reply->kind != Z_REPLY_FINAL) {
@@ -618,8 +614,13 @@ void call_replies_sender(jlong send_replies_ptr, jlong query_handle_ptr, z_array
 
 %}
 
+void call_replies_sender(jlong send_replies_ptr, jlong query_handle_ptr, z_array_resource_t replies);
+
 #include <stdint.h>
 
+//
+// Copied from zenoh/types.h
+//
 typedef  size_t  z_vle_t;
 
 typedef struct {
@@ -639,7 +640,6 @@ typedef void (*subscriber_callback_t)(const z_resource_id_t *rid, const unsigned
 
 typedef void (*replies_sender_t)(void* query_handle, z_array_resource_t replies);
 typedef void (*query_handler_t)(const char *rname, const char *predicate, replies_sender_t send_replies, void *query_handle, void *arg);
-
 
 typedef struct {
   z_zenoh_t *z;
@@ -670,16 +670,28 @@ enum result_kind {
   Z_ERROR_TAG
 };
 
-
 typedef struct { enum result_kind tag; union { z_zenoh_t * zenoh; int error; } value;} z_zenoh_p_result_t; 
 typedef struct { enum result_kind tag; union { z_sub_t * sub; int error; } value;} z_sub_p_result_t;
 typedef struct { enum result_kind tag; union { z_pub_t * pub; int error; } value;} z_pub_p_result_t; 
 typedef struct { enum result_kind tag; union { z_sto_t * sto; int error; } value;} z_sto_p_result_t; 
 typedef struct { enum result_kind tag; union { z_eva_t * eval; int error; } value;} z_eval_p_result_t; 
 
+
+//
+// Copied from zenoh/recv_loop.h
+//
+void* z_recv_loop(z_zenoh_t* z);
+
+int z_running(z_zenoh_t* z);
+
 int z_start_recv_loop(z_zenoh_t* z);
+
 int z_stop_recv_loop(z_zenoh_t* z);
 
+
+//
+// Copied from zenoh.h
+//
 z_zenoh_p_result_t 
 z_open(char* locator, on_disconnect_t on_disconnect, const z_vec_t *ps);
 
@@ -717,6 +729,8 @@ int z_undeclare_eval(z_eva_t *z);
 
 int z_close(z_zenoh_t *z);
 
-int intersect(char *c1, char *c2);
 
-void call_replies_sender(jlong send_replies_ptr, jlong query_handle_ptr, z_array_resource_t replies);
+//
+// Copied from zenoh/rname.h
+//
+int intersect(char *c1, char *c2);
