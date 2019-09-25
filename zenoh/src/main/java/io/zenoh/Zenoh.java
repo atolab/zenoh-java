@@ -221,7 +221,20 @@ public class Zenoh {
      * @throws ZException
      */
     public void query(String resource, String predicate, ReplyCallback callback) throws ZException {
-        int result = zenohc.z_query(z, resource, predicate, callback);
+        query(resource, predicate, callback, QueryDest.bestMatch(), QueryDest.bestMatch());
+    }
+
+    /**
+     * Query a resource with a predicate.
+     * @param resource the queried resource.
+     * @param predicate the predicate.
+     * @param callback the callback that will be called for the replies.
+     * @param dest_storages the storages that should be destination of this query.
+     * @param dest_evals the evals that should be destination of this query.
+     * @throws ZException
+     */
+    public void query(String resource, String predicate, ReplyCallback callback, QueryDest dest_storages, QueryDest dest_evals) throws ZException {
+        int result = zenohc.z_query_wo(z, resource, predicate, callback, dest_storages, dest_evals);
         if (result != 0) {
             throw new ZException("z_query on "+resource+" failed", result);
         }

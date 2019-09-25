@@ -676,6 +676,10 @@ typedef struct { enum result_kind tag; union { z_pub_t * pub; int error; } value
 typedef struct { enum result_kind tag; union { z_sto_t * sto; int error; } value;} z_sto_p_result_t; 
 typedef struct { enum result_kind tag; union { z_eva_t * eval; int error; } value;} z_eval_p_result_t; 
 
+typedef struct {
+  uint8_t kind;
+  uint8_t nb;
+} z_query_dest_t;
 
 //
 // Copied from zenoh/recv_loop.h
@@ -720,7 +724,7 @@ int z_write_data(z_zenoh_t *z, const char* resource, const unsigned char *payloa
 int z_stream_data_wo(z_pub_t *pub, const unsigned char *payload, size_t length, uint8_t encoding, uint8_t kind);
 int z_write_data_wo(z_zenoh_t *z, const char* resource, const unsigned char *payload, size_t length, uint8_t encoding, uint8_t kind);
 
-int z_query(z_zenoh_t *z, const char* resource, const char* predicate, z_reply_callback_t callback, void *arg);
+int z_query_wo(z_zenoh_t *z, const char* resource, const char* predicate, z_reply_callback_t callback, void *arg, z_query_dest_t dest_storages, z_query_dest_t dest_evals);
 
 int z_undeclare_subscriber(z_sub_t *z);
 int z_undeclare_publisher(z_pub_t *z);
