@@ -40,13 +40,13 @@ class ZSubThr {
         }
 
         try {
-            System.out.println("Connecting to "+locator+"...");
             Zenoh z = Zenoh.open(locator);
-
-            System.out.println("Declaring Subscriber...");
             Subscriber sub = z.declareSubscriber("/test/thr", SubMode.push(), new Listener());
 
             Thread.sleep(60000);
+
+            sub.undeclare();
+            z.close();
 
         } catch (Throwable e) {
             e.printStackTrace();

@@ -19,21 +19,20 @@ class ZPubThr {
         String lenArg = args[0];
         if (lenArg.startsWith("I")) {
             len = Integer.parseInt(lenArg.substring(1));
-            data = java.nio.ByteBuffer.allocate(len+8);
+            data = java.nio.ByteBuffer.allocate(len);
             System.out.println("Running throughput test for payload of "+len+" bytes from a non-direct ByteBuffer");
         } else if (lenArg.startsWith("W")) {
             len = Integer.parseInt(lenArg.substring(1));
             byte[] array = new byte[len+8+1024];
-            data = java.nio.ByteBuffer.wrap(array, 100, len+8);
+            data = java.nio.ByteBuffer.wrap(array, 100, len);
             System.out.println("Running throughput test for payload of "+len+" bytes from a wrapped ByteBuffer");
         } else {
             len = Integer.parseInt(lenArg);
-            data = java.nio.ByteBuffer.allocateDirect(len+8);
+            data = java.nio.ByteBuffer.allocateDirect(len);
             System.out.println("Running throughput test for payload of "+len+" bytes from a direct ByteBuffer");
         }
 
         int posInit = data.position();
-        Vle.encode(data, len);
         for (int i = 0; i < len; ++i) {
             data.put((byte) (i%10));
         }
