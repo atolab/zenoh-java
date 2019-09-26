@@ -51,7 +51,7 @@ class ZQuery {
             Zenoh z = Zenoh.open(locator);
 
             System.out.println("Send query '"+uri+"'...");
-            z.query(uri,  "", new ReplyHandler());
+            z.query(uri,  "", new ReplyHandler(), QueryDest.all(), QueryDest.all());
 
             Thread.sleep(1000);
 
