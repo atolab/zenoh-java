@@ -23,7 +23,8 @@ class ZPubThr {
             System.out.println("Running throughput test for payload of "+len+" bytes from a non-direct ByteBuffer");
         } else if (lenArg.startsWith("W")) {
             len = Integer.parseInt(lenArg.substring(1));
-            byte[] array = new byte[len+8+1024];
+            // allocate more than len, to wrap with an offset and test the impact
+            byte[] array = new byte[len+1024];
             data = java.nio.ByteBuffer.wrap(array, 100, len);
             System.out.println("Running throughput test for payload of "+len+" bytes from a wrapped ByteBuffer");
         } else {
