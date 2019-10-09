@@ -1,5 +1,4 @@
 import io.zenoh.*;
-import io.zenoh.swig.*;
 
 import java.nio.ByteBuffer;
 

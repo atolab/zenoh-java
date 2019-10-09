@@ -18,7 +18,6 @@
     sprintf(peer_pid + 2*i, "%02x", peer_pid_array.elem[i]);
   }
   peer_pid[peer_pid_array.length*2+1] = 0;
-  printf("PEER PID : %s\n", peer_pid);
 
   jstring peer_pid_key = (*jenv)->NewStringUTF(jenv, "peer_pid");
   jstring peer_pid_val = (*jenv)->NewStringUTF(jenv, peer_pid);
