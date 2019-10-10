@@ -16,6 +16,18 @@ public class Subscriber {
     }
 
     /**
+     * Retrives data for a given pull-mode subscription from 
+     * the nearest infrastruture component (router).
+     * @throws ZException if pull failed.
+     */
+    public void pull() throws ZException {
+        int result = zenohc.z_pull(sub);
+        if (result != 0) {
+            throw new ZException("z_pull failed", result);
+        }
+    }
+
+    /**
      * Undeclare the Subscriber.
      * @throws ZException if undeclaration failed.
      */
