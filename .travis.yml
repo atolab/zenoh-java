@@ -2,6 +2,7 @@ before_install:
   - sudo apt-get install -y libev4
   - sudo apt-get install -y swig
 language: java
+jdk: openjdk8
 before_script:
   - curl -L -o zenohd https://github.com/atolab/atobin/raw/master/zenoh/unstable/ubuntu/16.04/zenohd
   - chmod +x zenohd
