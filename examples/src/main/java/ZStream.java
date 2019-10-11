@@ -20,7 +20,7 @@ class ZStream {
 
         try {
             System.out.println("Connecting to "+locator+"...");
-            Zenoh z = Zenoh.open(locator, "user", "password");
+            Zenoh z = Zenoh.open(locator);
 
             System.out.println("Declaring Publisher on '"+uri+"'...");
             Publisher pub = z.declarePublisher(uri);

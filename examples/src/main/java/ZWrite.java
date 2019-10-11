@@ -20,7 +20,7 @@ class ZWrite {
 
         try {
             System.out.println("Connecting to "+locator+"...");
-            Zenoh z = Zenoh.open(locator, "user", "password");
+            Zenoh z = Zenoh.open(locator);
 
             System.out.printf("Writing Data ('%s': '%s')...\n", uri, value);
             java.nio.ByteBuffer buf = java.nio.ByteBuffer.wrap(value.getBytes("UTF-8"));

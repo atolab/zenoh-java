@@ -69,35 +69,6 @@ public class Zenoh {
     }
 
     /**
-     * Open a connection to a Zenoh broker, using a login and password.
-     * @param locator the Zenoh broker's locator.
-     * @param uname the user name.
-     * @param passwd the password.
-     * @return a Zenoh object to be used for requests on the Zenoh broker.
-     * @throws ZException if connection fails.
-     */
-    public static Zenoh open(String locator, String uname, String passwd) throws ZException {
-        LOG.debug("Call z_open_wup on {}", locator);
-        z_zenoh_p_result_t zenoh_result = zenohc.z_open_wup(locator, uname, passwd);
-        if (zenoh_result.getTag().equals(result_kind.Z_ERROR_TAG)) {
-            throw new ZException("z_open on " + locator + " failed", zenoh_result.getValue().getError());
-        }
-        SWIGTYPE_p_z_zenoh_t z = zenoh_result.getValue().getZenoh();
-
-        new Thread(new Runnable(){
-            @Override
-            public void run() {
-                {
-                    LOG.debug("Run z_recv_loop");
-                    zenohc.z_recv_loop(z);
-                }
-            }
-        }).start();
-
-        return new Zenoh(z);
-    }
-
-    /**
      * Close the connection to the Zenoh broker.
      * @throws ZException if close failed.
      */
