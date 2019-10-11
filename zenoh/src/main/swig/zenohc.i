@@ -50,9 +50,24 @@
   $result = jprops;
 }
 %typemap(javaout) z_vec_t {
-    return $jnicall;
+  return $jnicall;
 }
-// TODO: typemap(in) for z_open()
+
+/*----- typemap for Properties to z_vec_t* -------*/
+%typemap(jni) (const z_vec_t *ps) "jobject"
+%typemap(jtype) (const z_vec_t *ps) "java.util.Properties"
+%typemap(jstype) (const z_vec_t *ps) "java.util.Properties"
+%typemap(javain) (const z_vec_t *ps) "$javainput"
+%typemap(in) (const z_vec_t *ps) {
+  z_vec_t vec = z_vec_make(2);
+  if($input != NULL) {
+    jstring user = (jstring) (*jenv)->CallObjectMethod(jenv, $input, get_property_method, (*jenv)->NewStringUTF(jenv, "user"));
+    if(user != NULL) z_vec_append(&vec, z_property_make_from_str(Z_USER_KEY, (char *)(*jenv)->GetStringUTFChars(jenv, user, 0)));
+    jstring password = (jstring) (*jenv)->CallObjectMethod(jenv, $input, get_property_method, (*jenv)->NewStringUTF(jenv, "password"));
+    if(password != NULL) z_vec_append(&vec, z_property_make_from_str(Z_PASSWD_KEY, (char *)(*jenv)->GetStringUTFChars(jenv, password, 0)));
+  }
+  $1 = &vec;
+}
 
 
 /*----- typemap for payload+length IN argument to ByteBuffer -------*/
@@ -229,6 +244,7 @@ jclass replies_sender_class = NULL;
 jmethodID log_exception_method = NULL;
 jmethodID properties_constr = NULL;
 jmethodID set_property_method = NULL;
+jmethodID get_property_method = NULL;
 jmethodID byte_buffer_is_direct_method = NULL;
 jmethodID byte_buffer_has_array_method = NULL;
 jmethodID byte_buffer_array_method = NULL;
@@ -306,6 +322,9 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
   assert_no_exception;
   set_property_method = (*jenv)->GetMethodID(jenv, properties_class,
     "setProperty", "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Object;");
+  assert_no_exception;
+  get_property_method = (*jenv)->GetMethodID(jenv, properties_class,
+    "getProperty", "(Ljava/lang/String;)Ljava/lang/String;");
   assert_no_exception;
   byte_buffer_is_direct_method = (*jenv)->GetMethodID(jenv, byte_buffer_class,
     "isDirect", "()Z");

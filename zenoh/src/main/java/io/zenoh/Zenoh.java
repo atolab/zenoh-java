@@ -48,8 +48,19 @@ public class Zenoh {
      * @throws ZException if connection fails.
      */
     public static Zenoh open(String locator) throws ZException {
+        return open(locator, null);
+    }
+
+    /**
+     * Open a connection to a Zenoh broker.
+     * @param locator the Zenoh broker's locator.
+     * @param properties the properties to send to the broker.
+     * @return a Zenoh object to be used for requests on the Zenoh broker.
+     * @throws ZException if connection fails.
+     */
+    public static Zenoh open(String locator, Properties properties) throws ZException {
         LOG.debug("Call z_open on {}", locator);
-        z_zenoh_p_result_t zenoh_result = zenohc.z_open(locator, null);
+        z_zenoh_p_result_t zenoh_result = zenohc.z_open(locator, properties);
         if (zenoh_result.getTag().equals(result_kind.Z_ERROR_TAG)) {
             throw new ZException("z_open on " + locator + " failed", zenoh_result.getValue().getError());
         }
