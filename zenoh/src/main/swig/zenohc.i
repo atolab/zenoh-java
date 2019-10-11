@@ -9,20 +9,44 @@
 %typemap(jtype) z_vec_t "java.util.Properties"
 %typemap(jstype) z_vec_t "java.util.Properties"
 %typemap(out) z_vec_t {
-  // TODO: copy all properties from z_vec_t
   jobject jprops = (*jenv)->NewObject(jenv, properties_class, properties_constr);
 
-  z_array_uint8_t peer_pid_array = ((z_property_t *)z_vec_get(&$1, Z_INFO_PEER_PID_KEY))->value;
-  char *peer_pid = malloc((peer_pid_array.length*2+1)*sizeof(char));
-  for(int i = 0; i < peer_pid_array.length; ++i){
-    sprintf(peer_pid + 2*i, "%02x", peer_pid_array.elem[i]);
-  }
-  peer_pid[peer_pid_array.length*2+1] = 0;
+  z_array_uint8_t array_value;
+  char *hexa_value;
+  jstring str_key;
+  jstring str_val;
 
-  jstring peer_pid_key = (*jenv)->NewStringUTF(jenv, "peer_pid");
-  jstring peer_pid_val = (*jenv)->NewStringUTF(jenv, peer_pid);
-  (*jenv)->CallObjectMethod(jenv, jprops, set_property_method, peer_pid_key, peer_pid_val);
-  free(peer_pid);
+  array_value = ((z_property_t *)z_vec_get(&$1, Z_INFO_PEER_KEY))->value;
+  hexa_value = malloc((array_value.length+1)*sizeof(char));
+  memcpy(hexa_value, array_value.elem, array_value.length);
+  hexa_value[array_value.length+1] = 0;
+  str_key = (*jenv)->NewStringUTF(jenv, "peer");
+  str_val = (*jenv)->NewStringUTF(jenv, hexa_value);
+  (*jenv)->CallObjectMethod(jenv, jprops, set_property_method, str_key, str_val);
+  free(hexa_value);
+
+  array_value = ((z_property_t *)z_vec_get(&$1, Z_INFO_PID_KEY))->value;
+  hexa_value = malloc((array_value.length*2+1)*sizeof(char));
+  for(int i = 0; i < array_value.length; ++i){
+    sprintf(hexa_value + 2*i, "%02x", array_value.elem[i]);
+  }
+  hexa_value[array_value.length*2+1] = 0;
+  str_key = (*jenv)->NewStringUTF(jenv, "pid");
+  str_val = (*jenv)->NewStringUTF(jenv, hexa_value);
+  (*jenv)->CallObjectMethod(jenv, jprops, set_property_method, str_key, str_val);
+  free(hexa_value);
+
+  array_value = ((z_property_t *)z_vec_get(&$1, Z_INFO_PEER_PID_KEY))->value;
+  hexa_value = malloc((array_value.length*2+1)*sizeof(char));
+  for(int i = 0; i < array_value.length; ++i){
+    sprintf(hexa_value + 2*i, "%02x", array_value.elem[i]);
+  }
+  hexa_value[array_value.length*2+1] = 0;
+  str_key = (*jenv)->NewStringUTF(jenv, "peer_pid");
+  str_val = (*jenv)->NewStringUTF(jenv, hexa_value);
+  (*jenv)->CallObjectMethod(jenv, jprops, set_property_method, str_key, str_val);
+  free(hexa_value);
+
   $result = jprops;
 }
 %typemap(javaout) z_vec_t {
