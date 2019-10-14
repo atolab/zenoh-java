@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/atolab/zenoh-java.svg?branch=master)](https://travis-ci.com/atolab/zenoh-java)
+
 # Zenoh Java Client API
 
 The Java API for Zenoh, based on the zenoh-c API via JNI.
