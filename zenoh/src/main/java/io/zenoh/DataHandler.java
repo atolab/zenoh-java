@@ -5,9 +5,9 @@ import java.nio.ByteBuffer;
 
 /**
  * A callback interface to be implemented for the reception of subscribed resources.
- * See {@link Zenoh#declareSubscriber(String, SubMode, SubscriberCallback)}.
+ * See {@link Zenoh#declareSubscriber(String, SubMode, DataHandler)}.
  */
-public interface SubscriberCallback {
+public interface DataHandler {
 
     /**
      * The method that will be called for each write of resource matching the subscription.
@@ -15,6 +15,6 @@ public interface SubscriberCallback {
      * @param data the resrouce value.
      * @param info the DataInfo associated to the resource.
      */
-    public void handle(String rname, ByteBuffer data, DataInfo info);
+    public void handleData(String rname, ByteBuffer data, DataInfo info);
 
 }

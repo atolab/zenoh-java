@@ -6,8 +6,8 @@ import java.nio.ByteBuffer;
 
 class ZSub {
 
-    private static class Listener implements SubscriberCallback {
-        public void handle(String rname, ByteBuffer data, DataInfo info) {
+    private static class Listener implements DataHandler {
+        public void handleData(String rname, ByteBuffer data, DataInfo info) {
             byte[] buf = new byte[data.remaining()];
             data.get(buf);
             try {

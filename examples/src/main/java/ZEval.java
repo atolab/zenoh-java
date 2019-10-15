@@ -3,11 +3,11 @@ import io.zenoh.*;
 import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 
-class ZEval implements EvalCallback {
+class ZEval implements QueryHandler {
 
     private static String uri = "/demo/example/zenoh-java-eval";
 
-    public void queryHandler(String rname, String predicate, RepliesSender repliesSender) {
+    public void handleQuery(String rname, String predicate, RepliesSender repliesSender) {
         System.out.printf(">> [Query handler] Handling '%s?%s'\n", rname, predicate);
     
         ByteBuffer data = ByteBuffer.wrap("Eval from Java!".getBytes());

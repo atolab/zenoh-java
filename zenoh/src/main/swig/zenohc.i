@@ -93,77 +93,77 @@
 // }
 
 /*----- typemap for on_disconnect_t : erase it in Java and pass NULL to C -------*/
-%typemap(in, numinputs=0) on_disconnect_t on_disconnect {
+%typemap(in, numinputs=0) z_on_disconnect_t on_disconnect {
   $1 = NULL;
 }
 
 
-/*----- typemap for subscriber_callback_t + arg in z_declare_subscriber -------*/
-%typemap(jni) subscriber_callback_t callback "jobject";
-%typemap(jtype) subscriber_callback_t callback "io.zenoh.SubscriberCallback";
-%typemap(jstype) subscriber_callback_t callback "io.zenoh.SubscriberCallback";
-%typemap(javain) subscriber_callback_t callback "$javainput";
-%typemap(in,numinputs=1) (subscriber_callback_t callback, void *arg) {
-  // Store SubscriberCallback object in a callback_arg
-  // that will be passed to jni_subscriber_callback() at each notification
-  callback_arg *jarg = malloc(sizeof(callback_arg));
-  jarg->callback_object = (*jenv)->NewGlobalRef(jenv, $input);
+/*----- typemap for z_data_handler_t + arg in z_declare_subscriber -------*/
+%typemap(jni) z_data_handler_t data_handler "jobject";
+%typemap(jtype) z_data_handler_t data_handler "io.zenoh.DataHandler";
+%typemap(jstype) z_data_handler_t data_handler "io.zenoh.DataHandler";
+%typemap(javain) z_data_handler_t data_handler "$javainput";
+%typemap(in,numinputs=1) (z_data_handler_t data_handler, void *arg) {
+  // Store DataHandler object in a handler_arg
+  // that will be passed to jni_datahandler_handledata() at each notification
+  handler_arg *jarg = malloc(sizeof(handler_arg));
+  jarg->handler_object = (*jenv)->NewGlobalRef(jenv, $input);
   jarg->context = NULL;
   (*jenv)->DeleteLocalRef(jenv, $input);
 
-  $1 = jni_subscriber_callback;
+  $1 = jni_datahandler_handledata;
   $2 = jarg;
 };
 
-/*----- typemap for subscriber_callback_t + query_handler_t + arg in z_declare_storage -------*/
-%typemap(jni) (subscriber_callback_t callback, query_handler_t handler) "jobject";
-%typemap(jtype) (subscriber_callback_t callback, query_handler_t handler) "io.zenoh.StorageCallback";
-%typemap(jstype) (subscriber_callback_t callback, query_handler_t handler) "io.zenoh.StorageCallback";
-%typemap(javain) (subscriber_callback_t callback, query_handler_t handler) "$javainput";
-%typemap(in,numinputs=1) (subscriber_callback_t callback, query_handler_t handler, void *arg) {
-  // Store the StorageCallback object in a callback_arg
-  // that will be passed to each call to jni_storage_subscriber_callback and jni_storage_query_handler
-  callback_arg *jarg = malloc(sizeof(callback_arg));
-  jarg->callback_object = (*jenv)->NewGlobalRef(jenv, $input);
+/*----- typemap for z_data_handler_t + z_query_handler_t + arg in z_declare_storage -------*/
+%typemap(jni) (z_data_handler_t data_handler, z_query_handler_t query_handler) "jobject";
+%typemap(jtype) (z_data_handler_t data_handler, z_query_handler_t query_handler) "io.zenoh.StorageHandler";
+%typemap(jstype) (z_data_handler_t data_handler, z_query_handler_t query_handler) "io.zenoh.StorageHandler";
+%typemap(javain) (z_data_handler_t data_handler, z_query_handler_t query_handler) "$javainput";
+%typemap(in,numinputs=1) (z_data_handler_t data_handler, z_query_handler_t query_handler, void *arg) {
+  // Store the StorageHandler object in a handler_arg
+  // that will be passed to each call to jni_storagehandler_handledata and jni_storagehandler_handlequery
+  handler_arg *jarg = malloc(sizeof(handler_arg));
+  jarg->handler_object = (*jenv)->NewGlobalRef(jenv, $input);
   jarg->context = NULL;
   (*jenv)->DeleteLocalRef(jenv, $input);
 
-  $1 = jni_storage_subscriber_callback;
-  $2 = jni_storage_query_handler;
+  $1 = jni_storagehandler_handledata;
+  $2 = jni_storagehandler_handlequery;
   $3 = jarg;
 };
 
-/*----- typemap for query_handler_t + arg in z_declare_eval -------*/
-%typemap(jni) (query_handler_t handler) "jobject";
-%typemap(jtype) (query_handler_t handler) "io.zenoh.EvalCallback";
-%typemap(jstype) (query_handler_t handler) "io.zenoh.EvalCallback";
-%typemap(javain) (query_handler_t handler) "$javainput";
-%typemap(in,numinputs=1) (query_handler_t handler, void *arg) {
-  // Store the EvalCallback object in a callback_arg
-  // that will be passed to each call to jni_eval_query_handler
-  callback_arg *jarg = malloc(sizeof(callback_arg));
-  jarg->callback_object = (*jenv)->NewGlobalRef(jenv, $input);
+/*----- typemap for z_query_handler_t + arg in z_declare_eval -------*/
+%typemap(jni) (z_query_handler_t query_handler) "jobject";
+%typemap(jtype) (z_query_handler_t query_handler) "io.zenoh.QueryHandler";
+%typemap(jstype) (z_query_handler_t query_handler) "io.zenoh.QueryHandler";
+%typemap(javain) (z_query_handler_t query_handler) "$javainput";
+%typemap(in,numinputs=1) (z_query_handler_t query_handler, void *arg) {
+  // Store the QueryHandler object in a handler_arg
+  // that will be passed to each call to jni_queryhandler_handlequery
+  handler_arg *jarg = malloc(sizeof(handler_arg));
+  jarg->handler_object = (*jenv)->NewGlobalRef(jenv, $input);
   jarg->context = NULL;
   (*jenv)->DeleteLocalRef(jenv, $input);
 
-  $1 = jni_eval_query_handler;
+  $1 = jni_queryhandler_handlequery;
   $2 = jarg;
 };
 
-/*----- typemap for z_reply_callback_t + arg in z_query -------*/
-%typemap(jni) z_reply_callback_t callback "jobject";
-%typemap(jtype) z_reply_callback_t callback "io.zenoh.ReplyCallback";
-%typemap(jstype) z_reply_callback_t callback "io.zenoh.ReplyCallback";
-%typemap(javain) z_reply_callback_t callback "$javainput";
-%typemap(in,numinputs=1) (z_reply_callback_t callback, void *arg) {
-  // Store ReplyCallback object in a callback_arg
-  // that will be passed to jni_reply_callback() at each notification
-  callback_arg *jarg = malloc(sizeof(callback_arg));
-  jarg->callback_object = (*jenv)->NewGlobalRef(jenv, $input);
+/*----- typemap for z_reply_handler_t + arg in z_query -------*/
+%typemap(jni) z_reply_handler_t reply_handler "jobject";
+%typemap(jtype) z_reply_handler_t reply_handler "io.zenoh.ReplyHandler";
+%typemap(jstype) z_reply_handler_t reply_handler "io.zenoh.ReplyHandler";
+%typemap(javain) z_reply_handler_t reply_handler "$javainput";
+%typemap(in,numinputs=1) (z_reply_handler_t reply_handler, void *arg) {
+  // Store ReplyHandler object in a handler_arg
+  // that will be passed to jni_replyhandler_handlereply() at each notification
+  handler_arg *jarg = malloc(sizeof(handler_arg));
+  jarg->handler_object = (*jenv)->NewGlobalRef(jenv, $input);
   jarg->context = NULL;
   (*jenv)->DeleteLocalRef(jenv, $input);
 
-  $1 = jni_reply_callback;
+  $1 = jni_replyhandler_handlereply;
   $2 = jarg;
 };
 
@@ -213,9 +213,9 @@
 
 %{
 #include <stdint.h>
+#include "zenoh/private/msg.h"
 #include "zenoh/config.h"
 #include "zenoh/types.h"
-#include "zenoh/msg.h"
 #include "zenoh/codec.h"
 #include "zenoh/recv_loop.h"
 #include "zenoh/rname.h"
@@ -252,10 +252,10 @@ jmethodID byte_buffer_array_offset_method = NULL;
 jmethodID byte_buffer_position_method = NULL;
 jmethodID byte_buffer_remaining_method = NULL;
 jmethodID byte_buffer_wrap_method = NULL;
-jmethodID subscriber_handle_method = NULL;
-jmethodID storage_subscriber_callback_method = NULL;
-jmethodID storage_query_handler_method = NULL;
-jmethodID eval_query_handler_method = NULL;
+jmethodID datahandler_handledata_method = NULL;
+jmethodID storagehandler_handledata_method = NULL;
+jmethodID storagehandler_handlequery_method = NULL;
+jmethodID queryhandler_handlequery_method = NULL;
 jmethodID replies_sender_constr = NULL;
 jmethodID reply_handle_method = NULL;
 jmethodID data_info_constr = NULL;
@@ -301,13 +301,13 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
   assert_no_exception;
 
   // Non-cached classes that are used below to get methods IDs
-  jclass subscriber_callback_class = (*jenv)->FindClass(jenv, "io/zenoh/SubscriberCallback");
+  jclass datahandler_class = (*jenv)->FindClass(jenv, "io/zenoh/DataHandler");
   assert_no_exception;
-  jclass storage_callback_class = (*jenv)->FindClass(jenv, "io/zenoh/StorageCallback");
+  jclass storagehandler_class = (*jenv)->FindClass(jenv, "io/zenoh/StorageHandler");
   assert_no_exception;
-  jclass eval_callback_class = (*jenv)->FindClass(jenv, "io/zenoh/EvalCallback");
+  jclass queryhandler_class = (*jenv)->FindClass(jenv, "io/zenoh/QueryHandler");
   assert_no_exception;
-  jclass reply_callback_class = (*jenv)->FindClass(jenv, "io/zenoh/ReplyCallback");
+  jclass replyhandler_class = (*jenv)->FindClass(jenv, "io/zenoh/ReplyHandler");
   assert_no_exception;
   jclass resource_class = (*jenv)->FindClass(jenv, "io/zenoh/Resource");
   assert_no_exception;
@@ -348,23 +348,23 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
     "wrap", "([B)Ljava/nio/ByteBuffer;");
   assert_no_exception;
 
-  subscriber_handle_method = (*jenv)->GetMethodID(jenv, subscriber_callback_class,
-    "handle", "(Ljava/lang/String;Ljava/nio/ByteBuffer;Lio/zenoh/DataInfo;)V");
+  datahandler_handledata_method = (*jenv)->GetMethodID(jenv, datahandler_class,
+    "handleData", "(Ljava/lang/String;Ljava/nio/ByteBuffer;Lio/zenoh/DataInfo;)V");
   assert_no_exception;
-  storage_subscriber_callback_method = (*jenv)->GetMethodID(jenv, storage_callback_class,
-    "subscriberCallback", "(Ljava/lang/String;Ljava/nio/ByteBuffer;Lio/zenoh/DataInfo;)V");
+  storagehandler_handledata_method = (*jenv)->GetMethodID(jenv, storagehandler_class,
+    "handleData", "(Ljava/lang/String;Ljava/nio/ByteBuffer;Lio/zenoh/DataInfo;)V");
   assert_no_exception;
-  storage_query_handler_method = (*jenv)->GetMethodID(jenv, storage_callback_class,
-    "queryHandler", "(Ljava/lang/String;Ljava/lang/String;Lio/zenoh/RepliesSender;)V");
+  storagehandler_handlequery_method = (*jenv)->GetMethodID(jenv, storagehandler_class,
+    "handleQuery", "(Ljava/lang/String;Ljava/lang/String;Lio/zenoh/RepliesSender;)V");
   assert_no_exception;
-  eval_query_handler_method = (*jenv)->GetMethodID(jenv, eval_callback_class,
-    "queryHandler", "(Ljava/lang/String;Ljava/lang/String;Lio/zenoh/RepliesSender;)V");
+  queryhandler_handlequery_method = (*jenv)->GetMethodID(jenv, queryhandler_class,
+    "handleQuery", "(Ljava/lang/String;Ljava/lang/String;Lio/zenoh/RepliesSender;)V");
   assert_no_exception;
   replies_sender_constr = (*jenv)->GetMethodID(jenv, replies_sender_class,
     "<init>", "(JJ)V");
   assert_no_exception;
-  reply_handle_method = (*jenv)->GetMethodID(jenv, reply_callback_class,
-   "handle", "(Lio/zenoh/ReplyValue;)V");
+  reply_handle_method = (*jenv)->GetMethodID(jenv, replyhandler_class,
+   "handleReply", "(Lio/zenoh/ReplyValue;)V");
   assert_no_exception;
   data_info_constr = (*jenv)->GetMethodID(jenv, data_info_class,
     "<init>", "(JIJI)V");
@@ -474,20 +474,20 @@ void catch_and_log_exception(JNIEnv* jenv, const char* msg) {
 
 
 typedef struct {
-  jobject callback_object;
+  jobject handler_object;
   void *context;
-} callback_arg;
+} handler_arg;
 
 
-void jni_subscriber_callback(const z_resource_id_t *rid, const unsigned char *data, size_t length, const z_data_info_t *info, void *arg) {
-  callback_arg *jarg = arg;
+void jni_datahandler_handledata(const z_resource_id_t *rid, const unsigned char *data, size_t length, const z_data_info_t *info, void *arg) {
+  handler_arg *jarg = arg;
   JNIEnv *jenv = get_jenv();
 
   jstring jrname = NULL;
   if (rid->kind == Z_STR_RES_ID) {
     jrname = (*jenv)->NewStringUTF(jenv, rid->id.rname);
   } else {
-    printf("INTERNAL ERROR: jni_subscriber_callback received a non-string z_resource_id_t with kind=%d", rid->kind);
+    printf("INTERNAL ERROR: jni_datahandler_handledata received a non-string z_resource_id_t with kind=%d", rid->kind);
     return;
   }
 
@@ -497,9 +497,9 @@ void jni_subscriber_callback(const z_resource_id_t *rid, const unsigned char *da
   jobject jinfo = (*jenv)->NewObject(jenv, data_info_class, data_info_constr, info->flags, info->encoding, info->tstamp.time, info->kind);
   assert_no_exception;
 
-  // Call SubscriberCallback.handle()
-  (*jenv)->CallVoidMethod(jenv, jarg->callback_object, subscriber_handle_method, jrname, jbuffer, jinfo);
-  catch_and_log_exception(jenv, "Exception caught calling SubscriberCallback.handle()");
+  // Call DataHandler.handleData()
+  (*jenv)->CallVoidMethod(jenv, jarg->handler_object, datahandler_handledata_method, jrname, jbuffer, jinfo);
+  catch_and_log_exception(jenv, "Exception caught calling DataHandler.handleData()");
 
   (*jenv)->DeleteLocalRef(jenv, jinfo);
   assert_no_exception;
@@ -508,15 +508,15 @@ void jni_subscriber_callback(const z_resource_id_t *rid, const unsigned char *da
   assert_no_exception;
 }
 
-void jni_storage_subscriber_callback(const z_resource_id_t *rid, const unsigned char *data, size_t length, const z_data_info_t *info, void *arg) {
-  callback_arg *jarg = arg;
+void jni_storagehandler_handledata(const z_resource_id_t *rid, const unsigned char *data, size_t length, const z_data_info_t *info, void *arg) {
+  handler_arg *jarg = arg;
   JNIEnv *jenv = get_jenv();
 
   jstring jrname = NULL;
   if (rid->kind == Z_STR_RES_ID) {
     jrname = (*jenv)->NewStringUTF(jenv, rid->id.rname);
   } else {
-    printf("INTERNAL ERROR: jni_subscriber_callback received a non-string z_resource_id_t with kind=%d", rid->kind);
+    printf("INTERNAL ERROR: jni_datahandler_handledata received a non-string z_resource_id_t with kind=%d", rid->kind);
     return;
   }
 
@@ -526,21 +526,21 @@ void jni_storage_subscriber_callback(const z_resource_id_t *rid, const unsigned 
   jobject jinfo = (*jenv)->NewObject(jenv, data_info_class, data_info_constr, info->flags, info->encoding, info->tstamp.time, info->kind);
   assert_no_exception;
 
-  // Call StorageCallback.subscriberCallback()
-  (*jenv)->CallVoidMethod(jenv, jarg->callback_object, storage_subscriber_callback_method, jrname, jbuffer, jinfo);
-  catch_and_log_exception(jenv, "Exception caught calling StorageCallback.subscriberCallback()");
+  // Call StorageHandler.handleData()
+  (*jenv)->CallVoidMethod(jenv, jarg->handler_object, storagehandler_handledata_method, jrname, jbuffer, jinfo);
+  catch_and_log_exception(jenv, "Exception caught calling StorageHandler.handleData()");
 
   delete_jbuffer(jenv, jbuffer);
   (*jenv)->DeleteLocalRef(jenv, jrname);
   assert_no_exception;
 }
 
-void jni_storage_query_handler(const char *rname, const char *predicate, replies_sender_t send_replies, void *query_handle, void *arg) {
-  callback_arg *jarg = arg;
+void jni_storagehandler_handlequery(const char *rname, const char *predicate, z_replies_sender_t send_replies, void *query_handle, void *arg) {
+  handler_arg *jarg = arg;
   JNIEnv *jenv = get_jenv();
 
   if (jarg->context != NULL) {
-    printf("Internal error in jni_storage_query_handler: cannot serve query, as their is already an ongoing query (context is not NULL)\n");
+    printf("Internal error in jni_storagehandler_handlequery: cannot serve query, as their is already an ongoing query (context is not NULL)\n");
     z_array_resource_t replies;
     replies.length = 0;
     replies.elem = NULL;
@@ -558,9 +558,9 @@ void jni_storage_query_handler(const char *rname, const char *predicate, replies
     send_replies_ptr, query_handle_ptr);
   assert_no_exception;
 
-  // Call StorageCallback.queryHandler()
-  (*jenv)->CallVoidMethod(jenv, jarg->callback_object, storage_query_handler_method, jrname, jpredicate, jrepliesSender);
-  catch_and_log_exception(jenv, "Exception caught calling StorageCallback.queryHandler()");
+  // Call StorageHandler.handleQuery()
+  (*jenv)->CallVoidMethod(jenv, jarg->handler_object, storagehandler_handlequery_method, jrname, jpredicate, jrepliesSender);
+  catch_and_log_exception(jenv, "Exception caught calling StorageHandler.handleQuery()");
 
   (*jenv)->DeleteLocalRef(jenv, jrepliesSender);
   assert_no_exception;
@@ -570,12 +570,12 @@ void jni_storage_query_handler(const char *rname, const char *predicate, replies
   assert_no_exception;
 }
 
-void jni_eval_query_handler(const char *rname, const char *predicate, replies_sender_t send_replies, void *query_handle, void *arg) {
-  callback_arg *jarg = arg;
+void jni_queryhandler_handlequery(const char *rname, const char *predicate, z_replies_sender_t send_replies, void *query_handle, void *arg) {
+  handler_arg *jarg = arg;
   JNIEnv *jenv = get_jenv();
 
   if (jarg->context != NULL) {
-    printf("Internal error in jni_eval_query_handler: cannot serve query, as their is already an ongoing query (context is not NULL)\n");
+    printf("Internal error in jni_queryhandler_handlequery: cannot serve query, as their is already an ongoing query (context is not NULL)\n");
     z_array_resource_t replies;
     replies.length = 0;
     replies.elem = NULL;
@@ -593,9 +593,9 @@ void jni_eval_query_handler(const char *rname, const char *predicate, replies_se
     send_replies_ptr, query_handle_ptr);
   assert_no_exception;
 
-  // Call EvalCallback.queryHandler()
-  (*jenv)->CallVoidMethod(jenv, jarg->callback_object, eval_query_handler_method, jrname, jpredicate, jrepliesSender);
-  catch_and_log_exception(jenv, "Exception caught calling EvalCallback.queryHandler()");
+  // Call QueryHandler.handleQuery()
+  (*jenv)->CallVoidMethod(jenv, jarg->handler_object, queryhandler_handlequery_method, jrname, jpredicate, jrepliesSender);
+  catch_and_log_exception(jenv, "Exception caught calling QueryHandler.handleQuery()");
 
   (*jenv)->DeleteLocalRef(jenv, jrepliesSender);
   assert_no_exception;
@@ -605,8 +605,8 @@ void jni_eval_query_handler(const char *rname, const char *predicate, replies_se
   assert_no_exception;
 }
 
-void jni_reply_callback(const z_reply_value_t *reply, void *arg) {
-  callback_arg *jarg = arg;
+void jni_replyhandler_handlereply(const z_reply_value_t *reply, void *arg) {
+  handler_arg *jarg = arg;
   JNIEnv *jenv = get_jenv();
 
   jbyteArray jstoid = 0;
@@ -631,9 +631,9 @@ void jni_reply_callback(const z_reply_value_t *reply, void *arg) {
   jobject jreply = (*jenv)->NewObject(jenv, reply_value_class, reply_value_constr,
     reply->kind, jstoid, reply->rsn, jrname, jbuffer, jinfo);
 
-  // Call ReplyCallback.queryHandler()
-  (*jenv)->CallVoidMethod(jenv, jarg->callback_object, reply_handle_method, jreply);
-  catch_and_log_exception(jenv, "Exception caught calling ReplyCallback.handle()");
+  // Call ReplyHandler.handleReply()
+  (*jenv)->CallVoidMethod(jenv, jarg->handler_object, reply_handle_method, jreply);
+  catch_and_log_exception(jenv, "Exception caught calling ReplyHandler.handleReply()");
 
   (*jenv)->DeleteLocalRef(jenv, jreply);
   assert_no_exception;
@@ -649,7 +649,7 @@ void jni_reply_callback(const z_reply_value_t *reply, void *arg) {
 }
 
 void call_replies_sender(jlong send_replies_ptr, jlong query_handle_ptr, z_array_resource_t replies) {
-  replies_sender_t send_replies = (replies_sender_t)send_replies_ptr;
+  z_replies_sender_t send_replies = (z_replies_sender_t)send_replies_ptr;
   void* query_handle = (void*)query_handle_ptr;
   send_replies(query_handle, replies);
 }
@@ -676,12 +676,12 @@ typedef struct {
   z_temporal_property_t tprop;
 } z_sub_mode_t;
 
-typedef void (*z_reply_callback_t)(const z_reply_value_t *reply, void *arg);
+typedef void (*z_reply_handler_t)(const z_reply_value_t *reply, void *arg);
 
-typedef void (*subscriber_callback_t)(const z_resource_id_t *rid, const unsigned char *data, size_t length, z_data_info_t info, void *arg);
+typedef void (*z_data_handler_t)(const z_resource_id_t *rid, const unsigned char *data, size_t length, z_data_info_t info, void *arg);
 
-typedef void (*replies_sender_t)(void* query_handle, z_array_resource_t replies);
-typedef void (*query_handler_t)(const char *rname, const char *predicate, replies_sender_t send_replies, void *query_handle, void *arg);
+typedef void (*z_replies_sender_t)(void* query_handle, z_array_resource_t replies);
+typedef void (*z_query_handler_t)(const char *rname, const char *predicate, z_replies_sender_t send_replies, void *query_handle, void *arg);
 
 typedef struct {
   z_zenoh_t *z;
@@ -739,22 +739,22 @@ int z_stop_recv_loop(z_zenoh_t* z);
 // Copied from zenoh.h
 //
 z_zenoh_p_result_t 
-z_open(char* locator, on_disconnect_t on_disconnect, const z_vec_t *ps);
+z_open(char* locator, z_on_disconnect_t on_disconnect, const z_vec_t *ps);
 
 z_vec_t
 z_info(z_zenoh_t *z);
 
 z_sub_p_result_t 
-z_declare_subscriber(z_zenoh_t *z, const char* resource, const z_sub_mode_t *sm, subscriber_callback_t callback, void *arg);
+z_declare_subscriber(z_zenoh_t *z, const char* resource, const z_sub_mode_t *sm, z_data_handler_t data_handler, void *arg);
 
 z_pub_p_result_t 
 z_declare_publisher(z_zenoh_t *z, const char *resource);
 
 z_sto_p_result_t 
-z_declare_storage(z_zenoh_t *z, const char* resource, subscriber_callback_t callback, query_handler_t handler, void *arg);
+z_declare_storage(z_zenoh_t *z, const char* resource, z_data_handler_t data_handler, z_query_handler_t query_handler, void *arg);
 
 z_eval_p_result_t 
-z_declare_eval(z_zenoh_t *z, const char* resource, query_handler_t handler, void *arg);
+z_declare_eval(z_zenoh_t *z, const char* resource, z_query_handler_t query_handler, void *arg);
 
 int z_stream_compact_data(z_pub_t *pub, const unsigned char *payload, size_t length);
 int z_stream_data(z_pub_t *pub, const unsigned char *payload, size_t length);
@@ -765,7 +765,7 @@ int z_write_data_wo(z_zenoh_t *z, const char* resource, const unsigned char *pay
 
 int z_pull(z_sub_t *sub);
 
-int z_query_wo(z_zenoh_t *z, const char* resource, const char* predicate, z_reply_callback_t callback, void *arg, z_query_dest_t dest_storages, z_query_dest_t dest_evals);
+int z_query_wo(z_zenoh_t *z, const char* resource, const char* predicate, z_reply_handler_t reply_handler, void *arg, z_query_dest_t dest_storages, z_query_dest_t dest_evals);
 
 int z_undeclare_subscriber(z_sub_t *z);
 int z_undeclare_publisher(z_pub_t *z);

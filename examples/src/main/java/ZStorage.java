@@ -7,16 +7,16 @@ import java.util.Vector;
 import java.util.HashMap;
 import java.util.List;
 
-class ZStorage implements StorageCallback {
+class ZStorage implements StorageHandler {
 
     private Map<String, ByteBuffer> stored = new HashMap<String, ByteBuffer>();
 
-    public void subscriberCallback(String rname, ByteBuffer data, DataInfo info) {
+    public void handleData(String rname, ByteBuffer data, DataInfo info) {
         System.out.printf(">> [Storage listener] Received ('%20s' : '%s')\n", rname, data.toString());
         this.stored.put(rname, data);
     }
 
-    public void queryHandler(String rname, String predicate, RepliesSender repliesSender) {
+    public void handleQuery(String rname, String predicate, RepliesSender repliesSender) {
         System.out.printf(">> [Query handler   ] Handling '%s?%s'\n", rname, predicate);
 
         List<Resource> replies = new Vector<Resource>();

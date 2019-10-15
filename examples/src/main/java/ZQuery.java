@@ -2,9 +2,9 @@ import io.zenoh.*;
 
 class ZQuery {
 
-    private static class ReplyHandler implements ReplyCallback {
+    private static class Handler implements ReplyHandler {
 
-        public void handle(ReplyValue reply) {
+        public void handleReply(ReplyValue reply) {
             switch (reply.getKind()) {
                 case Z_STORAGE_DATA:
                 case Z_EVAL_DATA:
@@ -51,7 +51,7 @@ class ZQuery {
             Zenoh z = Zenoh.open(locator);
 
             System.out.println("Send query '"+uri+"'...");
-            z.query(uri,  "", new ReplyHandler(), QueryDest.all(), QueryDest.all());
+            z.query(uri,  "", new Handler(), QueryDest.all(), QueryDest.all());
 
             Thread.sleep(1000);
 

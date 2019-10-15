@@ -119,13 +119,13 @@ public class Zenoh {
      * Declares a Subscriber on a resource
      * @param resource the resource subscribed by the Subscriber.
      * @param mode the subscription mode.
-     * @param callback the Subscriber's callback.
+     * @param dataHandler the Subscriber's data handler.
      * @return the Subscriber.
      * @throws ZException if declaration fails.
      */
-    public Subscriber declareSubscriber(String resource, SubMode mode, SubscriberCallback callback) throws ZException {
+    public Subscriber declareSubscriber(String resource, SubMode mode, DataHandler handler) throws ZException {
         LOG.debug("Call z_declare_subscriber for {}", resource);
-        z_sub_p_result_t sub_result = zenohc.z_declare_subscriber(z, resource, mode, callback);
+        z_sub_p_result_t sub_result = zenohc.z_declare_subscriber(z, resource, mode, handler);
         if (sub_result.getTag().equals(result_kind.Z_ERROR_TAG)) {
             throw new ZException("z_declare_subscriber on "+resource+" failed ", sub_result.getValue().getError());
         }
@@ -139,11 +139,11 @@ public class Zenoh {
      * @return the Storage.
      * @throws ZException if declaration fails.
      */
-    public Storage declareStorage(String resource, StorageCallback callback)
+    public Storage declareStorage(String resource, StorageHandler handler)
         throws ZException
     {
         LOG.debug("Call z_declare_storage for {}", resource);
-        z_sto_p_result_t sto_result = zenohc.z_declare_storage(z, resource, callback);
+        z_sto_p_result_t sto_result = zenohc.z_declare_storage(z, resource, handler);
         if (sto_result.getTag().equals(result_kind.Z_ERROR_TAG)) {
             throw new ZException("z_declare_subscriber on "+resource+" failed ", sto_result.getValue().getError());
         }
@@ -152,15 +152,15 @@ public class Zenoh {
 
     /**
      * Declares a Eval on a resource
-     * @param callback the Eval's callbacks.
+     * @param handler the Eval's handler.
      * @return the Eval.
      * @throws ZException if declaration fails.
      */
-    public Eval declareEval(String resource, EvalCallback callback)
+    public Eval declareEval(String resource, QueryHandler handler)
         throws ZException
     {
         LOG.debug("Call z_declare_eval for {}", resource);
-        z_eval_p_result_t eval_result = zenohc.z_declare_eval(z, resource, callback);
+        z_eval_p_result_t eval_result = zenohc.z_declare_eval(z, resource, handler);
         if (eval_result.getTag().equals(result_kind.Z_ERROR_TAG)) {
             throw new ZException("z_declare_eval on "+resource+" failed ", eval_result.getValue().getError());
         }
@@ -199,24 +199,24 @@ public class Zenoh {
      * Query a resource with a predicate.
      * @param resource the queried resource.
      * @param predicate the predicate.
-     * @param callback the callback that will be called for the replies.
+     * @param handler the handler that will be called for each reply.
      * @throws ZException
      */
-    public void query(String resource, String predicate, ReplyCallback callback) throws ZException {
-        query(resource, predicate, callback, QueryDest.bestMatch(), QueryDest.bestMatch());
+    public void query(String resource, String predicate, ReplyHandler handler) throws ZException {
+        query(resource, predicate, handler, QueryDest.bestMatch(), QueryDest.bestMatch());
     }
 
     /**
      * Query a resource with a predicate.
      * @param resource the queried resource.
      * @param predicate the predicate.
-     * @param callback the callback that will be called for the replies.
+     * @param handler the handler that will be called for each reply.
      * @param dest_storages the storages that should be destination of this query.
      * @param dest_evals the evals that should be destination of this query.
      * @throws ZException
      */
-    public void query(String resource, String predicate, ReplyCallback callback, QueryDest dest_storages, QueryDest dest_evals) throws ZException {
-        int result = zenohc.z_query_wo(z, resource, predicate, callback, dest_storages, dest_evals);
+    public void query(String resource, String predicate, ReplyHandler handler, QueryDest dest_storages, QueryDest dest_evals) throws ZException {
+        int result = zenohc.z_query_wo(z, resource, predicate, handler, dest_storages, dest_evals);
         if (result != 0) {
             throw new ZException("z_query on "+resource+" failed", result);
         }

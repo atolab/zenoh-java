@@ -54,46 +54,46 @@ public class ClientTest {
     MVar<Resource> z2_sto1_last_res = new MVar<Resource>();
     MVar<List<List<Resource>>> replies = new MVar<List<List<Resource>>>();
 
-    private class z1_sub1_listener implements SubscriberCallback {
-        public void handle(String rname, ByteBuffer data, DataInfo info) {
+    private class z1_sub1_listener implements DataHandler {
+        public void handleData(String rname, ByteBuffer data, DataInfo info) {
             z1_sub1_last_res.put(new Resource(rname, data, info.getEncoding(), info.getKind()));
         }
     }
 
-    private class z2_sub1_listener implements SubscriberCallback {
-        public void handle(String rname, ByteBuffer data, DataInfo info) {
+    private class z2_sub1_listener implements DataHandler {
+        public void handleData(String rname, ByteBuffer data, DataInfo info) {
             z2_sub1_last_res.put(new Resource(rname, data, info.getEncoding(), info.getKind()));
         }
     }
 
-    private class z3_sub1_listener implements SubscriberCallback {
-        public void handle(String rname, ByteBuffer data, DataInfo info) {
+    private class z3_sub1_listener implements DataHandler {
+        public void handleData(String rname, ByteBuffer data, DataInfo info) {
             z3_sub1_last_res.put(new Resource(rname, data, info.getEncoding(), info.getKind()));
         }
     }
     
-    private class z1_sto1_listener implements StorageCallback {    
-        public void subscriberCallback(String rname, ByteBuffer data, DataInfo info) {
+    private class z1_sto1_listener implements StorageHandler {    
+        public void handleData(String rname, ByteBuffer data, DataInfo info) {
             z1_sto1_last_res.put(new Resource(rname, data, info.getEncoding(), info.getKind()));
         }
     
-        public void queryHandler(String rname, String predicate, RepliesSender repliesSender) {
+        public void handleQuery(String rname, String predicate, RepliesSender repliesSender) {
             repliesSender.sendReplies(new Resource[]{z1_sto1_last_res.read()});
         }
     }
     
-    private class z2_sto1_listener implements StorageCallback {    
-        public void subscriberCallback(String rname, ByteBuffer data, DataInfo info) {
+    private class z2_sto1_listener implements StorageHandler {    
+        public void handleData(String rname, ByteBuffer data, DataInfo info) {
             z2_sto1_last_res.put(new Resource(rname, data, info.getEncoding(), info.getKind()));
         }
     
-        public void queryHandler(String rname, String predicate, RepliesSender repliesSender) {
+        public void handleQuery(String rname, String predicate, RepliesSender repliesSender) {
             repliesSender.sendReplies(new Resource[]{z2_sto1_last_res.read()});
         }
     }
     
-    private class z1_eval1_handler implements EvalCallback {
-        public void queryHandler(String rname, String predicate, RepliesSender repliesSender) {
+    private class z1_eval1_handler implements QueryHandler {
+        public void handleQuery(String rname, String predicate, RepliesSender repliesSender) {
             try {
                 ByteBuffer data = (ByteBuffer)ByteBuffer.allocateDirect(256).put("z1_eval1_data".getBytes("UTF-8")).flip();
                 repliesSender.sendReplies(new Resource[]{new Resource("/test/java/client/z1_eval1", data, 0, 0)});
@@ -101,8 +101,8 @@ public class ClientTest {
         }
     }
     
-    private class z2_eval1_handler implements EvalCallback {
-        public void queryHandler(String rname, String predicate, RepliesSender repliesSender) {
+    private class z2_eval1_handler implements QueryHandler {
+        public void handleQuery(String rname, String predicate, RepliesSender repliesSender) {
             try {
                 ByteBuffer data = (ByteBuffer)ByteBuffer.allocateDirect(256).put("z2_eval1_data".getBytes("UTF-8")).flip();
                 repliesSender.sendReplies(new Resource[]{new Resource("/test/java/client/z2_eval1", data, 0, 0)});
@@ -110,11 +110,11 @@ public class ClientTest {
         }
     }
 
-    private class reply_handler implements ReplyCallback {
+    private class reply_handler implements ReplyHandler {
         List<Resource> storage_replies = new ArrayList<Resource>();
         List<Resource> eval_replies = new ArrayList<Resource>();
         
-        public void handle(ReplyValue reply) {
+        public void handleReply(ReplyValue reply) {
             switch (reply.getKind()) {
                 case Z_STORAGE_DATA:
                     storage_replies.add(new Resource(
