@@ -6,7 +6,7 @@ jdk: openjdk8
 before_script:
   - curl -L -o zenohd https://github.com/atolab/atobin/raw/master/zenoh/unstable/ubuntu/16.04/zenohd
   - chmod +x zenohd
-  - ./zenohd --verbosity=debug > ./zenohd.out 2>&1 &
+  - ./zenohd --verbosity=info > ./zenohd.out 2>&1 &
 script: mvn cobertura:cobertura
 after_script:
   - killall zenohd
