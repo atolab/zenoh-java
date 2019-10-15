@@ -105,13 +105,13 @@
 %typemap(javain) z_data_handler_t data_handler "$javainput";
 %typemap(in,numinputs=1) (z_data_handler_t data_handler, void *arg) {
   // Store DataHandler object in a handler_arg
-  // that will be passed to jni_datahandler_handledata() at each notification
+  // that will be passed to jni_handledata() at each notification
   handler_arg *jarg = malloc(sizeof(handler_arg));
   jarg->handler_object = (*jenv)->NewGlobalRef(jenv, $input);
   jarg->context = NULL;
   (*jenv)->DeleteLocalRef(jenv, $input);
 
-  $1 = jni_datahandler_handledata;
+  $1 = jni_handledata;
   $2 = jarg;
 };
 
@@ -122,14 +122,14 @@
 %typemap(javain) (z_data_handler_t data_handler, z_query_handler_t query_handler) "$javainput";
 %typemap(in,numinputs=1) (z_data_handler_t data_handler, z_query_handler_t query_handler, void *arg) {
   // Store the StorageHandler object in a handler_arg
-  // that will be passed to each call to jni_storagehandler_handledata and jni_storagehandler_handlequery
+  // that will be passed to each call to jni_handledata and jni_handlequery
   handler_arg *jarg = malloc(sizeof(handler_arg));
   jarg->handler_object = (*jenv)->NewGlobalRef(jenv, $input);
   jarg->context = NULL;
   (*jenv)->DeleteLocalRef(jenv, $input);
 
-  $1 = jni_storagehandler_handledata;
-  $2 = jni_storagehandler_handlequery;
+  $1 = jni_handledata;
+  $2 = jni_handlequery;
   $3 = jarg;
 };
 
@@ -140,13 +140,13 @@
 %typemap(javain) (z_query_handler_t query_handler) "$javainput";
 %typemap(in,numinputs=1) (z_query_handler_t query_handler, void *arg) {
   // Store the QueryHandler object in a handler_arg
-  // that will be passed to each call to jni_queryhandler_handlequery
+  // that will be passed to each call to jni_handlequery
   handler_arg *jarg = malloc(sizeof(handler_arg));
   jarg->handler_object = (*jenv)->NewGlobalRef(jenv, $input);
   jarg->context = NULL;
   (*jenv)->DeleteLocalRef(jenv, $input);
 
-  $1 = jni_queryhandler_handlequery;
+  $1 = jni_handlequery;
   $2 = jarg;
 };
 
@@ -157,13 +157,13 @@
 %typemap(javain) z_reply_handler_t reply_handler "$javainput";
 %typemap(in,numinputs=1) (z_reply_handler_t reply_handler, void *arg) {
   // Store ReplyHandler object in a handler_arg
-  // that will be passed to jni_replyhandler_handlereply() at each notification
+  // that will be passed to jni_handlereply() at each notification
   handler_arg *jarg = malloc(sizeof(handler_arg));
   jarg->handler_object = (*jenv)->NewGlobalRef(jenv, $input);
   jarg->context = NULL;
   (*jenv)->DeleteLocalRef(jenv, $input);
 
-  $1 = jni_replyhandler_handlereply;
+  $1 = jni_handlereply;
   $2 = jarg;
 };
 
@@ -252,12 +252,10 @@ jmethodID byte_buffer_array_offset_method = NULL;
 jmethodID byte_buffer_position_method = NULL;
 jmethodID byte_buffer_remaining_method = NULL;
 jmethodID byte_buffer_wrap_method = NULL;
-jmethodID datahandler_handledata_method = NULL;
-jmethodID storagehandler_handledata_method = NULL;
-jmethodID storagehandler_handlequery_method = NULL;
-jmethodID queryhandler_handlequery_method = NULL;
+jmethodID handledata_method = NULL;
+jmethodID handlequery_method = NULL;
 jmethodID replies_sender_constr = NULL;
-jmethodID reply_handle_method = NULL;
+jmethodID handlereply_method = NULL;
 jmethodID data_info_constr = NULL;
 jmethodID reply_value_constr = NULL;
 jmethodID resource_get_rname_method = NULL;
@@ -348,22 +346,16 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
     "wrap", "([B)Ljava/nio/ByteBuffer;");
   assert_no_exception;
 
-  datahandler_handledata_method = (*jenv)->GetMethodID(jenv, datahandler_class,
+  handledata_method = (*jenv)->GetMethodID(jenv, datahandler_class,
     "handleData", "(Ljava/lang/String;Ljava/nio/ByteBuffer;Lio/zenoh/DataInfo;)V");
   assert_no_exception;
-  storagehandler_handledata_method = (*jenv)->GetMethodID(jenv, storagehandler_class,
-    "handleData", "(Ljava/lang/String;Ljava/nio/ByteBuffer;Lio/zenoh/DataInfo;)V");
-  assert_no_exception;
-  storagehandler_handlequery_method = (*jenv)->GetMethodID(jenv, storagehandler_class,
-    "handleQuery", "(Ljava/lang/String;Ljava/lang/String;Lio/zenoh/RepliesSender;)V");
-  assert_no_exception;
-  queryhandler_handlequery_method = (*jenv)->GetMethodID(jenv, queryhandler_class,
+  handlequery_method = (*jenv)->GetMethodID(jenv, queryhandler_class,
     "handleQuery", "(Ljava/lang/String;Ljava/lang/String;Lio/zenoh/RepliesSender;)V");
   assert_no_exception;
   replies_sender_constr = (*jenv)->GetMethodID(jenv, replies_sender_class,
     "<init>", "(JJ)V");
   assert_no_exception;
-  reply_handle_method = (*jenv)->GetMethodID(jenv, replyhandler_class,
+  handlereply_method = (*jenv)->GetMethodID(jenv, replyhandler_class,
    "handleReply", "(Lio/zenoh/ReplyValue;)V");
   assert_no_exception;
   data_info_constr = (*jenv)->GetMethodID(jenv, data_info_class,
@@ -479,7 +471,7 @@ typedef struct {
 } handler_arg;
 
 
-void jni_datahandler_handledata(const z_resource_id_t *rid, const unsigned char *data, size_t length, const z_data_info_t *info, void *arg) {
+void jni_handledata(const z_resource_id_t *rid, const unsigned char *data, size_t length, const z_data_info_t *info, void *arg) {
   handler_arg *jarg = arg;
   JNIEnv *jenv = get_jenv();
 
@@ -487,7 +479,7 @@ void jni_datahandler_handledata(const z_resource_id_t *rid, const unsigned char 
   if (rid->kind == Z_STR_RES_ID) {
     jrname = (*jenv)->NewStringUTF(jenv, rid->id.rname);
   } else {
-    printf("INTERNAL ERROR: jni_datahandler_handledata received a non-string z_resource_id_t with kind=%d", rid->kind);
+    printf("INTERNAL ERROR: jni_handledata received a non-string z_resource_id_t with kind=%d", rid->kind);
     return;
   }
 
@@ -498,7 +490,7 @@ void jni_datahandler_handledata(const z_resource_id_t *rid, const unsigned char 
   assert_no_exception;
 
   // Call DataHandler.handleData()
-  (*jenv)->CallVoidMethod(jenv, jarg->handler_object, datahandler_handledata_method, jrname, jbuffer, jinfo);
+  (*jenv)->CallVoidMethod(jenv, jarg->handler_object, handledata_method, jrname, jbuffer, jinfo);
   catch_and_log_exception(jenv, "Exception caught calling DataHandler.handleData()");
 
   (*jenv)->DeleteLocalRef(jenv, jinfo);
@@ -508,74 +500,12 @@ void jni_datahandler_handledata(const z_resource_id_t *rid, const unsigned char 
   assert_no_exception;
 }
 
-void jni_storagehandler_handledata(const z_resource_id_t *rid, const unsigned char *data, size_t length, const z_data_info_t *info, void *arg) {
-  handler_arg *jarg = arg;
-  JNIEnv *jenv = get_jenv();
-
-  jstring jrname = NULL;
-  if (rid->kind == Z_STR_RES_ID) {
-    jrname = (*jenv)->NewStringUTF(jenv, rid->id.rname);
-  } else {
-    printf("INTERNAL ERROR: jni_datahandler_handledata received a non-string z_resource_id_t with kind=%d", rid->kind);
-    return;
-  }
-
-  jobject jbuffer;
-  native_to_jbuffer(jenv, data, length, jbuffer);
-
-  jobject jinfo = (*jenv)->NewObject(jenv, data_info_class, data_info_constr, info->flags, info->encoding, info->tstamp.time, info->kind);
-  assert_no_exception;
-
-  // Call StorageHandler.handleData()
-  (*jenv)->CallVoidMethod(jenv, jarg->handler_object, storagehandler_handledata_method, jrname, jbuffer, jinfo);
-  catch_and_log_exception(jenv, "Exception caught calling StorageHandler.handleData()");
-
-  delete_jbuffer(jenv, jbuffer);
-  (*jenv)->DeleteLocalRef(jenv, jrname);
-  assert_no_exception;
-}
-
-void jni_storagehandler_handlequery(const char *rname, const char *predicate, z_replies_sender_t send_replies, void *query_handle, void *arg) {
+void jni_handlequery(const char *rname, const char *predicate, z_replies_sender_t send_replies, void *query_handle, void *arg) {
   handler_arg *jarg = arg;
   JNIEnv *jenv = get_jenv();
 
   if (jarg->context != NULL) {
-    printf("Internal error in jni_storagehandler_handlequery: cannot serve query, as their is already an ongoing query (context is not NULL)\n");
-    z_array_resource_t replies;
-    replies.length = 0;
-    replies.elem = NULL;
-    send_replies(query_handle, replies);
-    return;
-  }
-
-  jstring jrname = (*jenv)->NewStringUTF(jenv, rname);
-  jstring jpredicate = (*jenv)->NewStringUTF(jenv, predicate);
-
-  // Create RepliesSender object
-  jlong send_replies_ptr = (jlong)send_replies;
-  jlong query_handle_ptr = (jlong)query_handle;
-  jobject jrepliesSender = (*jenv)->NewObject(jenv, replies_sender_class, replies_sender_constr,
-    send_replies_ptr, query_handle_ptr);
-  assert_no_exception;
-
-  // Call StorageHandler.handleQuery()
-  (*jenv)->CallVoidMethod(jenv, jarg->handler_object, storagehandler_handlequery_method, jrname, jpredicate, jrepliesSender);
-  catch_and_log_exception(jenv, "Exception caught calling StorageHandler.handleQuery()");
-
-  (*jenv)->DeleteLocalRef(jenv, jrepliesSender);
-  assert_no_exception;
-  (*jenv)->DeleteLocalRef(jenv, jrname);
-  assert_no_exception;
-  (*jenv)->DeleteLocalRef(jenv, jpredicate);
-  assert_no_exception;
-}
-
-void jni_queryhandler_handlequery(const char *rname, const char *predicate, z_replies_sender_t send_replies, void *query_handle, void *arg) {
-  handler_arg *jarg = arg;
-  JNIEnv *jenv = get_jenv();
-
-  if (jarg->context != NULL) {
-    printf("Internal error in jni_queryhandler_handlequery: cannot serve query, as their is already an ongoing query (context is not NULL)\n");
+    printf("Internal error in jni_handlequery: cannot serve query, as their is already an ongoing query (context is not NULL)\n");
     z_array_resource_t replies;
     replies.length = 0;
     replies.elem = NULL;
@@ -594,7 +524,7 @@ void jni_queryhandler_handlequery(const char *rname, const char *predicate, z_re
   assert_no_exception;
 
   // Call QueryHandler.handleQuery()
-  (*jenv)->CallVoidMethod(jenv, jarg->handler_object, queryhandler_handlequery_method, jrname, jpredicate, jrepliesSender);
+  (*jenv)->CallVoidMethod(jenv, jarg->handler_object, handlequery_method, jrname, jpredicate, jrepliesSender);
   catch_and_log_exception(jenv, "Exception caught calling QueryHandler.handleQuery()");
 
   (*jenv)->DeleteLocalRef(jenv, jrepliesSender);
@@ -605,7 +535,7 @@ void jni_queryhandler_handlequery(const char *rname, const char *predicate, z_re
   assert_no_exception;
 }
 
-void jni_replyhandler_handlereply(const z_reply_value_t *reply, void *arg) {
+void jni_handlereply(const z_reply_value_t *reply, void *arg) {
   handler_arg *jarg = arg;
   JNIEnv *jenv = get_jenv();
 
@@ -632,7 +562,7 @@ void jni_replyhandler_handlereply(const z_reply_value_t *reply, void *arg) {
     reply->kind, jstoid, reply->rsn, jrname, jbuffer, jinfo);
 
   // Call ReplyHandler.handleReply()
-  (*jenv)->CallVoidMethod(jenv, jarg->handler_object, reply_handle_method, jreply);
+  (*jenv)->CallVoidMethod(jenv, jarg->handler_object, handlereply_method, jreply);
   catch_and_log_exception(jenv, "Exception caught calling ReplyHandler.handleReply()");
 
   (*jenv)->DeleteLocalRef(jenv, jreply);
