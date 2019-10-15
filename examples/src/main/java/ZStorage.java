@@ -1,6 +1,7 @@
 import io.zenoh.*;
 
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.Vector;
@@ -12,7 +13,15 @@ class ZStorage implements StorageHandler {
     private Map<String, ByteBuffer> stored = new HashMap<String, ByteBuffer>();
 
     public void handleData(String rname, ByteBuffer data, DataInfo info) {
-        System.out.printf(">> [Storage listener] Received ('%20s' : '%s')\n", rname, data.toString());
+        try {
+            byte[] buf = new byte[data.remaining()];
+            data.get(buf);
+            String str = new String(buf, "UTF-8");
+            System.out.printf(">> [Subscription listener] Received ('%s': '%s')\n", rname, str);
+        } catch (UnsupportedEncodingException e) {
+            System.out.printf(">> [Subscription listener] Received ('%s': '%s')\n", rname, data.toString());
+        }
+        data.rewind();
         this.stored.put(rname, data);
     }
 

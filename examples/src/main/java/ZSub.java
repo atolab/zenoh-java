@@ -8,9 +8,9 @@ class ZSub {
 
     private static class Listener implements DataHandler {
         public void handleData(String rname, ByteBuffer data, DataInfo info) {
-            byte[] buf = new byte[data.remaining()];
-            data.get(buf);
             try {
+                byte[] buf = new byte[data.remaining()];
+                data.get(buf);
                 String str = new String(buf, "UTF-8");
                 System.out.printf(">> [Subscription listener] Received ('%s': '%s')\n", rname, str);
             } catch (UnsupportedEncodingException e) {
