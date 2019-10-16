@@ -8,7 +8,7 @@
 %typemap(jni) z_vec_t "jobject"
 %typemap(jtype) z_vec_t "java.util.Properties"
 %typemap(jstype) z_vec_t "java.util.Properties"
-%typemap(out) z_vec_t {
+%typemap(out) z_vec_t %{
   jobject jprops = (*jenv)->NewObject(jenv, properties_class, properties_constr);
 
   z_array_uint8_t array_value;
@@ -48,7 +48,7 @@
   free(hexa_value);
 
   $result = jprops;
-}
+%}
 %typemap(javaout) z_vec_t {
   return $jnicall;
 }
@@ -58,7 +58,7 @@
 %typemap(jtype) (const z_vec_t *ps) "java.util.Properties"
 %typemap(jstype) (const z_vec_t *ps) "java.util.Properties"
 %typemap(javain) (const z_vec_t *ps) "$javainput"
-%typemap(in) (const z_vec_t *ps) {
+%typemap(in) (const z_vec_t *ps) %{
   z_vec_t vec = z_vec_make(2);
   if($input != NULL) {
     jstring user = (jstring) (*jenv)->CallObjectMethod(jenv, $input, get_property_method, (*jenv)->NewStringUTF(jenv, "user"));
@@ -67,7 +67,7 @@
     if(password != NULL) z_vec_append(&vec, z_property_make_from_str(Z_PASSWD_KEY, (char *)(*jenv)->GetStringUTFChars(jenv, password, 0)));
   }
   $1 = &vec;
-}
+%}
 
 
 /*----- typemap for payload+length IN argument to ByteBuffer -------*/
@@ -78,24 +78,24 @@
 // %typemap(javaout) (const unsigned char *payload, size_t length) {
 //   return $jnicall;
 // }
-%typemap(in) (const unsigned char *payload, size_t length) {
+%typemap(in) (const unsigned char *payload, size_t length) %{
   jbuffer_to_native(jenv, $input, $1, $2);
-}
-%typemap(freearg) (const unsigned char *payload, size_t length) {
+%}
+%typemap(freearg) (const unsigned char *payload, size_t length) %{
   release_intermediate_byte_array(jenv, $input, $1, $2);
-}
-// %typemap(memberin) (const unsigned char *payload, size_t length) {
+%}
+// %typemap(memberin) (const unsigned char *payload, size_t length) %{
 //   if ($input) {
 //     $1 = $input;
 //   } else {
 //     $1 = 0;
 //   }
-// }
+// %}
 
 /*----- typemap for on_disconnect_t : erase it in Java and pass NULL to C -------*/
-%typemap(in, numinputs=0) z_on_disconnect_t on_disconnect {
+%typemap(in, numinputs=0) z_on_disconnect_t on_disconnect %{
   $1 = NULL;
-}
+%}
 
 
 /*----- typemap for z_data_handler_t + arg in z_declare_subscriber -------*/
@@ -103,7 +103,7 @@
 %typemap(jtype) z_data_handler_t data_handler "io.zenoh.DataHandler";
 %typemap(jstype) z_data_handler_t data_handler "io.zenoh.DataHandler";
 %typemap(javain) z_data_handler_t data_handler "$javainput";
-%typemap(in,numinputs=1) (z_data_handler_t data_handler, void *arg) {
+%typemap(in,numinputs=1) (z_data_handler_t data_handler, void *arg) %{
   // Store DataHandler object in a handler_arg
   // that will be passed to jni_handledata() at each notification
   handler_arg *jarg = malloc(sizeof(handler_arg));
@@ -113,14 +113,14 @@
 
   $1 = jni_handledata;
   $2 = jarg;
-};
+%};
 
 /*----- typemap for z_data_handler_t + z_query_handler_t + arg in z_declare_storage -------*/
 %typemap(jni) (z_data_handler_t data_handler, z_query_handler_t query_handler) "jobject";
 %typemap(jtype) (z_data_handler_t data_handler, z_query_handler_t query_handler) "io.zenoh.StorageHandler";
 %typemap(jstype) (z_data_handler_t data_handler, z_query_handler_t query_handler) "io.zenoh.StorageHandler";
 %typemap(javain) (z_data_handler_t data_handler, z_query_handler_t query_handler) "$javainput";
-%typemap(in,numinputs=1) (z_data_handler_t data_handler, z_query_handler_t query_handler, void *arg) {
+%typemap(in,numinputs=1) (z_data_handler_t data_handler, z_query_handler_t query_handler, void *arg) %{
   // Store the StorageHandler object in a handler_arg
   // that will be passed to each call to jni_handledata and jni_handlequery
   handler_arg *jarg = malloc(sizeof(handler_arg));
@@ -131,14 +131,14 @@
   $1 = jni_handledata;
   $2 = jni_handlequery;
   $3 = jarg;
-};
+%};
 
 /*----- typemap for z_query_handler_t + arg in z_declare_eval -------*/
 %typemap(jni) (z_query_handler_t query_handler) "jobject";
 %typemap(jtype) (z_query_handler_t query_handler) "io.zenoh.QueryHandler";
 %typemap(jstype) (z_query_handler_t query_handler) "io.zenoh.QueryHandler";
 %typemap(javain) (z_query_handler_t query_handler) "$javainput";
-%typemap(in,numinputs=1) (z_query_handler_t query_handler, void *arg) {
+%typemap(in,numinputs=1) (z_query_handler_t query_handler, void *arg) %{
   // Store the QueryHandler object in a handler_arg
   // that will be passed to each call to jni_handlequery
   handler_arg *jarg = malloc(sizeof(handler_arg));
@@ -148,14 +148,14 @@
 
   $1 = jni_handlequery;
   $2 = jarg;
-};
+%};
 
 /*----- typemap for z_reply_handler_t + arg in z_query -------*/
 %typemap(jni) z_reply_handler_t reply_handler "jobject";
 %typemap(jtype) z_reply_handler_t reply_handler "io.zenoh.ReplyHandler";
 %typemap(jstype) z_reply_handler_t reply_handler "io.zenoh.ReplyHandler";
 %typemap(javain) z_reply_handler_t reply_handler "$javainput";
-%typemap(in,numinputs=1) (z_reply_handler_t reply_handler, void *arg) {
+%typemap(in,numinputs=1) (z_reply_handler_t reply_handler, void *arg) %{
   // Store ReplyHandler object in a handler_arg
   // that will be passed to jni_handlereply() at each notification
   handler_arg *jarg = malloc(sizeof(handler_arg));
@@ -165,14 +165,14 @@
 
   $1 = jni_handlereply;
   $2 = jarg;
-};
+%};
 
-/*----- typemap for z_array_resource_t to Resource[] -------*/
+/*----- typemap for Resource[] to z_array_resource_t -------*/
 %typemap(jni) (z_array_resource_t replies) "jobjectArray"
 %typemap(jtype) (z_array_resource_t replies) "io.zenoh.Resource[]"
 %typemap(jstype) (z_array_resource_t replies) "io.zenoh.Resource[]"
 %typemap(javain) (z_array_resource_t replies) "$javainput"
-%typemap(in) (z_array_resource_t replies) {
+%typemap(in) (z_array_resource_t replies) %{
   // Convert io.zenoh.Resource[] into z_array_resource_t
   if ($input == NULL) {
     $1.length = 0;
@@ -204,11 +204,10 @@
       assert_no_exception;
     }
   }
-
-}
-%typemap(freearg) (const unsigned char *payload, size_t length) {
+%}
+%typemap(freearg) (const unsigned char *payload, size_t length) %{
   release_intermediate_byte_array(jenv, $input, $1, $2);
-}
+%}
 
 
 %{
@@ -538,25 +537,27 @@ void jni_handlequery(const char *rname, const char *predicate, z_replies_sender_
 void jni_handlereply(const z_reply_value_t *reply, void *arg) {
   handler_arg *jarg = arg;
   JNIEnv *jenv = get_jenv();
-
   jbyteArray jstoid = 0;
+  jstring jrname = 0;
+  jobject jinfo = 0;
+  jobject jbuffer = 0;
+
   if (reply->kind != Z_REPLY_FINAL) {
     jstoid = (*jenv)->NewByteArray(jenv, reply->stoid_length);
     assert_no_exception;
     (*jenv)->SetByteArrayRegion(jenv, jstoid, 0, reply->stoid_length, (const jbyte*) reply->stoid);
     assert_no_exception;
+
+    if (reply->kind == Z_STORAGE_DATA || reply->kind == Z_EVAL_DATA) {
+      jrname = (*jenv)->NewStringUTF(jenv, reply->rname);
+
+      jinfo = (*jenv)->NewObject(jenv, data_info_class, data_info_constr,
+        reply->info.flags, reply->info.encoding, reply->info.tstamp.time, reply->info.kind);
+      assert_no_exception;
+
+      native_to_jbuffer(jenv, reply->data, reply->data_length, jbuffer);
+    }
   }
-
-  jobject jbuffer = 0;
-  if (reply->kind == Z_STORAGE_DATA || reply->kind == Z_EVAL_DATA) {
-    native_to_jbuffer(jenv, reply->data, reply->data_length, jbuffer);
-  }
-
-  jobject jinfo = (*jenv)->NewObject(jenv, data_info_class, data_info_constr,
-    reply->info.flags, reply->info.encoding, reply->info.tstamp.time, reply->info.kind);
-  assert_no_exception;
-
-  jstring jrname = (*jenv)->NewStringUTF(jenv, reply->rname);
 
   jobject jreply = (*jenv)->NewObject(jenv, reply_value_class, reply_value_constr,
     reply->kind, jstoid, reply->rsn, jrname, jbuffer, jinfo);
