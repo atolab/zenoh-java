@@ -13,7 +13,8 @@ import io.zenoh.swig.z_sub_p_result_t;
 import io.zenoh.swig.z_zenoh_p_result_t;
 import io.zenoh.swig.zenohc;
 
-import java.util.Properties;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * The Zenoh client API.
@@ -21,6 +22,13 @@ import java.util.Properties;
 public class Zenoh {
 
     private static final Logger LOG = LoggerFactory.getLogger("io.zenoh");
+    private static final Map.Entry<Integer, byte[]>[] EMPTY = new Map.Entry[0];
+
+    public static final Integer INFO_PID_KEY = 0x00;
+    public static final Integer INFO_PEER_KEY = 0x01;
+    public static final Integer INFO_PEER_PID_KEY = 0x02;
+    public static final Integer USER_KEY = 0x50;
+    public static final Integer PASSWD_KEY = 0x51;
 
     static {
         try {
@@ -58,9 +66,10 @@ public class Zenoh {
      * @return a Zenoh object to be used for requests on the Zenoh broker.
      * @throws ZException if connection fails.
      */
-    public static Zenoh open(String locator, Properties properties) throws ZException {
+    public static Zenoh open(String locator, Map<Integer, byte[]> properties) throws ZException {
         LOG.debug("Call z_open on {}", locator);
-        z_zenoh_p_result_t zenoh_result = zenohc.z_open(locator, properties);
+        Entry<Integer, byte[]>[] entries = properties != null ? properties.entrySet().toArray(EMPTY) : null;
+        z_zenoh_p_result_t zenoh_result = zenohc.z_open(locator,  entries);
         if (zenoh_result.getTag().equals(result_kind.Z_ERROR_TAG)) {
             throw new ZException("z_open on " + locator + " failed", zenoh_result.getValue().getError());
         }
@@ -95,7 +104,7 @@ public class Zenoh {
         }
     }
 
-    public Properties info() {
+    public Map<Integer, byte[]> info() {
         return zenohc.z_info(z);
     }
 

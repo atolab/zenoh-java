@@ -4,69 +4,53 @@
 /*----- typemap for basic types -------*/
 %include "stdint.i"
 
-/*----- typemap for z_vec_t to Properties -------*/
+/*----- typemap for z_vec_t to java.util.Map<java.lang.Integer, byte[]> -------*/
 %typemap(jni) z_vec_t "jobject"
-%typemap(jtype) z_vec_t "java.util.Properties"
-%typemap(jstype) z_vec_t "java.util.Properties"
+%typemap(jtype) z_vec_t "java.util.Map<java.lang.Integer, byte[]>"
+%typemap(jstype) z_vec_t "java.util.Map<java.lang.Integer, byte[]>"
 %typemap(out) z_vec_t %{
-  jobject jprops = (*jenv)->NewObject(jenv, properties_class, properties_constr);
-
-  z_array_uint8_t array_value;
-  char *hexa_value;
-  jstring str_key;
-  jstring str_val;
-
-  array_value = ((z_property_t *)z_vec_get(&$1, Z_INFO_PEER_KEY))->value;
-  hexa_value = malloc((array_value.length+1)*sizeof(char));
-  memcpy(hexa_value, array_value.elem, array_value.length);
-  hexa_value[array_value.length+1] = 0;
-  str_key = (*jenv)->NewStringUTF(jenv, "peer");
-  str_val = (*jenv)->NewStringUTF(jenv, hexa_value);
-  (*jenv)->CallObjectMethod(jenv, jprops, set_property_method, str_key, str_val);
-  free(hexa_value);
-
-  array_value = ((z_property_t *)z_vec_get(&$1, Z_INFO_PID_KEY))->value;
-  hexa_value = malloc((array_value.length*2+1)*sizeof(char));
-  for(int i = 0; i < array_value.length; ++i){
-    sprintf(hexa_value + 2*i, "%02x", array_value.elem[i]);
+  $result = (*jenv)->NewObject(jenv, hash_map_class, hash_map_constr);
+  unsigned int len = z_vec_length(&$1);
+  for(int i = 0; i < len; ++i) {
+    z_property_t *prop = (z_property_t *)z_vec_get(&$1, i);
+    jobject jinteger = (*jenv)->NewObject(jenv, integer_class, integer_constr, prop->id);
+    jbyteArray jbytes = (*jenv)->NewByteArray(jenv, prop->value.length);
+    (*jenv)->SetByteArrayRegion(jenv, jbytes, 0, prop->value.length, (jbyte*)prop->value.elem);
+    (*jenv)->CallObjectMethod(jenv, $result, map_put_method, jinteger, jbytes);
   }
-  hexa_value[array_value.length*2+1] = 0;
-  str_key = (*jenv)->NewStringUTF(jenv, "pid");
-  str_val = (*jenv)->NewStringUTF(jenv, hexa_value);
-  (*jenv)->CallObjectMethod(jenv, jprops, set_property_method, str_key, str_val);
-  free(hexa_value);
-
-  array_value = ((z_property_t *)z_vec_get(&$1, Z_INFO_PEER_PID_KEY))->value;
-  hexa_value = malloc((array_value.length*2+1)*sizeof(char));
-  for(int i = 0; i < array_value.length; ++i){
-    sprintf(hexa_value + 2*i, "%02x", array_value.elem[i]);
-  }
-  hexa_value[array_value.length*2+1] = 0;
-  str_key = (*jenv)->NewStringUTF(jenv, "peer_pid");
-  str_val = (*jenv)->NewStringUTF(jenv, hexa_value);
-  (*jenv)->CallObjectMethod(jenv, jprops, set_property_method, str_key, str_val);
-  free(hexa_value);
-
-  $result = jprops;
 %}
 %typemap(javaout) z_vec_t {
   return $jnicall;
 }
 
-/*----- typemap for Properties to z_vec_t* -------*/
+/*----- typemap for java.util.Map<java.lang.Integer, byte[]> to z_vec_t* -------*/
 %typemap(jni) (const z_vec_t *ps) "jobject"
-%typemap(jtype) (const z_vec_t *ps) "java.util.Properties"
-%typemap(jstype) (const z_vec_t *ps) "java.util.Properties"
+%typemap(jtype) (const z_vec_t *ps) "java.util.Map.Entry<java.lang.Integer, byte[]>[]"
+%typemap(jstype) (const z_vec_t *ps) "java.util.Map.Entry<java.lang.Integer, byte[]>[]"
 %typemap(javain) (const z_vec_t *ps) "$javainput"
 %typemap(in) (const z_vec_t *ps) %{
-  z_vec_t vec = z_vec_make(2);
+  z_vec_t vec; 
   if($input != NULL) {
-    jstring user = (jstring) (*jenv)->CallObjectMethod(jenv, $input, get_property_method, (*jenv)->NewStringUTF(jenv, "user"));
-    if(user != NULL) z_vec_append(&vec, z_property_make_from_str(Z_USER_KEY, (char *)(*jenv)->GetStringUTFChars(jenv, user, 0)));
-    jstring password = (jstring) (*jenv)->CallObjectMethod(jenv, $input, get_property_method, (*jenv)->NewStringUTF(jenv, "password"));
-    if(password != NULL) z_vec_append(&vec, z_property_make_from_str(Z_PASSWD_KEY, (char *)(*jenv)->GetStringUTFChars(jenv, password, 0)));
+    jsize len = (*jenv)->GetArrayLength(jenv, $input);
+    assert_no_exception;
+    vec = z_vec_make(len);
+    for (int i = 0; i < len; ++i) {
+      jobject entry = (jobject) (*jenv)->GetObjectArrayElement(jenv, $input, i);
+
+		  jobject keyobj = (jobject) (*jenv)->CallObjectMethod(jenv, entry, entry_getKey_method);
+		  jobject valobj = (jobject) (*jenv)->CallObjectMethod(jenv, entry, entry_getValue_method);
+
+      int key = (*jenv)->CallIntMethod(jenv, keyobj, integer_intValue_method);
+
+      z_array_uint8_t val = {
+        (*jenv)->GetArrayLength(jenv, valobj), 
+        (uint8_t *) (*jenv)->GetByteArrayElements(jenv, valobj, NULL)
+      };
+      
+      z_vec_append(&vec, z_property_make(key, val));
+	  }
+    $1 = &vec;
   }
-  $1 = &vec;
 %}
 
 
@@ -235,15 +219,19 @@
 /*------ Caching of Java VM, classes, methods... ------*/
 JavaVM *jvm = NULL;
 jclass zenoh_class = NULL;
-jclass properties_class = NULL;
+jclass integer_class = NULL;
+jclass hash_map_class = NULL;
 jclass byte_buffer_class = NULL;
 jclass data_info_class = NULL;
 jclass reply_value_class = NULL;
 jclass replies_sender_class = NULL;
 jmethodID log_exception_method = NULL;
-jmethodID properties_constr = NULL;
-jmethodID set_property_method = NULL;
-jmethodID get_property_method = NULL;
+jmethodID integer_constr = NULL;
+jmethodID integer_intValue_method = NULL;
+jmethodID hash_map_constr = NULL;
+jmethodID map_put_method = NULL;
+jmethodID entry_getKey_method = NULL;
+jmethodID entry_getValue_method = NULL;
 jmethodID byte_buffer_is_direct_method = NULL;
 jmethodID byte_buffer_has_array_method = NULL;
 jmethodID byte_buffer_array_method = NULL;
@@ -276,9 +264,13 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
   assert_no_exception;
   zenoh_class = (jclass) (*jenv)->NewGlobalRef(jenv, z_class);
   assert_no_exception;
-  jclass prop_class = (*jenv)->FindClass(jenv, "java/util/Properties");
+  jclass int_class = (*jenv)->FindClass(jenv, "java/lang/Integer");
   assert_no_exception;
-  properties_class = (jclass) (*jenv)->NewGlobalRef(jenv, prop_class);
+  integer_class = (jclass) (*jenv)->NewGlobalRef(jenv, int_class);
+  assert_no_exception;
+  jclass hm_class = (*jenv)->FindClass(jenv, "java/util/HashMap");
+  assert_no_exception;
+  hash_map_class = (jclass) (*jenv)->NewGlobalRef(jenv, hm_class);
   assert_no_exception;
   jclass bb_class = (*jenv)->FindClass(jenv, "java/nio/ByteBuffer");
   assert_no_exception;
@@ -298,6 +290,10 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
   assert_no_exception;
 
   // Non-cached classes that are used below to get methods IDs
+  jclass map_class = (*jenv)->FindClass(jenv, "java/util/Map");
+  assert_no_exception;
+  jclass map_entry_class = (*jenv)->FindClass(jenv, "java/util/Map$Entry");
+  assert_no_exception;
   jclass datahandler_class = (*jenv)->FindClass(jenv, "io/zenoh/DataHandler");
   assert_no_exception;
   jclass storagehandler_class = (*jenv)->FindClass(jenv, "io/zenoh/StorageHandler");
@@ -314,14 +310,23 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
   log_exception_method = (*jenv)->GetStaticMethodID(jenv, zenoh_class,
     "LogException", "(Ljava/lang/Throwable;Ljava/lang/String;)V");
   assert_no_exception;
-  properties_constr = (*jenv)->GetMethodID(jenv, properties_class,
+  integer_constr = (*jenv)->GetMethodID(jenv, integer_class,
+    "<init>", "(I)V");
+  assert_no_exception;
+  integer_intValue_method = (*jenv)->GetMethodID(jenv, integer_class,
+    "intValue", "()I");
+  assert_no_exception;
+  hash_map_constr = (*jenv)->GetMethodID(jenv, hash_map_class,
     "<init>", "()V");
   assert_no_exception;
-  set_property_method = (*jenv)->GetMethodID(jenv, properties_class,
-    "setProperty", "(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Object;");
+  map_put_method = (*jenv)->GetMethodID(jenv, map_class,
+    "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
   assert_no_exception;
-  get_property_method = (*jenv)->GetMethodID(jenv, properties_class,
-    "getProperty", "(Ljava/lang/String;)Ljava/lang/String;");
+  entry_getKey_method = (*jenv)->GetMethodID(jenv, map_entry_class, 
+    "getKey", "()Ljava/lang/Object;");
+  assert_no_exception;
+  entry_getValue_method = (*jenv)->GetMethodID(jenv, map_entry_class, 
+    "getValue", "()Ljava/lang/Object;");
   assert_no_exception;
   byte_buffer_is_direct_method = (*jenv)->GetMethodID(jenv, byte_buffer_class,
     "isDirect", "()Z");
