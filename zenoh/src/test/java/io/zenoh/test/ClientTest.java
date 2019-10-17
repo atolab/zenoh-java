@@ -158,11 +158,12 @@ public class ClientTest {
         Zenoh z3 = Zenoh.open("tcp/127.0.0.1:7447");
         Subscriber z3_sub1 = z3.declareSubscriber("/test/java/client/**", SubMode.pull(), new z3_sub1_listener());
 
+        Thread.sleep(1000);
+
         ByteBuffer sent_buf;
         Resource sent_res;
         Resource rcvd_res;
         List<List<Resource>> reps;
-
 
         sent_buf = (ByteBuffer)ByteBuffer.allocateDirect(256).put("z1_wr1_spl1".getBytes("UTF-8")).flip();
         sent_res = new Resource("/test/java/client/z1_wr1", sent_buf, 0, 0);
