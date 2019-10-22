@@ -54,21 +54,21 @@ public class ReplyValue {
 
 
     private Kind kind;
-    private byte[] stoid;
+    private byte[] srcid;
     private long rsn;
     private String rname;
     private ByteBuffer data;
     private DataInfo info;
  
-    protected ReplyValue(int kind, byte[] stoid, long rsn, String rname, ByteBuffer data, DataInfo info) 
+    protected ReplyValue(int kind, byte[] srcid, long rsn, String rname, ByteBuffer data, DataInfo info) 
         throws ZException
     {
-        this(Kind.fromInt(kind), stoid, rsn, rname, data, info);
+        this(Kind.fromInt(kind), srcid, rsn, rname, data, info);
     }
 
-    protected ReplyValue(Kind kind, byte[] stoid, long rsn, String rname, ByteBuffer data, DataInfo info) {
+    protected ReplyValue(Kind kind, byte[] srcid, long rsn, String rname, ByteBuffer data, DataInfo info) {
         this.kind = kind;
-        this.stoid = stoid;
+        this.srcid = srcid;
         this.rsn = rsn;
         this.rname = rname;
         this.data = data;
@@ -83,10 +83,10 @@ public class ReplyValue {
     }
 
     /**
-     * Return the StorageId of the storage that sent this reply.
+     * Return the unique id of the storage or eval that sent this reply.
      */
-    public byte[] getStoid() {
-        return stoid;
+    public byte[] getSrcId() {
+        return srcid;
     }
 
     /**
