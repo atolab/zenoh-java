@@ -151,13 +151,13 @@
   $2 = jarg;
 %};
 
-/*----- typemap for Resource[] to z_array_resource_t -------*/
-%typemap(jni) (z_array_resource_t replies) "jobjectArray"
-%typemap(jtype) (z_array_resource_t replies) "io.zenoh.Resource[]"
-%typemap(jstype) (z_array_resource_t replies) "io.zenoh.Resource[]"
-%typemap(javain) (z_array_resource_t replies) "$javainput"
-%typemap(in) (z_array_resource_t replies) %{
-  // Convert io.zenoh.Resource[] into z_array_resource_t
+/*----- typemap for Resource[] to z_array_p_resource_t -------*/
+%typemap(jni) (z_array_p_resource_t replies) "jobjectArray"
+%typemap(jtype) (z_array_p_resource_t replies) "io.zenoh.Resource[]"
+%typemap(jstype) (z_array_p_resource_t replies) "io.zenoh.Resource[]"
+%typemap(javain) (z_array_p_resource_t replies) "$javainput"
+%typemap(in) (z_array_p_resource_t replies) %{
+  // Convert io.zenoh.Resource[] into z_array_p_resource_t
   if ($input == NULL) {
     $1.length = 0;
     $1.elem = NULL;
@@ -510,7 +510,7 @@ void jni_handlequery(const char *rname, const char *predicate, z_replies_sender_
 
   if (jarg->context != NULL) {
     printf("Internal error in jni_handlequery: cannot serve query, as their is already an ongoing query (context is not NULL)\n");
-    z_array_resource_t replies;
+    z_array_p_resource_t replies;
     replies.length = 0;
     replies.elem = NULL;
     send_replies(query_handle, replies);
@@ -542,15 +542,15 @@ void jni_handlequery(const char *rname, const char *predicate, z_replies_sender_
 void jni_handlereply(const z_reply_value_t *reply, void *arg) {
   handler_arg *jarg = arg;
   JNIEnv *jenv = get_jenv();
-  jbyteArray jstoid = 0;
+  jbyteArray jsrcid = 0;
   jstring jrname = 0;
   jobject jinfo = 0;
   jobject jbuffer = 0;
 
   if (reply->kind != Z_REPLY_FINAL) {
-    jstoid = (*jenv)->NewByteArray(jenv, reply->stoid_length);
+    jsrcid = (*jenv)->NewByteArray(jenv, reply->srcid_length);
     assert_no_exception;
-    (*jenv)->SetByteArrayRegion(jenv, jstoid, 0, reply->stoid_length, (const jbyte*) reply->stoid);
+    (*jenv)->SetByteArrayRegion(jenv, jsrcid, 0, reply->srcid_length, (const jbyte*) reply->srcid);
     assert_no_exception;
 
     if (reply->kind == Z_STORAGE_DATA || reply->kind == Z_EVAL_DATA) {
@@ -565,7 +565,7 @@ void jni_handlereply(const z_reply_value_t *reply, void *arg) {
   }
 
   jobject jreply = (*jenv)->NewObject(jenv, reply_value_class, reply_value_constr,
-    reply->kind, jstoid, reply->rsn, jrname, jbuffer, jinfo);
+    reply->kind, jsrcid, reply->rsn, jrname, jbuffer, jinfo);
 
   // Call ReplyHandler.handleReply()
   (*jenv)->CallVoidMethod(jenv, jarg->handler_object, handlereply_method, jreply);
@@ -580,11 +580,11 @@ void jni_handlereply(const z_reply_value_t *reply, void *arg) {
   if (reply->kind == Z_STORAGE_DATA || reply->kind == Z_EVAL_DATA) {
     delete_jbuffer(jenv, jbuffer);
   }
-  (*jenv)->DeleteLocalRef(jenv, jstoid);
+  (*jenv)->DeleteLocalRef(jenv, jsrcid);
   assert_no_exception;
 }
 
-void call_replies_sender(jlong send_replies_ptr, jlong query_handle_ptr, z_array_resource_t replies) {
+void call_replies_sender(jlong send_replies_ptr, jlong query_handle_ptr, z_array_p_resource_t replies) {
   z_replies_sender_t send_replies = (z_replies_sender_t)send_replies_ptr;
   void* query_handle = (void*)query_handle_ptr;
   send_replies(query_handle, replies);
@@ -592,7 +592,7 @@ void call_replies_sender(jlong send_replies_ptr, jlong query_handle_ptr, z_array
 
 %}
 
-void call_replies_sender(jlong send_replies_ptr, jlong query_handle_ptr, z_array_resource_t replies);
+void call_replies_sender(jlong send_replies_ptr, jlong query_handle_ptr, z_array_p_resource_t replies);
 
 #include <stdint.h>
 
@@ -616,7 +616,7 @@ typedef void (*z_reply_handler_t)(const z_reply_value_t *reply, void *arg);
 
 typedef void (*z_data_handler_t)(const z_resource_id_t *rid, const unsigned char *data, size_t length, z_data_info_t info, void *arg);
 
-typedef void (*z_replies_sender_t)(void* query_handle, z_array_resource_t replies);
+typedef void (*z_replies_sender_t)(void* query_handle, z_array_p_resource_t replies);
 typedef void (*z_query_handler_t)(const char *rname, const char *predicate, z_replies_sender_t send_replies, void *query_handle, void *arg);
 
 typedef struct {
