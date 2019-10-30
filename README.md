@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.com/atolab/zenoh-java.svg?branch=master)](https://travis-ci.com/atolab/zenoh-java)
+[![Documentation Status](https://readthedocs.org/projects/zenoh-java/badge/?version=latest)](https://zenoh-java.readthedocs.io/en/latest/?badge=latest)
 
 # Zenoh Java Client API
 
