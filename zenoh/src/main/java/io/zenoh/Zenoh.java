@@ -50,21 +50,23 @@ public class Zenoh {
     }
 
     /**
-     * Open a connection to a Zenoh broker.
-     * @param locator the Zenoh broker's locator.
-     * @return a Zenoh object to be used for requests on the Zenoh broker.
-     * @throws ZException if connection fails.
+     * Open a zenoh session with the infrastructure component (zenoh router, zenoh broker, ...) reachable at location **locator**. 
+     * @param locator a string representation of a network endpoint. A typical locator looks like this : ``tcp/127.0.0.1:7447``. 
+     * @return a Zenoh object representing the openned zenoh session..
+     * @throws ZException if session etablishment fails.
      */
     public static Zenoh open(String locator) throws ZException {
         return open(locator, null);
     }
 
     /**
-     * Open a connection to a Zenoh broker.
-     * @param locator the Zenoh broker's locator.
-     * @param properties the properties to send to the broker.
-     * @return a Zenoh object to be used for requests on the Zenoh broker.
-     * @throws ZException if connection fails.
+     * Open a zenoh session with the infrastructure component (zenoh router, zenoh broker, ...) reachable at location **locator**. 
+     * @param locator a string representation of a network endpoint. A typical locator looks like this : ``tcp/127.0.0.1:7447``. 
+     * @param properties a map of properties that will be used to establish and configure the zenoh session. 
+     * **properties** will typically contain the ``username`` and ``password`` informations needed to establish the zenoh session with a secured infrastructure. 
+     * It can be set to ``NULL``. 
+     * @return a Zenoh object representing the openned zenoh session..
+     * @throws ZException if session etablishment fails.
      */
     public static Zenoh open(String locator, Map<Integer, byte[]> properties) throws ZException {
         LOG.debug("Call z_open on {}", locator);
@@ -89,7 +91,7 @@ public class Zenoh {
     }
 
     /**
-     * Close the connection to the Zenoh broker.
+     * Close the zenoh session.
      * @throws ZException if close failed.
      */
     public void close() throws ZException {
@@ -104,15 +106,17 @@ public class Zenoh {
         }
     }
 
+    /**
+     * @return a map pf properties containing various informations about the established zenoh session.
+     */
     public Map<Integer, byte[]> info() {
         return zenohc.z_info(z);
     }
 
-
     /**
-     * Declares a Publisher on a resource
-     * @param resource the resource published by the Publisher
-     * @return the Publisher to be used for publications.
+     * Declare a publication for resource seletor **resource**.
+     * @param resource the resource seletor to publish.
+     * @return the zenoh {@link Publisher}.
      * @throws ZException if declaration fails.
      */
     public Publisher declarePublisher(String resource) throws ZException {
@@ -125,11 +129,12 @@ public class Zenoh {
     }
 
     /**
-     * Declares a Subscriber on a resource
-     * @param resource the resource subscribed by the Subscriber.
+     * Declare a subscribtion for all published data matching the provided resource selector **resource**. 
+     * @param resource the resource seletor to subscribe to.
      * @param mode the subscription mode.
-     * @param dataHandler the Subscriber's data handler.
-     * @return the Subscriber.
+     * @param handler a {@link DataHandler} subclass implementing the callback function that will be called each time
+     * a data matching the subscribed **resource** is received.
+     * @return the zenoh {@link Subscriber}.
      * @throws ZException if declaration fails.
      */
     public Subscriber declareSubscriber(String resource, SubMode mode, DataHandler handler) throws ZException {
@@ -142,10 +147,12 @@ public class Zenoh {
     }
 
     /**
-     * Declares a Storage on a resource
-     * @param resource the resource stored by the Storage.
-     * @param callback the Storage's callbacks.
-     * @return the Storage.
+     * Declare a storage for all data matching the provided resource selector **resource**. 
+     * @param resource the resource selector to store.
+     * @param handler a {@link StorageHandler} subclass implementing the callback functions that will be called each time
+     * a data matching the stored **resource** selector is received and each time a query for data matching the
+     * stored **resource** selector is received.
+     * @return the zenoh {@link Storage}.
      * @throws ZException if declaration fails.
      */
     public Storage declareStorage(String resource, StorageHandler handler)
@@ -160,8 +167,10 @@ public class Zenoh {
     }
 
     /**
-     * Declares a Eval on a resource
-     * @param handler the Eval's handler.
+     * Declare an eval able to provide data matching the provided resource selector **resource**. 
+     * @param resource the resource selector to evaluate.
+     * @param handler a {@link QueryHandler} subclass implementing the the callback function that will be called each time a
+     * query for data matching the evaluated **resource** selector is received.
      * @return the Eval.
      * @throws ZException if declaration fails.
      */
@@ -177,8 +186,8 @@ public class Zenoh {
     }
 
     /**
-     * Write a data with default encoding (0) and kind (0) for a resource, using a Z_WRITE_DATA message.
-     * @param resource the resource.
+     * Send data in a *write_data* message for the resource selector **resource**.
+     * @param resource the resource selector of the data to be sent.
      * @param payload the data.
      * @throws ZException if write fails.
      */
@@ -190,11 +199,11 @@ public class Zenoh {
     }
 
     /**
-     * Write a data with specified encoding and kind for a resource, using a Z_WRITE_DATA message.
-     * @param resource the resource.
+     * Send data in a *write_data* message for the resource selector **resource**.
+     * @param resource the resource selector of the data to be sent.
      * @param payload the data.
-     * @param encoding the data encoding.
-     * @param kind the data kind.
+     * @param encoding a metadata information associated with the published data that represents the encoding of the published data. 
+     * @param kind a metadata information associated with the published data that represents the kind of publication.
      * @throws ZException if write fails.
      */
     public void writeData(String resource, java.nio.ByteBuffer payload, short encoding, short kind) throws ZException {
@@ -205,24 +214,28 @@ public class Zenoh {
     }
 
     /**
-     * Query a resource with a predicate.
-     * @param resource the queried resource.
-     * @param predicate the predicate.
-     * @param handler the handler that will be called for each reply.
-     * @throws ZException
+     * Query data matching resource selector **resource**.
+     * @param resource the resource selector to query.
+     * @param predicate a string that will be propagated to the storages and evals that should provide the queried data. 
+     * It may allow them to filter, transform and/or compute the queried data. .
+     * @param handler a {@link ReplyHandler} subclass implementing the callback function that will be called on reception
+     * of the replies of the query. 
+     * @throws ZException if fails.
      */
     public void query(String resource, String predicate, ReplyHandler handler) throws ZException {
         query(resource, predicate, handler, QueryDest.bestMatch(), QueryDest.bestMatch());
     }
 
     /**
-     * Query a resource with a predicate.
-     * @param resource the queried resource.
-     * @param predicate the predicate.
-     * @param handler the handler that will be called for each reply.
-     * @param dest_storages the storages that should be destination of this query.
-     * @param dest_evals the evals that should be destination of this query.
-     * @throws ZException
+     * Query data matching resource selector **resource**.
+     * @param resource the resource selector to query.
+     * @param predicate a string that will be propagated to the storages and evals that should provide the queried data. 
+     * It may allow them to filter, transform and/or compute the queried data. .
+     * @param handler a {@link ReplyHandler} subclass implementing the callback function that will be called on reception
+     * of the replies of the query.
+     * @param dest_storages a {@link QueryDest} indicating which matching storages should be destination of the query.
+     * @param dest_evals a {@link QueryDest} indicating which matching evals should be destination of the query.
+     * @throws ZException if fails.
      */
     public void query(String resource, String predicate, ReplyHandler handler, QueryDest dest_storages, QueryDest dest_evals) throws ZException {
         int result = zenohc.z_query_wo(z, resource, predicate, handler, dest_storages, dest_evals);

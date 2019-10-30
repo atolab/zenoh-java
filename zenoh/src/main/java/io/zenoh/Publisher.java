@@ -6,7 +6,7 @@ import io.zenoh.swig.z_pub_t;
 import io.zenoh.swig.zenohc;
 
 /**
- * A Publisher associated to a resource (see {@link Zenoh#declarePublisher(String)}).
+ * A Publisher (see {@link Zenoh#declarePublisher(String)}).
  */
 public class Publisher {
 

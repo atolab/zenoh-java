@@ -1,8 +1,7 @@
 package io.zenoh;
 
 /**
- * Class to be used in a {@link Storage} implementation when sending back replies to a query.
- * See {@link Storage#queryHandler(String, String, RepliesSender)}
+ * Class to be used in a {@link QueryHandler} implementation to send back replies to a query.
  */
 public final class RepliesSender {
 
@@ -18,7 +17,7 @@ public final class RepliesSender {
     }
 
     /**
-     * Send back the replies to the query associated with this RepliesSender object.
+     * Send back the replies to the query associated with this {@link RepliesSender} object.
      * @param replies the replies.
      */
     public void sendReplies(Resource[] replies) {

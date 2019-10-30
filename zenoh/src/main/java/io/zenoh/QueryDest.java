@@ -3,7 +3,8 @@ package io.zenoh;
 import io.zenoh.swig.z_query_dest_t;
 
 /**
- * Query destination mode (used in {@link Zenoh#query(String, String, ReplyCallback, QueryDest, QueryDest)}).
+ * An object defining which storages or evals should be destination of a query
+ * (see {@link Zenoh#query(String, String, ReplyCallback, QueryDest, QueryDest)}).
  */
 public class QueryDest extends z_query_dest_t {
 
@@ -11,10 +12,24 @@ public class QueryDest extends z_query_dest_t {
      * The Query destination kind.
      */
     public enum Kind { 
-
+        /**
+         * The nearest complete storage/eval if there is one, all storages/evals if not.
+         */
         Z_BEST_MATCH((short)0),
+
+        /**
+         * Only complete storages/evals. 
+         */
         Z_COMPLETE((short)1),
+
+        /**
+         * All storages/evals.
+         */
         Z_ALL((short)2),
+
+        /**
+         * no storages/evals.
+         */
         Z_NONE((short)3);
 
         private short numVal;
@@ -66,35 +81,35 @@ public class QueryDest extends z_query_dest_t {
     }
 
     /**
-     * Return the bestMatch query destination.
+     * @return a {@link QueryDest} with kind {@link Kind#Z_BEST_MATCH}.
      */
     public static QueryDest bestMatch() {
         return BEST_MATCH;
     }
 
     /**
-     * Return the complete query destination with 1 destination.
+     * @return a {@link QueryDest} with kind {@link Kind#Z_COMPLETE}.
      */
     public static QueryDest complete() {
         return COMPLETE;
     }
 
     /**
-     * Return the complete query destination with the specified number of destinations.
+     * @return a {@link QueryDest} with kind {@link Kind#Z_COMPLETE}.
      */
     public static QueryDest complete(short nb) {
         return new QueryDest(Kind.Z_COMPLETE, nb);
     }
 
     /**
-     * Return the all query destination.
+     * @return a {@link QueryDest} with kind {@link Kind#Z_ALL}.
      */
     public static QueryDest all() {
         return ALL;
     }
 
     /**
-     * Return the none query destination.
+     * @return a {@link QueryDest} with kind {@link Kind#Z_NONE}.
      */
     public static QueryDest none() {
         return NONE;

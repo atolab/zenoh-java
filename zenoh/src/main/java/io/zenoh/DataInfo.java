@@ -1,7 +1,7 @@
 package io.zenoh;
 
 /**
- * The information associated to a received data.
+ * Some meta informations about the associated data.
  */
 public class DataInfo {
 
@@ -18,28 +18,28 @@ public class DataInfo {
     }
 
     /**
-     * Return the data flags.
+     * @return flags indicating which meta information is present in the {@link DataInfo}.
      */
     public long getFlags() {
         return flags;
     }
 
     /**
-     * Return the data encoding.
+     * @return the data encoding.
      */
     public int getEncoding() {
         return encoding;
     }
 
     /**
-     * Return the time.
+     * @return the unique timestamp at which the data was produced.
      */
     public long getTime() {
         return time;
     }
 
     /**
-     * Return the data kind.
+     * @return the data kind.
      */
     public int getKind() {
         return kind;

@@ -66,28 +66,28 @@ public class SubMode extends io.zenoh.swig.z_sub_mode_t {
     }
 
     /**
-     * Return the push subscription mode.
+     * @return the push subscription mode.
      */
     public static SubMode push() {
         return PUSH_MODE;
     }
 
     /**
-     * Return the pull subscription mode.
+     * @return the pull subscription mode.
      */
     public static SubMode pull() {
         return PULL_MODE;
     }
 
     /**
-     * Return a periodic push subscription mode with the specified temporal properties.
+     * @return a periodic push subscription mode with the specified temporal properties.
      */
     public static SubMode periodicPush(int origin, int period, int duration) {
         return new SubMode(Kind.Z_PERIODIC_PUSH_MODE, origin, period, duration);
     }
 
     /**
-     * Return a periodic pull subscription mode with the specified temporal properties.
+     * @return a periodic pull subscription mode with the specified temporal properties.
      */
     public static SubMode periodicPull(int origin, int period, int duration) {
         return new SubMode(Kind.Z_PERIODIC_PULL_MODE, origin, period, duration);

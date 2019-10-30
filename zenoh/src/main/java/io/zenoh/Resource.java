@@ -20,28 +20,28 @@ public class Resource {
     }
 
     /**
-     * Return the resource name.
+     * @return the resource name.
      */
     public String getRname() {
         return rname;
     }
 
     /**
-     * return the resource value.
+     * @return the resource value.
      */
     public ByteBuffer getData() {
         return data;
     }
 
     /**
-     * Return the encoding of the resource value.
+     * @return the encoding of the resource value.
      */
     public int getEncoding() {
         return encoding;
     }
 
     /**
-     * Return the kind of the resource.
+     * @return the kind of the resource.
      */
     public int getKind() {
         return kind;

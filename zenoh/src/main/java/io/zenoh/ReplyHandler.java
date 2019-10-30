@@ -7,7 +7,8 @@ package io.zenoh;
 public interface ReplyHandler {
 
     /**
-     * The method that will be called with all reply messages for a query.
+     * The method that will be called on reception of replies to the query sent by 
+     * {@link Zenoh#query(String, String, ReplyHandler)} or {@link Zenoh#query(String, String, ReplyHandler, QueryDest, QueryDest)}. 
      * Note that the last message will have a kind set to {@link io.zenoh.ReplyValue.Kind#Z_STORAGE_FINAL}. 
      * @param reply a reply
      */

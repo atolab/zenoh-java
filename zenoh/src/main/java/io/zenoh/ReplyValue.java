@@ -4,7 +4,7 @@ import java.nio.ByteBuffer;
 
 /**
  * A reply to a query (see {@link Zenoh#query(String, String, ReplyCallback)}
- * and {@link ReplyCallback#handle(ReplyValue)})
+ * and {@link ReplyHandler#handleReply(ReplyValue)})
  */
 public class ReplyValue {
 
@@ -12,10 +12,30 @@ public class ReplyValue {
      * The reply message kind.
      */
     public enum Kind { 
+
+        /**
+         * The reply contains some data from a storage.
+         */
         Z_STORAGE_DATA(0),
+
+        /**
+         * The reply indicates that no more data is expected from the specified storage.
+         */
         Z_STORAGE_FINAL(1),
+
+        /**
+         * The reply contains some data from an eval.
+         */
         Z_EVAL_DATA(2),
+
+        /**
+         * The reply indicates that no more data is expected from the specified eval.
+         */
         Z_EVAL_FINAL(3),
+
+        /**
+         * The reply indicates that no more replies are expected for the query.
+         */
         Z_REPLY_FINAL(4);
 
         private int numVal;
@@ -76,43 +96,49 @@ public class ReplyValue {
     }
 
     /**
-     * Return the Reply message kind.
+     * @return the Reply message kind.
      */
     public Kind getKind() {
         return kind;
     }
 
     /**
-     * Return the unique id of the storage or eval that sent this reply.
+     * @return the unique id of the storage or eval that sent this reply when 
+     * {@link ReplyValue#kind} equals {@link Kind#Z_STORAGE_DATA}, {@link Kind#Z_STORAGE_FINAL}, 
+     * {@link Kind#Z_EVAL_DATA} or {@link Kind#Z_EVAL_FINAL}.
      */
     public byte[] getSrcId() {
         return srcid;
     }
 
     /**
-     * Return the request sequence number.
+     * @return the sequence number of the reply from the identified storage or eval when
+     * {@link ReplyValue#kind} equals {@link Kind#Z_STORAGE_DATA}, {@link Kind#Z_STORAGE_FINAL}, 
+     * {@link Kind#Z_EVAL_DATA} or {@link Kind#Z_EVAL_FINAL}.
      */
     public long getRsn() {
         return rsn;
     }
 
     /**
-     * Return the resource name of this reply.
+     * @return the resource name of the received data when {@link ReplyValue#kind}
+     * equals {@link Kind#Z_STORAGE_DATA} or {@link Kind#Z_EVAL_DATA}.
      */
     public String getRname() {
         return rname;
     }
 
     /**
-     * If the Reply message kind is Z_STORAGE_DATA this operation returns the data of this reply.
-     * Otherwise, it returns null.
+     * @return the received data when {@link ReplyValue#kind}
+     * equals {@link Kind#Z_STORAGE_DATA} or {@link Kind#Z_EVAL_DATA}.
      */
     public ByteBuffer getData() {
         return data;
     }
 
     /**
-     * Return the DataInfo associated to this reply.
+     * @return some meta information about the received data when {@link ReplyValue#kind}
+     * equals {@link Kind#Z_STORAGE_DATA} or {@link Kind#Z_EVAL_DATA}.
      */
     public DataInfo getInfo() {
         return info;

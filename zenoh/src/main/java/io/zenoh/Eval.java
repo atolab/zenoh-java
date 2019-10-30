@@ -4,7 +4,7 @@ import io.zenoh.swig.zenohc;
 import io.zenoh.swig.z_eva_t;
 
 /**
- * A Eval (see {@link Zenoh#declareEval(String, EvalCallback)}).
+ * An Eval (see {@link Zenoh#declareEval(String, EvalCallback)}).
  */
 public class Eval {
 
