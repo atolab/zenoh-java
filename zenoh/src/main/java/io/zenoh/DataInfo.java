@@ -6,14 +6,14 @@ package io.zenoh;
 public class DataInfo {
 
     private long flags;
+    private Timestamp tstamp;
     private int encoding;
-    private long time;
     private int kind;
 
-    protected DataInfo(long flags, int encoding, long time, int kind) {
+    protected DataInfo(long flags, Timestamp tstamp , int encoding, int kind) {
         this.flags = flags;
+        this.tstamp = tstamp;
         this.encoding = encoding;
-        this.time = time;
         this.kind = kind;
     }
 
@@ -34,8 +34,8 @@ public class DataInfo {
     /**
      * @return the unique timestamp at which the data was produced.
      */
-    public long getTime() {
-        return time;
+    public Timestamp getTimestamp() {
+        return tstamp;
     }
 
     /**

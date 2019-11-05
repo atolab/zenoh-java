@@ -222,6 +222,7 @@ jclass zenoh_class = NULL;
 jclass integer_class = NULL;
 jclass hash_map_class = NULL;
 jclass byte_buffer_class = NULL;
+jclass timestamp_class = NULL;
 jclass data_info_class = NULL;
 jclass reply_value_class = NULL;
 jclass replies_sender_class = NULL;
@@ -243,6 +244,7 @@ jmethodID handledata_method = NULL;
 jmethodID handlequery_method = NULL;
 jmethodID replies_sender_constr = NULL;
 jmethodID handlereply_method = NULL;
+jmethodID timestamp_constr = NULL;
 jmethodID data_info_constr = NULL;
 jmethodID reply_value_constr = NULL;
 jmethodID resource_get_rname_method = NULL;
@@ -275,6 +277,10 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
   jclass bb_class = (*jenv)->FindClass(jenv, "java/nio/ByteBuffer");
   assert_no_exception;
   byte_buffer_class = (jclass) (*jenv)->NewGlobalRef(jenv, bb_class);
+  assert_no_exception;
+  jclass ts_class = (*jenv)->FindClass(jenv, "io/zenoh/Timestamp");
+  assert_no_exception;
+  timestamp_class = (jclass) (*jenv)->NewGlobalRef(jenv, ts_class);
   assert_no_exception;
   jclass di_class = (*jenv)->FindClass(jenv, "io/zenoh/DataInfo");
   assert_no_exception;
@@ -362,8 +368,10 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
   handlereply_method = (*jenv)->GetMethodID(jenv, replyhandler_class,
    "handleReply", "(Lio/zenoh/ReplyValue;)V");
   assert_no_exception;
+  timestamp_constr = (*jenv)->GetMethodID(jenv, timestamp_class,
+    "<init>", "(J[B)V");
   data_info_constr = (*jenv)->GetMethodID(jenv, data_info_class,
-    "<init>", "(JIJI)V");
+    "<init>", "(JLio/zenoh/Timestamp;II)V");
   assert_no_exception;
   reply_value_constr = (*jenv)->GetMethodID(jenv, reply_value_class,
     "<init>", "(I[BJLjava/lang/String;Ljava/nio/ByteBuffer;Lio/zenoh/DataInfo;)V");
@@ -490,7 +498,14 @@ void jni_handledata(const z_resource_id_t *rid, const unsigned char *data, size_
   jobject jbuffer;
   native_to_jbuffer(jenv, data, length, jbuffer);
 
-  jobject jinfo = (*jenv)->NewObject(jenv, data_info_class, data_info_constr, info->flags, info->encoding, info->tstamp.time, info->kind);
+  jbyteArray jclockid = (*jenv)->NewByteArray(jenv, 16);
+  assert_no_exception;
+  (*jenv)->SetByteArrayRegion(jenv, jclockid, 0, 16, (const jbyte*) info->tstamp.clock_id);
+  assert_no_exception;
+  jobject jtstamp = (*jenv)->NewObject(jenv, timestamp_class, timestamp_constr, info->tstamp.time, jclockid);
+  assert_no_exception;
+
+  jobject jinfo = (*jenv)->NewObject(jenv, data_info_class, data_info_constr, info->flags, jtstamp, info->encoding, info->kind);
   assert_no_exception;
 
   // Call DataHandler.handleData()
@@ -498,6 +513,10 @@ void jni_handledata(const z_resource_id_t *rid, const unsigned char *data, size_
   catch_and_log_exception(jenv, "Exception caught calling DataHandler.handleData()");
 
   (*jenv)->DeleteLocalRef(jenv, jinfo);
+  assert_no_exception;
+  (*jenv)->DeleteLocalRef(jenv, jtstamp);
+  assert_no_exception;
+  (*jenv)->DeleteLocalRef(jenv, jclockid);
   assert_no_exception;
   delete_jbuffer(jenv, jbuffer);
   (*jenv)->DeleteLocalRef(jenv, jrname);
@@ -544,6 +563,8 @@ void jni_handlereply(const z_reply_value_t *reply, void *arg) {
   JNIEnv *jenv = get_jenv();
   jbyteArray jsrcid = 0;
   jstring jrname = 0;
+  jbyteArray jclockid = 0;
+  jobject jtstamp = 0;
   jobject jinfo = 0;
   jobject jbuffer = 0;
 
@@ -556,8 +577,16 @@ void jni_handlereply(const z_reply_value_t *reply, void *arg) {
     if (reply->kind == Z_STORAGE_DATA || reply->kind == Z_EVAL_DATA) {
       jrname = (*jenv)->NewStringUTF(jenv, reply->rname);
 
+      jclockid = (*jenv)->NewByteArray(jenv, 16);
+      assert_no_exception;
+      (*jenv)->SetByteArrayRegion(jenv, jclockid, 0, 16, (const jbyte*) reply->info.tstamp.clock_id);
+      assert_no_exception;
+      jtstamp = (*jenv)->NewObject(jenv, timestamp_class, timestamp_constr,
+        reply->info.tstamp.time, jclockid);
+      assert_no_exception;
+
       jinfo = (*jenv)->NewObject(jenv, data_info_class, data_info_constr,
-        reply->info.flags, reply->info.encoding, reply->info.tstamp.time, reply->info.kind);
+        reply->info.flags, jtstamp, reply->info.encoding, reply->info.kind);
       assert_no_exception;
 
       native_to_jbuffer(jenv, reply->data, reply->data_length, jbuffer);
@@ -576,6 +605,10 @@ void jni_handlereply(const z_reply_value_t *reply, void *arg) {
   (*jenv)->DeleteLocalRef(jenv, jrname);
   assert_no_exception;
   (*jenv)->DeleteLocalRef(jenv, jinfo);
+  assert_no_exception;
+  (*jenv)->DeleteLocalRef(jenv, jtstamp);
+  assert_no_exception;
+  (*jenv)->DeleteLocalRef(jenv, jclockid);
   assert_no_exception;
   if (reply->kind == Z_STORAGE_DATA || reply->kind == Z_EVAL_DATA) {
     delete_jbuffer(jenv, jbuffer);
