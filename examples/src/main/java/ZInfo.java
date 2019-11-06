@@ -7,9 +7,9 @@ class ZInfo {
     private static final char[] HEX_DIGITS = "0123456789abcdef".toCharArray();
     public static String hexdump(byte[] bytes) {
         StringBuffer sb = new StringBuffer();
-        for (int i = 0; i < bytes.length; ++i) {
-            sb.append(HEX_DIGITS[bytes[i] & 0x00F0 >>> 4])
-              .append(HEX_DIGITS[bytes[i] & 0x000F]);
+        for (byte b : bytes) {
+            sb.append(HEX_DIGITS[(b & 0xF0) >> 4])
+              .append(HEX_DIGITS[b & 0x0F]);
         }
         return sb.toString();
     }
