@@ -38,7 +38,10 @@ public class Timestamp implements Comparable<Timestamp> {
     /* number of nanoseconds per second (10^9) */
     private static final long NANO_PER_SEC = 1000000000L;
 
-
+    /**
+     * 
+     * @return the Timestamp's creation time as a {@link java.time.Instant}.
+     */
     public Instant getTimeAsInstant() {
         Instant i = Instant.ofEpochSecond(time >> 32);
         long frac = time & 0xffffffffL;
