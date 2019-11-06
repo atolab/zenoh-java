@@ -78,6 +78,15 @@ public class Timestamp implements Comparable<Timestamp> {
         return this.time == o.time && Arrays.equals(this.clockId, o.clockId);
     }
 
+    @Override
+    public int hashCode() {
+        int h = Long.hashCode(time);
+        for (byte b : clockId)
+            h = 31 * h + b;
+
+        return h;
+    }
+
     private static final char[] HEX_DIGITS = "0123456789abcdef".toCharArray();
 
     @Override
