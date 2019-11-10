@@ -3,7 +3,7 @@ import io.zenoh.*;
 class ZPubThr {
 
     public static void main(String[] args) {
-        String locator = "tcp/127.0.0.1:7447";
+        String locator = null;
         if (args.length < 1) {
             System.out.println("USAGE:");
             System.out.println("\tZPubThr [I|W]<payload-size> [<zenoh-locator>]");

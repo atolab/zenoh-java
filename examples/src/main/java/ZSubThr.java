@@ -33,7 +33,7 @@ class ZSubThr {
     }
 
     public static void main(String[] args) {
-        String locator = "tcp/127.0.0.1:7447";
+        String locator = null;
         if (args.length > 0) {
             locator = args[0];
         }

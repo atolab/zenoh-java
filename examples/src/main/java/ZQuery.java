@@ -36,7 +36,7 @@ class ZQuery {
     }
 
     public static void main(String[] args) {
-        String locator = "tcp/127.0.0.1:7447";
+        String locator = null;
         if (args.length > 0) {
             locator = args[0];
         }
@@ -47,7 +47,7 @@ class ZQuery {
         }
 
         try {
-            System.out.println("Connecting to "+locator+"...");
+            System.out.println("Openning session...");
             Zenoh z = Zenoh.open(locator);
 
             System.out.println("Send query '"+uri+"'...");

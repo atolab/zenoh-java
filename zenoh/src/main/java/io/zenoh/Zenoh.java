@@ -73,7 +73,7 @@ public class Zenoh {
         Entry<Integer, byte[]>[] entries = properties != null ? properties.entrySet().toArray(EMPTY) : null;
         z_zenoh_p_result_t zenoh_result = zenohc.z_open(locator,  entries);
         if (zenoh_result.getTag().equals(result_kind.Z_ERROR_TAG)) {
-            throw new ZException("z_open on " + locator + " failed", zenoh_result.getValue().getError());
+            throw new ZException("z_open failed", zenoh_result.getValue().getError());
         }
         SWIGTYPE_p_z_zenoh_t z = zenoh_result.getValue().getZenoh();
 
