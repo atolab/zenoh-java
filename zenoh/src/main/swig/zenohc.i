@@ -421,7 +421,7 @@ JNIEnv * get_jenv() {
   return jenv;
 }
 
-void catch_and_log_exception(JNIEnv* jenv, const char* msg) {
+int catch_and_log_exception(JNIEnv* jenv, const char* msg) {
   if ((*jenv)->ExceptionCheck(jenv)) {
     jthrowable jex = (*jenv)->ExceptionOccurred(jenv);
     jstring jmsg = (*jenv)->NewStringUTF(jenv, msg);
@@ -429,7 +429,9 @@ void catch_and_log_exception(JNIEnv* jenv, const char* msg) {
     (*jenv)->ExceptionClear(jenv);
     (*jenv)->DeleteLocalRef(jenv, jmsg);
     assert_no_exception;
+    return 1;
   }
+  return 0;
 }
 
 
@@ -548,7 +550,10 @@ void jni_handlequery(const char *rname, const char *predicate, z_replies_sender_
 
   // Call QueryHandler.handleQuery()
   (*jenv)->CallVoidMethod(jenv, jarg->handler_object, handlequery_method, jrname, jpredicate, jrepliesSender);
-  catch_and_log_exception(jenv, "Exception caught calling QueryHandler.handleQuery()");
+  if (catch_and_log_exception(jenv, "XXXXX Exception caught calling QueryHandler.handleQuery()")) {
+    z_array_p_resource_t replies = {0, 0};
+    send_replies(query_handle, replies);
+  }
 
   (*jenv)->DeleteLocalRef(jenv, jrepliesSender);
   assert_no_exception;
