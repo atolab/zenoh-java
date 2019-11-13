@@ -50,8 +50,9 @@ public class Zenoh {
     }
 
     /**
-     * Open a zenoh session with the infrastructure component (zenoh router, zenoh broker, ...) reachable at location **locator**. 
-     * @param locator a string representation of a network endpoint. A typical locator looks like this : ``tcp/127.0.0.1:7447``. 
+     * Open a zenoh session. 
+     * @param locator a string representing the network endpoint to which establish the session. A typical locator looks like this : ``tcp/127.0.0.1:7447``. 
+     * If ``null``, `open` will scout and try to establish the session automatically.
      * @return a Zenoh object representing the openned zenoh session..
      * @throws ZException if session etablishment fails.
      */
@@ -60,8 +61,9 @@ public class Zenoh {
     }
 
     /**
-     * Open a zenoh session with the infrastructure component (zenoh router, zenoh broker, ...) reachable at location **locator**. 
-     * @param locator a string representation of a network endpoint. A typical locator looks like this : ``tcp/127.0.0.1:7447``. 
+     * Open a zenoh session. 
+     * @param locator a string representing the network endpoint to which establish the session. A typical locator looks like this : ``tcp/127.0.0.1:7447``. 
+     * If ``null``, `open` will scout and try to establish the session automatically.
      * @param properties a map of properties that will be used to establish and configure the zenoh session. 
      * **properties** will typically contain the ``username`` and ``password`` informations needed to establish the zenoh session with a secured infrastructure. 
      * It can be set to ``NULL``. 
