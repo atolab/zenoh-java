@@ -33,95 +33,121 @@
       <artifactId>junit</artifactId>
       <scope>test</scope>
     </dependency>
+    <!-- For logging of tests (Zenoh uses SLF4J that needs a logging framework) -->
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+    </dependency>
   </dependencies>
 
+  <!-- plugins for all profiles -->
+  <build>
+    <plugins>
+
+      <!-- Call make to build zenoh-c native lib, including SWIG generated sources -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>make-natives</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>make</executable>
+              <arguments>
+                <argument>${zenohc.make-target}</argument>
+              </arguments>
+              <environmentVariables>
+                <ZENOH_DEBUG>${zenohc.debug-level}</ZENOH_DEBUG>
+                <CMAKE_BUILD_TYPE>${zenohc.build-type}</CMAKE_BUILD_TYPE>
+              </environmentVariables>
+              <workingDirectory>${project.basedir}</workingDirectory>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Add Java sources to compile -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <executions>
+          <!-- SWIG generated sources -->
+          <execution>
+            <id>add-source</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>${generatedSources}</source>
+              </sources>
+            </configuration>
+          </execution>
+          <!-- integration tests -->
+          <execution>
+            <id>add-it-source</id>
+            <phase>process-resources</phase>
+            <goals>
+              <goal>add-test-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>src/it/java</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <!-- Add the generated native libs into the jar -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <configuration>
+          <resources>
+            <resource>
+              <directory>${project.build.directory}/resources</directory>
+              <filtering>false</filtering>
+            </resource>
+          </resources>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 
   <profiles>
-    <!-- default profile: zenoh-c is compiled in debug mode
+    <!-- default profile: zenoh-c is compiled in default mode
          with ZENOH_DEBUG unset (i.e. default value) -->
     <profile>
       <id>default</id>
       <activation>
         <activeByDefault>true</activeByDefault>
       </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>make-natives</id>
-                <phase>generate-sources</phase>
-                <goals>
-                  <goal>exec</goal>
-                </goals>
-                <configuration>
-                  <executable>make</executable>
-                  <workingDirectory>${project.basedir}</workingDirectory>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>cobertura-maven-plugin</artifactId>
-            <version>2.7</version>
-            <configuration>
-              <formats>
-                <format>html</format>
-                <format>xml</format>
-              </formats>
-              <check />
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
+      <properties>
+        <zenohc.make-target>all</zenohc.make-target>
+        <zenohc.debug-level></zenohc.debug-level>
+        <zenohc.build-type></zenohc.build-type>
+      </properties>
     </profile>
 
     <!-- debug profile: zenoh-c is compiled in debug mode
          with ZENOH_DEBUG=2 -->
     <profile>
       <id>debug</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>make-natives</id>
-                <phase>generate-sources</phase>
-                <goals>
-                  <goal>exec</goal>
-                </goals>
-                <configuration>
-                  <executable>make</executable>
-                  <environmentVariables>
-                    <ZENOH_DEBUG>2</ZENOH_DEBUG>
-                    <CMAKE_BUILD_TYPE>Debug</CMAKE_BUILD_TYPE>
-                  </environmentVariables>
-                  <workingDirectory>${project.basedir}</workingDirectory>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>cobertura-maven-plugin</artifactId>
-            <version>2.7</version>
-            <configuration>
-              <formats>
-                <format>html</format>
-                <format>xml</format>
-              </formats>
-              <check />
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
+      <properties>
+        <zenohc.make-target>all</zenohc.make-target>
+        <zenohc.debug-level>2</zenohc.debug-level>
+        <zenohc.build-type>Debug</zenohc.build-type>
+      </properties>
     </profile>
 
     <!-- release profile: zenoh-c is cross-compiled for all supported platforms
@@ -130,33 +156,13 @@
     -->
     <profile>
       <id>release</id>
+      <properties>
+        <zenohc.make-target>all-cross</zenohc.make-target>
+        <zenohc.debug-level>0</zenohc.debug-level>
+        <zenohc.build-type>Release</zenohc.build-type>
+      </properties>
       <build>
         <plugins>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>exec-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>make-natives</id>
-                <phase>generate-sources</phase>
-                <goals>
-                  <goal>exec</goal>
-                </goals>
-                <configuration>
-                  <executable>make</executable>
-                  <arguments>
-                    <argument>all-cross</argument>
-                  </arguments>
-                  <environmentVariables>
-                    <ZENOH_DEBUG>0</ZENOH_DEBUG>
-                    <CMAKE_BUILD_TYPE>Release</CMAKE_BUILD_TYPE>
-                  </environmentVariables>
-                  <workingDirectory>${project.basedir}</workingDirectory>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
@@ -186,63 +192,73 @@
         </plugins>
       </build>
     </profile>
+
+    <!-- it profile: run the integration tests (in src/it/java). -->
+    <profile>
+      <id>it</id>
+      <build>
+        <plugins>
+          <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-failsafe-plugin</artifactId>
+              <executions>
+                  <execution>
+                      <id>integration-test</id>
+                      <goals>
+                          <goal>integration-test</goal>
+                      </goals>
+                  </execution>
+                  <execution>
+                      <id>verify</id>
+                      <goals>
+                          <goal>verify</goal>
+                      </goals>
+                  </execution>
+              </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <!-- Codecov profile: measure the code coverage of tests (unit + integration) -->
+    <profile>
+      <id>codecov</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+            <executions>
+                <execution>
+                    <id>jacoco-prepare-agent</id>
+                    <goals>
+                        <goal>prepare-agent</goal>
+                    </goals>
+                </execution>
+                <execution>
+                    <id>jacoco-prepare-agent-integration</id>
+                    <goals>
+                        <goal>prepare-agent-integration</goal>
+                    </goals>
+                </execution>
+                <execution>
+                    <id>jacoco-report</id>
+                    <goals>
+                        <goal>report</goal>
+                    </goals>
+                </execution>
+                <execution>
+                    <id>jacoco-integration</id>
+                    <goals>
+                        <goal>report-integration</goal>
+                    </goals>
+                </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
   </profiles>
-
-
-  <!-- plugins for all profiles -->
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>exec-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>make-natives</id>
-            <phase>generate-sources</phase>
-            <goals>
-              <goal>exec</goal>
-            </goals>
-            <configuration>
-              <executable>make</executable>
-              <workingDirectory>${project.basedir}</workingDirectory>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>add-source</id>
-            <phase>generate-sources</phase>
-            <goals>
-              <goal>add-source</goal>
-            </goals>
-            <configuration>
-              <sources>
-                <source>${generatedSources}</source>
-              </sources>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-resources-plugin</artifactId>
-        <configuration>
-          <resources>
-            <resource>
-              <directory>${project.build.directory}/resources</directory>
-              <filtering>false</filtering>
-            </resource>
-          </resources>
-        </configuration>
-      </plugin>
-
-    </plugins>
-  </build>
 
 </project>

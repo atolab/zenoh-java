@@ -11,7 +11,7 @@
 %typemap(out) z_vec_t %{
   $result = (*jenv)->NewObject(jenv, hash_map_class, hash_map_constr);
   unsigned int len = z_vec_length(&$1);
-  for(int i = 0; i < len; ++i) {
+  for(unsigned int i = 0; i < len; ++i) {
     z_property_t *prop = (z_property_t *)z_vec_get(&$1, i);
     jobject jinteger = (*jenv)->NewObject(jenv, integer_class, integer_constr, prop->id);
     jbyteArray jbytes = (*jenv)->NewByteArray(jenv, prop->value.length);
@@ -254,6 +254,7 @@ jmethodID resource_get_kind_method = NULL;
 
 
 jint JNI_OnLoad(JavaVM* vm, void* reserved) {
+  (void)reserved; // for warning supression as unused
   jvm = vm;
   JNIEnv* jenv;
   if ((*vm)->GetEnv(vm, (void **) &jenv, JNI_VERSION_1_6) != JNI_OK) {
@@ -301,8 +302,6 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
   jclass map_entry_class = (*jenv)->FindClass(jenv, "java/util/Map$Entry");
   assert_no_exception;
   jclass datahandler_class = (*jenv)->FindClass(jenv, "io/zenoh/DataHandler");
-  assert_no_exception;
-  jclass storagehandler_class = (*jenv)->FindClass(jenv, "io/zenoh/StorageHandler");
   assert_no_exception;
   jclass queryhandler_class = (*jenv)->FindClass(jenv, "io/zenoh/QueryHandler");
   assert_no_exception;
@@ -389,6 +388,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
 }
 
 void JNI_OnUnload(JavaVM *vm, void *reserved) {
+  (void)reserved; // for warning supression as unused
   JNIEnv* env;
   if ((*vm)->GetEnv(vm, (void **) &env, JNI_VERSION_1_6) != JNI_OK) {
       printf("Unexpected error retrieving JNIEnv in JNI_OnUnload()\n");

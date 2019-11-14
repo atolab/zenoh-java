@@ -10,7 +10,7 @@ import org.junit.Test;
 
 import io.zenoh.*;
 
-public class ClientTest {
+public class ClientIT {
 
     public static class MVar<T> {
         T ref;
