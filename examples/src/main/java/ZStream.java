@@ -3,19 +3,19 @@ import io.zenoh.*;
 class ZStream {
 
     public static void main(String[] args) {
-        String locator = null;
-        if (args.length > 0) {
-            locator = args[0];
-        }
-
         String uri = "/demo/example/zenoh-java-stream";
-        if (args.length > 1) {
-            uri = args[1];
+        if (args.length > 0) {
+            uri = args[0];
         }
 
         String value = "Stream from Java!";
+        if (args.length > 1) {
+            value = args[1];
+        }
+
+        String locator = null;
         if (args.length > 2) {
-            value = args[2];
+            locator = args[2];
         }
 
         try {

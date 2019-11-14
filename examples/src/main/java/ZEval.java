@@ -19,13 +19,13 @@ class ZEval implements QueryHandler {
     }
 
     public static void main(String[] args) {
-        String locator = null;
         if (args.length > 0) {
-            locator = args[0];
+            uri = args[0];
         }
-
+        
+        String locator = null;
         if (args.length > 1) {
-            uri = args[1];
+            locator = args[1];
         }
 
         try {

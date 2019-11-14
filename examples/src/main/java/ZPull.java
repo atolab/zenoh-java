@@ -20,14 +20,14 @@ class ZPull {
     }
 
     public static void main(String[] args) {
-        String locator = null;
-        if (args.length > 0) {
-            locator = args[0];
-        }
-
         String uri = "/demo/example/**";
         if (args.length > 1) {
             uri = args[1];
+        }
+
+        String locator = null;
+        if (args.length > 0) {
+            locator = args[0];
         }
 
         try {

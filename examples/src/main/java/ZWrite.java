@@ -3,19 +3,19 @@ import io.zenoh.*;
 class ZWrite {
 
     public static void main(String[] args) {
-        String locator = null;
-        if (args.length > 0) {
-            locator = args[0];
-        }
-
         String uri = "/demo/example/zenoh-java-write";
-        if (args.length > 1) {
-            uri = args[1];
+        if (args.length > 0) {
+            uri = args[0];
         }
 
         String value = "Write from Java!";
-        if (args.length > 2) {
-            value = args[2];
+        if (args.length > 1) {
+            value = args[1];
+        }
+
+        String locator = null;
+        if (args.length > 3) {
+            locator = args[3];
         }
 
         try {
