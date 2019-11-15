@@ -152,7 +152,7 @@
 
     <!-- release profile: zenoh-c is cross-compiled for all supported platforms
          in release mode with ZENOH_DEBUG=0, and no Java exception check in JNI code.
-         Moreover, the javadoc is generated.
+         Moreover, the javadoc sources jars are generated.
     -->
     <profile>
       <id>release</id>
@@ -163,6 +163,20 @@
       </properties>
       <build>
         <plugins>
+          <!-- sources jar -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>attach-sources</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <!-- javadoc jar -->
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-javadoc-plugin</artifactId>
@@ -171,6 +185,7 @@
                 <phase>prepare-package</phase>
                 <goals>
                   <goal>javadoc</goal>
+                  <goal>jar</goal>
                 </goals>
               </execution>
             </executions>
