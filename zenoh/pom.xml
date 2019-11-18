@@ -17,6 +17,10 @@
 
   <properties>
     <generatedSources>${project.build.directory}/generated-sources/java</generatedSources>
+    <!-- The Git tag (or branch or commit id) of zenoh-c that this build will automatically checkout.      -->
+    <!-- If not specified, the build will try to find zenoh-c sources in $ZENOHC_HOME or in ../../zenoh-c. -->
+    <!-- And if zenoh-c sources cannot be found, it will checkout the master branch.                       -->
+    <zenohc.git-tag></zenohc.git-tag>
   </properties>
 
   <dependencies>
@@ -65,6 +69,7 @@
                 <argument>${zenohc.make-target}</argument>
               </arguments>
               <environmentVariables>
+                <ZENOH_GIT_TAG>${zenohc.git-tag}</ZENOH_GIT_TAG>
                 <ZENOH_DEBUG>${zenohc.debug-level}</ZENOH_DEBUG>
                 <CMAKE_BUILD_TYPE>${zenohc.build-type}</CMAKE_BUILD_TYPE>
               </environmentVariables>
@@ -152,7 +157,7 @@
 
     <!-- release profile: zenoh-c is cross-compiled for all supported platforms
          in release mode with ZENOH_DEBUG=0, and no Java exception check in JNI code.
-         Moreover, the javadoc sources jars are generated.
+         Moreover, the javadoc and sources jars are generated.
     -->
     <profile>
       <id>release</id>

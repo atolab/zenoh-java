@@ -75,12 +75,12 @@ $(LOCAL_LIB): $(ZENOHC_COPY_DIR)/CMakeLists.txt $(SWIG_C_FILE)
 $(ZENOHC_COPY_DIR)/CMakeLists.txt:
 	@rm -fr $(ZENOHC_COPY_DIR)
 	@mkdir -p $(ZENOHC_COPY_DIR)
-	@if [ -d $(ZENOHC_DEV_DIR) ]; then \
+	@if [ -z "$(ZENOH_GIT_TAG)" -a -d $(ZENOHC_DEV_DIR) ]; then \
    		echo "Found zenoh-c sources in $(ZENOHC_DEV_DIR) . Copy them to $(ZENOHC_COPY_DIR)"; \
 		cp -r $(ZENOHC_DEV_DIR)/CMakeLists.txt $(ZENOHC_DEV_DIR)/include $(ZENOHC_DEV_DIR)/src $(ZENOHC_DEV_DIR)/dockcross $(ZENOHC_COPY_DIR)/ ; \
 	else \
-   		echo "No zenoh-c sources found locally. Clone from Github to $(ZENOHC_COPY_DIR)" ; \
-		git clone https://github.com/atolab/zenoh-c $(ZENOHC_COPY_DIR) ; \
+		echo "Clone tag '$${ZENOH_GIT_TAG:-master}' from Github to $(ZENOHC_COPY_DIR)" ; \
+		git clone --branch $${ZENOH_GIT_TAG:-master} https://github.com/atolab/zenoh-c $(ZENOHC_COPY_DIR) ; \
 	fi
 
 $(SWIG_C_FILE): $(SWIG_FILE)
