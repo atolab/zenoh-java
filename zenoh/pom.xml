@@ -20,7 +20,7 @@
     <!-- The Git tag (or branch or commit id) of zenoh-c that this build will automatically checkout.      -->
     <!-- If not specified, the build will try to find zenoh-c sources in $ZENOHC_HOME or in ../../zenoh-c. -->
     <!-- And if zenoh-c sources cannot be found, it will checkout the master branch.                       -->
-    <zenohc.git-tag></zenohc.git-tag>
+    <zenohc.git-tag>0.3.0</zenohc.git-tag>
   </properties>
 
   <dependencies>
