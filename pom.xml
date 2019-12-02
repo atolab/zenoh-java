@@ -25,7 +25,7 @@
     <groupId>io.zenoh</groupId>
     <artifactId>parent-pom</artifactId>
     <relativePath>parent-pom</relativePath>
-    <version>0.3.0</version>
+    <version>0.3.1-SNAPSHOT</version>
   </parent>
 
   <artifactId>zenoh-java</artifactId>
