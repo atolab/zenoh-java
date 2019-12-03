@@ -17,11 +17,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 /**
- * The Zenoh client API.
+ * A zenoh-net session.
  */
 public class Session {
 
-    private static final Logger LOG = LoggerFactory.getLogger("io.zenoh");
+    private static final Logger LOG = LoggerFactory.getLogger("io.zenoh.net");
     private static final Map.Entry<Integer, byte[]>[] EMPTY = new Map.Entry[0];
 
     static {

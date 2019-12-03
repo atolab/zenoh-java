@@ -34,7 +34,7 @@
   <name>Zenoh examples pom</name>
 
   <modules>
-    <!-- <module>zenoh</module> -->
+    <module>zenoh</module>
     <module>zenoh-net</module>
   </modules>
 
