@@ -16,12 +16,12 @@ public class Storage {
 
     /**
      * Undeclare the Storage.
-     * @throws ZException if undeclaration failed.
+     * @throws ZNetException if undeclaration failed.
      */
-    public void undeclare() throws ZException {
+    public void undeclare() throws ZNetException {
         int error = zenohc.z_undeclare_storage(sto);
         if (error != 0) {
-            throw new ZException("z_undeclare_storage failed ", error);
+            throw new ZNetException("z_undeclare_storage failed ", error);
         }
     }
 

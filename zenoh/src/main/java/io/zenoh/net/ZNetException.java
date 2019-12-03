@@ -3,9 +3,9 @@ package io.zenoh.net;
 import java.util.HashMap;
 
 /**
- * An Exception raised by Zenoh.
+ * An Exception raised by Zenoh-net.
  */
-public class ZException extends Exception {
+public class ZNetException extends Exception {
 
 
     public static final Integer Z_VLE_PARSE_ERROR = 0x01;
@@ -48,16 +48,16 @@ public class ZException extends Exception {
 
     private static final long serialVersionUID = 402535504102337839L;
     
-    protected ZException(String message) {
+    protected ZNetException(String message) {
         this(message, -1);
     }
 
-    protected ZException(String message, int errorCode) {
+    protected ZNetException(String message, int errorCode) {
         super(message);
         this.errorCode = errorCode;
     }
 
-    protected ZException(String message, int errorCode, Throwable cause) {
+    protected ZNetException(String message, int errorCode, Throwable cause) {
         super(message, cause);
         this.errorCode = errorCode;
     }

@@ -16,12 +16,12 @@ public class Eval {
 
     /**
      * Undeclare the Eval.
-     * @throws ZException if undeclaration failed.
+     * @throws ZNetException if undeclaration failed.
      */
-    public void undeclare() throws ZException {
+    public void undeclare() throws ZNetException {
         int error = zenohc.z_undeclare_eval(eval);
         if (error != 0) {
-            throw new ZException("z_undeclare_eval failed ", error);
+            throw new ZNetException("z_undeclare_eval failed ", error);
         }
     }
 

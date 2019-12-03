@@ -39,7 +39,7 @@ public class QueryDest extends z_query_dest_t {
            this.numVal = numVal;
         }
      
-        public static Kind fromInt(short numVal) throws ZException {
+        public static Kind fromInt(short numVal) throws ZNetException {
             if (numVal == Z_BEST_MATCH.value()) {
                 return Z_BEST_MATCH;
             }
@@ -53,7 +53,7 @@ public class QueryDest extends z_query_dest_t {
                 return Z_NONE;
             }
             else {
-                throw new ZException("INTERNAL ERROR: cannot create QueryDest.Kind from int: "+numVal);
+                throw new ZNetException("INTERNAL ERROR: cannot create QueryDest.Kind from int: "+numVal);
             }
         }
 
