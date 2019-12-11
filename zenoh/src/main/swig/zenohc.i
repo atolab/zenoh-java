@@ -12,7 +12,7 @@
   $result = (*jenv)->NewObject(jenv, hash_map_class, hash_map_constr);
   unsigned int len = z_vec_length(&$1);
   for(unsigned int i = 0; i < len; ++i) {
-    z_property_t *prop = (z_property_t *)z_vec_get(&$1, i);
+    zn_property_t *prop = (zn_property_t *)z_vec_get(&$1, i);
     jobject jinteger = (*jenv)->NewObject(jenv, integer_class, integer_constr, prop->id);
     jbyteArray jbytes = (*jenv)->NewByteArray(jenv, prop->value.length);
     (*jenv)->SetByteArrayRegion(jenv, jbytes, 0, prop->value.length, (jbyte*)prop->value.elem);
@@ -42,12 +42,12 @@
 
       int key = (*jenv)->CallIntMethod(jenv, keyobj, integer_intValue_method);
 
-      z_array_uint8_t val = {
+      z_uint8_array_t val = {
         (*jenv)->GetArrayLength(jenv, valobj), 
         (uint8_t *) (*jenv)->GetByteArrayElements(jenv, valobj, NULL)
       };
       
-      z_vec_append(&vec, z_property_make(key, val));
+      z_vec_append(&vec, zn_property_make(key, val));
 	  }
     $1 = &vec;
   }
@@ -55,20 +55,20 @@
 
 
 /*----- typemap for payload+length IN argument to ByteBuffer -------*/
-%typemap(jni) (const unsigned char *payload, size_t length) "jobject"
-%typemap(jtype) (const unsigned char *payload, size_t length) "java.nio.ByteBuffer"
-%typemap(jstype) (const unsigned char *payload, size_t length) "java.nio.ByteBuffer"
-%typemap(javain, pre="  assert $javainput.isDirect() : \"Buffer must be allocated direct.\";") (const unsigned char *payload, size_t length) "$javainput"
-// %typemap(javaout) (const unsigned char *payload, size_t length) {
+%typemap(jni) (const unsigned char *payload, size_t len) "jobject"
+%typemap(jtype) (const unsigned char *payload, size_t len) "java.nio.ByteBuffer"
+%typemap(jstype) (const unsigned char *payload, size_t len) "java.nio.ByteBuffer"
+%typemap(javain, pre="  assert $javainput.isDirect() : \"Buffer must be allocated direct.\";") (const unsigned char *payload, size_t len) "$javainput"
+// %typemap(javaout) (const unsigned char *payload, size_t len) {
 //   return $jnicall;
 // }
-%typemap(in) (const unsigned char *payload, size_t length) %{
+%typemap(in) (const unsigned char *payload, size_t len) %{
   jbuffer_to_native(jenv, $input, $1, $2);
 %}
-%typemap(freearg) (const unsigned char *payload, size_t length) %{
+%typemap(freearg) (const unsigned char *payload, size_t len) %{
   release_intermediate_byte_array(jenv, $input, $1, $2);
 %}
-// %typemap(memberin) (const unsigned char *payload, size_t length) %{
+// %typemap(memberin) (const unsigned char *payload, size_t len) %{
 //   if ($input) {
 //     $1 = $input;
 //   } else {
@@ -76,18 +76,18 @@
 //   }
 // %}
 
-/*----- typemap for on_disconnect_t : erase it in Java and pass NULL to C -------*/
-%typemap(in, numinputs=0) z_on_disconnect_t on_disconnect %{
+/*----- typemap for zn_on_disconnect_t : erase it in Java and pass NULL to C -------*/
+%typemap(in, numinputs=0) zn_on_disconnect_t on_disconnect %{
   $1 = NULL;
 %}
 
 
-/*----- typemap for z_data_handler_t + arg in z_declare_subscriber -------*/
-%typemap(jni) z_data_handler_t data_handler "jobject";
-%typemap(jtype) z_data_handler_t data_handler "io.zenoh.net.DataHandler";
-%typemap(jstype) z_data_handler_t data_handler "io.zenoh.net.DataHandler";
-%typemap(javain) z_data_handler_t data_handler "$javainput";
-%typemap(in,numinputs=1) (z_data_handler_t data_handler, void *arg) %{
+/*----- typemap for zn_data_handler_t + arg in zn_declare_subscriber -------*/
+%typemap(jni) zn_data_handler_t data_handler "jobject";
+%typemap(jtype) zn_data_handler_t data_handler "io.zenoh.net.DataHandler";
+%typemap(jstype) zn_data_handler_t data_handler "io.zenoh.net.DataHandler";
+%typemap(javain) zn_data_handler_t data_handler "$javainput";
+%typemap(in,numinputs=1) (zn_data_handler_t data_handler, void *arg) %{
   // Store DataHandler object in a handler_arg
   // that will be passed to jni_handledata() at each notification
   handler_arg *jarg = malloc(sizeof(handler_arg));
@@ -99,12 +99,12 @@
   $2 = jarg;
 %};
 
-/*----- typemap for z_data_handler_t + z_query_handler_t + arg in z_declare_storage -------*/
-%typemap(jni) (z_data_handler_t data_handler, z_query_handler_t query_handler) "jobject";
-%typemap(jtype) (z_data_handler_t data_handler, z_query_handler_t query_handler) "io.zenoh.net.StorageHandler";
-%typemap(jstype) (z_data_handler_t data_handler, z_query_handler_t query_handler) "io.zenoh.net.StorageHandler";
-%typemap(javain) (z_data_handler_t data_handler, z_query_handler_t query_handler) "$javainput";
-%typemap(in,numinputs=1) (z_data_handler_t data_handler, z_query_handler_t query_handler, void *arg) %{
+/*----- typemap for zn_data_handler_t + zn_query_handler_t + arg in zn_declare_storage -------*/
+%typemap(jni) (zn_data_handler_t data_handler, zn_query_handler_t query_handler) "jobject";
+%typemap(jtype) (zn_data_handler_t data_handler, zn_query_handler_t query_handler) "io.zenoh.net.StorageHandler";
+%typemap(jstype) (zn_data_handler_t data_handler, zn_query_handler_t query_handler) "io.zenoh.net.StorageHandler";
+%typemap(javain) (zn_data_handler_t data_handler, zn_query_handler_t query_handler) "$javainput";
+%typemap(in,numinputs=1) (zn_data_handler_t data_handler, zn_query_handler_t query_handler, void *arg) %{
   // Store the StorageHandler object in a handler_arg
   // that will be passed to each call to jni_handledata and jni_handlequery
   handler_arg *jarg = malloc(sizeof(handler_arg));
@@ -117,12 +117,12 @@
   $3 = jarg;
 %};
 
-/*----- typemap for z_query_handler_t + arg in z_declare_eval -------*/
-%typemap(jni) (z_query_handler_t query_handler) "jobject";
-%typemap(jtype) (z_query_handler_t query_handler) "io.zenoh.net.QueryHandler";
-%typemap(jstype) (z_query_handler_t query_handler) "io.zenoh.net.QueryHandler";
-%typemap(javain) (z_query_handler_t query_handler) "$javainput";
-%typemap(in,numinputs=1) (z_query_handler_t query_handler, void *arg) %{
+/*----- typemap for zn_query_handler_t + arg in zn_declare_eval -------*/
+%typemap(jni) (zn_query_handler_t query_handler) "jobject";
+%typemap(jtype) (zn_query_handler_t query_handler) "io.zenoh.net.QueryHandler";
+%typemap(jstype) (zn_query_handler_t query_handler) "io.zenoh.net.QueryHandler";
+%typemap(javain) (zn_query_handler_t query_handler) "$javainput";
+%typemap(in,numinputs=1) (zn_query_handler_t query_handler, void *arg) %{
   // Store the QueryHandler object in a handler_arg
   // that will be passed to each call to jni_handlequery
   handler_arg *jarg = malloc(sizeof(handler_arg));
@@ -134,12 +134,12 @@
   $2 = jarg;
 %};
 
-/*----- typemap for z_reply_handler_t + arg in z_query -------*/
-%typemap(jni) z_reply_handler_t reply_handler "jobject";
-%typemap(jtype) z_reply_handler_t reply_handler "io.zenoh.net.ReplyHandler";
-%typemap(jstype) z_reply_handler_t reply_handler "io.zenoh.net.ReplyHandler";
-%typemap(javain) z_reply_handler_t reply_handler "$javainput";
-%typemap(in,numinputs=1) (z_reply_handler_t reply_handler, void *arg) %{
+/*----- typemap for zn_reply_handler_t + arg in zn_query -------*/
+%typemap(jni) zn_reply_handler_t reply_handler "jobject";
+%typemap(jtype) zn_reply_handler_t reply_handler "io.zenoh.net.ReplyHandler";
+%typemap(jstype) zn_reply_handler_t reply_handler "io.zenoh.net.ReplyHandler";
+%typemap(javain) zn_reply_handler_t reply_handler "$javainput";
+%typemap(in,numinputs=1) (zn_reply_handler_t reply_handler, void *arg) %{
   // Store ReplyHandler object in a handler_arg
   // that will be passed to jni_handlereply() at each notification
   handler_arg *jarg = malloc(sizeof(handler_arg));
@@ -151,13 +151,13 @@
   $2 = jarg;
 %};
 
-/*----- typemap for Resource[] to z_array_p_resource_t -------*/
-%typemap(jni) (z_array_p_resource_t replies) "jobjectArray"
-%typemap(jtype) (z_array_p_resource_t replies) "io.zenoh.net.Resource[]"
-%typemap(jstype) (z_array_p_resource_t replies) "io.zenoh.net.Resource[]"
-%typemap(javain) (z_array_p_resource_t replies) "$javainput"
-%typemap(in) (z_array_p_resource_t replies) %{
-  // Convert io.zenoh.net.Resource[] into z_array_p_resource_t
+/*----- typemap for Resource[] to zn_resource_p_array_t -------*/
+%typemap(jni) (zn_resource_p_array_t replies) "jobjectArray"
+%typemap(jtype) (zn_resource_p_array_t replies) "io.zenoh.net.Resource[]"
+%typemap(jstype) (zn_resource_p_array_t replies) "io.zenoh.net.Resource[]"
+%typemap(javain) (zn_resource_p_array_t replies) "$javainput"
+%typemap(in) (zn_resource_p_array_t replies) %{
+  // Convert io.zenoh.net.Resource[] into zn_resource_p_array_t
   if ($input == NULL) {
     $1.length = 0;
     $1.elem = NULL;
@@ -165,10 +165,10 @@
     jsize len = (*jenv)->GetArrayLength(jenv, $input);
     assert_no_exception;
     $1.length = len;
-    $1.elem = (z_resource_t**)malloc(sizeof(z_resource_t *) * $1.length);
+    $1.elem = (zn_resource_t**)malloc(sizeof(zn_resource_t *) * $1.length);
     for (int i = 0; i < len; ++i) {
       jobject jres = (*jenv)->GetObjectArrayElement(jenv, $input, i);
-      $1.elem[i] = (z_resource_t *)malloc(sizeof(z_resource_t));
+      $1.elem[i] = (zn_resource_t *)malloc(sizeof(zn_resource_t));
 
       // rname
       jstring jrname = (jstring) (*jenv)->CallObjectMethod(jenv, jres, resource_get_rname_method);
@@ -189,18 +189,18 @@
     }
   }
 %}
-%typemap(freearg) (const unsigned char *payload, size_t length) %{
+%typemap(freearg) (const unsigned char *payload, size_t len) %{
   release_intermediate_byte_array(jenv, $input, $1, $2);
 %}
 
 
 %{
 #include <stdint.h>
-#include "zenoh/private/msg.h"
-#include "zenoh/config.h"
+#include "zenoh/net/private/msg.h"
+#include "zenoh/net/config.h"
+#include "zenoh/net/recv_loop.h"
 #include "zenoh/types.h"
 #include "zenoh/codec.h"
-#include "zenoh/recv_loop.h"
 #include "zenoh/rname.h"
 #include "zenoh.h"
 #include <assert.h>
@@ -485,15 +485,15 @@ typedef struct {
 } handler_arg;
 
 
-void jni_handledata(const z_resource_id_t *rid, const unsigned char *data, size_t length, const z_data_info_t *info, void *arg) {
+void jni_handledata(const zn_resource_key_t *rkey, const unsigned char *data, size_t length, const zn_data_info_t *info, void *arg) {
   handler_arg *jarg = arg;
   JNIEnv *jenv = get_jenv();
 
   jstring jrname = NULL;
-  if (rid->kind == Z_STR_RES_ID) {
-    jrname = (*jenv)->NewStringUTF(jenv, rid->id.rname);
+  if (rkey->kind == ZN_STR_RES_KEY) {
+    jrname = (*jenv)->NewStringUTF(jenv, rkey->key.rname);
   } else {
-    printf("INTERNAL ERROR: jni_handledata received a non-string z_resource_id_t with kind=%d", rid->kind);
+    printf("INTERNAL ERROR: jni_handledata received a non-string zn_resource_key_t with kind=%d", rkey->kind);
     return;
   }
 
@@ -525,13 +525,13 @@ void jni_handledata(const z_resource_id_t *rid, const unsigned char *data, size_
   assert_no_exception;
 }
 
-void jni_handlequery(const char *rname, const char *predicate, z_replies_sender_t send_replies, void *query_handle, void *arg) {
+void jni_handlequery(const char *rname, const char *predicate, zn_replies_sender_t send_replies, void *query_handle, void *arg) {
   handler_arg *jarg = arg;
   JNIEnv *jenv = get_jenv();
 
   if (jarg->context != NULL) {
     printf("Internal error in jni_handlequery: cannot serve query, as their is already an ongoing query (context is not NULL)\n");
-    z_array_p_resource_t replies;
+    zn_resource_p_array_t replies;
     replies.length = 0;
     replies.elem = NULL;
     send_replies(query_handle, replies);
@@ -551,7 +551,7 @@ void jni_handlequery(const char *rname, const char *predicate, z_replies_sender_
   // Call QueryHandler.handleQuery()
   (*jenv)->CallVoidMethod(jenv, jarg->handler_object, handlequery_method, jrname, jpredicate, jrepliesSender);
   if (catch_and_log_exception(jenv, "XXXXX Exception caught calling QueryHandler.handleQuery()")) {
-    z_array_p_resource_t replies = {0, 0};
+    zn_resource_p_array_t replies = {0, 0};
     send_replies(query_handle, replies);
   }
 
@@ -563,7 +563,7 @@ void jni_handlequery(const char *rname, const char *predicate, z_replies_sender_
   assert_no_exception;
 }
 
-void jni_handlereply(const z_reply_value_t *reply, void *arg) {
+void jni_handlereply(const zn_reply_value_t *reply, void *arg) {
   handler_arg *jarg = arg;
   JNIEnv *jenv = get_jenv();
   jbyteArray jsrcid = 0;
@@ -573,13 +573,13 @@ void jni_handlereply(const z_reply_value_t *reply, void *arg) {
   jobject jinfo = 0;
   jobject jbuffer = 0;
 
-  if (reply->kind != Z_REPLY_FINAL) {
+  if (reply->kind != ZN_REPLY_FINAL) {
     jsrcid = (*jenv)->NewByteArray(jenv, reply->srcid_length);
     assert_no_exception;
     (*jenv)->SetByteArrayRegion(jenv, jsrcid, 0, reply->srcid_length, (const jbyte*) reply->srcid);
     assert_no_exception;
 
-    if (reply->kind == Z_STORAGE_DATA || reply->kind == Z_EVAL_DATA) {
+    if (reply->kind == ZN_STORAGE_DATA || reply->kind == ZN_EVAL_DATA) {
       jrname = (*jenv)->NewStringUTF(jenv, reply->rname);
 
       jclockid = (*jenv)->NewByteArray(jenv, 16);
@@ -615,141 +615,154 @@ void jni_handlereply(const z_reply_value_t *reply, void *arg) {
   assert_no_exception;
   (*jenv)->DeleteLocalRef(jenv, jclockid);
   assert_no_exception;
-  if (reply->kind == Z_STORAGE_DATA || reply->kind == Z_EVAL_DATA) {
+  if (reply->kind == ZN_STORAGE_DATA || reply->kind == ZN_EVAL_DATA) {
     delete_jbuffer(jenv, jbuffer);
   }
   (*jenv)->DeleteLocalRef(jenv, jsrcid);
   assert_no_exception;
 }
 
-void call_replies_sender(jlong send_replies_ptr, jlong query_handle_ptr, z_array_p_resource_t replies) {
-  z_replies_sender_t send_replies = (z_replies_sender_t)send_replies_ptr;
+void call_replies_sender(jlong send_replies_ptr, jlong query_handle_ptr, zn_resource_p_array_t replies) {
+  zn_replies_sender_t send_replies = (zn_replies_sender_t)send_replies_ptr;
   void* query_handle = (void*)query_handle_ptr;
   send_replies(query_handle, replies);
 }
 
 %}
 
-void call_replies_sender(jlong send_replies_ptr, jlong query_handle_ptr, z_array_p_resource_t replies);
+void call_replies_sender(jlong send_replies_ptr, jlong query_handle_ptr, zn_resource_p_array_t replies);
 
 #include <stdint.h>
 
 //
 // Copied from zenoh/types.h
 //
-typedef  size_t  z_vle_t;
+typedef size_t z_vle_t;
 
+//
+// Copied from zenoh/result.h
+//
+enum result_kind {
+  Z_OK_TAG = 0,
+  Z_ERROR_TAG = 1   
+};
+
+//
+// Copied from zenoh/net/property.h
+//
 typedef struct {
     z_vle_t origin;
     z_vle_t period;
     z_vle_t duration;
-} z_temporal_property_t;
+} zn_temporal_property_t;
 
+//
+// Copied from zenoh/net/types.h
+//
 typedef struct {  
   uint8_t kind;
-  z_temporal_property_t tprop;
-} z_sub_mode_t;
+  zn_temporal_property_t tprop;
+} zn_sub_mode_t;
 
-typedef void (*z_reply_handler_t)(const z_reply_value_t *reply, void *arg);
+typedef void (*zn_reply_handler_t)(const zn_reply_value_t *reply, void *arg);
 
-typedef void (*z_data_handler_t)(const z_resource_id_t *rid, const unsigned char *data, size_t length, z_data_info_t info, void *arg);
+typedef void (*zn_data_handler_t)(const zn_resource_key_t *rkey, const unsigned char *data, size_t length, const zn_data_info_t *info, void *arg);
 
-typedef void (*z_replies_sender_t)(void* query_handle, z_array_p_resource_t replies);
-typedef void (*z_query_handler_t)(const char *rname, const char *predicate, z_replies_sender_t send_replies, void *query_handle, void *arg);
-
-typedef struct {
-  z_zenoh_t *z;
-  z_vle_t rid;
-  z_vle_t id;
-} z_sub_t;
+typedef void (*zn_replies_sender_t)(void* query_handle, zn_resource_p_array_t replies);
+typedef void (*zn_query_handler_t)(const char *rname, const char *predicate, zn_replies_sender_t send_replies, void *query_handle, void *arg);
 
 typedef struct {
-  z_zenoh_t *z;
+  zn_session_t *z;
   z_vle_t rid;
   z_vle_t id;
-} z_sto_t;
+} zn_sub_t;
 
 typedef struct {
-  z_zenoh_t *z;
+  zn_session_t *z;
   z_vle_t rid;
   z_vle_t id;
-} z_pub_t;
+} zn_sto_t;
 
 typedef struct {
-  z_zenoh_t *z;
+  zn_session_t *z;
   z_vle_t rid;
   z_vle_t id;
-} z_eva_t;
+} zn_pub_t;
 
-enum result_kind {
-  Z_OK_TAG,
-  Z_ERROR_TAG
-};
+typedef struct {
+  zn_session_t *z;
+  z_vle_t rid;
+  z_vle_t id;
+} zn_eva_t;
 
-typedef struct { enum result_kind tag; union { z_zenoh_t * zenoh; int error; } value;} z_zenoh_p_result_t; 
-typedef struct { enum result_kind tag; union { z_sub_t * sub; int error; } value;} z_sub_p_result_t;
-typedef struct { enum result_kind tag; union { z_pub_t * pub; int error; } value;} z_pub_p_result_t; 
-typedef struct { enum result_kind tag; union { z_sto_t * sto; int error; } value;} z_sto_p_result_t; 
-typedef struct { enum result_kind tag; union { z_eva_t * eval; int error; } value;} z_eval_p_result_t; 
+typedef struct { enum result_kind tag; union { zn_session_t * session; int error; } value;} zn_session_p_result_t; 
+typedef struct { enum result_kind tag; union { zn_sub_t * sub; int error; } value;} zn_sub_p_result_t;
+typedef struct { enum result_kind tag; union { zn_pub_t * pub; int error; } value;} zn_pub_p_result_t; 
+typedef struct { enum result_kind tag; union { zn_sto_t * sto; int error; } value;} zn_sto_p_result_t; 
+typedef struct { enum result_kind tag; union { zn_eva_t * eval; int error; } value;} zn_eval_p_result_t; 
 
 typedef struct {
   uint8_t kind;
   uint8_t nb;
-} z_query_dest_t;
+} zn_query_dest_t;
 
 //
 // Copied from zenoh/recv_loop.h
 //
-void* z_recv_loop(z_zenoh_t* z);
+void* zn_recv_loop(zn_session_t* z);
 
-int z_running(z_zenoh_t* z);
+int zn_running(zn_session_t* z);
 
-int z_start_recv_loop(z_zenoh_t* z);
+int zn_start_recv_loop(zn_session_t* z);
 
-int z_stop_recv_loop(z_zenoh_t* z);
+int zn_stop_recv_loop(zn_session_t* z);
 
 
 //
-// Copied from zenoh.h
+// Copied from zenoh/net/session.h
 //
-z_zenoh_p_result_t 
-z_open(char* locator, z_on_disconnect_t on_disconnect, const z_vec_t *ps);
+z_vec_t
+zn_scout(char* iface, size_t tries, size_t period);
+
+zn_session_p_result_t 
+zn_open(char* locator, zn_on_disconnect_t on_disconnect, const z_vec_t *ps);
 
 z_vec_t
-z_info(z_zenoh_t *z);
+zn_info(zn_session_t *z);
 
-z_sub_p_result_t 
-z_declare_subscriber(z_zenoh_t *z, const char* resource, const z_sub_mode_t *sm, z_data_handler_t data_handler, void *arg);
+zn_sub_p_result_t 
+zn_declare_subscriber(zn_session_t *z, const char* resource, const zn_sub_mode_t *sm, zn_data_handler_t data_handler, void *arg);
 
-z_pub_p_result_t 
-z_declare_publisher(z_zenoh_t *z, const char *resource);
+zn_pub_p_result_t 
+zn_declare_publisher(zn_session_t *z, const char *resource);
 
-z_sto_p_result_t 
-z_declare_storage(z_zenoh_t *z, const char* resource, z_data_handler_t data_handler, z_query_handler_t query_handler, void *arg);
+zn_sto_p_result_t 
+zn_declare_storage(zn_session_t *z, const char* resource, zn_data_handler_t data_handler, zn_query_handler_t query_handler, void *arg);
 
-z_eval_p_result_t 
-z_declare_eval(z_zenoh_t *z, const char* resource, z_query_handler_t query_handler, void *arg);
+zn_eval_p_result_t 
+zn_declare_eval(zn_session_t *z, const char* resource, zn_query_handler_t query_handler, void *arg);
 
-int z_stream_compact_data(z_pub_t *pub, const unsigned char *payload, size_t length);
-int z_stream_data(z_pub_t *pub, const unsigned char *payload, size_t length);
-int z_write_data(z_zenoh_t *z, const char* resource, const unsigned char *payload, size_t length);
+int zn_stream_compact_data(zn_pub_t *pub, const unsigned char *payload, size_t len);
+int zn_stream_data(zn_pub_t *pub, const unsigned char *payload, size_t len);
+int zn_write_data(zn_session_t *z, const char* resource, const unsigned char *payload, size_t len);
 
-int z_stream_data_wo(z_pub_t *pub, const unsigned char *payload, size_t length, uint8_t encoding, uint8_t kind);
-int z_write_data_wo(z_zenoh_t *z, const char* resource, const unsigned char *payload, size_t length, uint8_t encoding, uint8_t kind);
+int zn_stream_data_wo(zn_pub_t *pub, const unsigned char *payload, size_t len, uint8_t encoding, uint8_t kind);
+int zn_write_data_wo(zn_session_t *z, const char* resource, const unsigned char *payload, size_t len, uint8_t encoding, uint8_t kind);
 
-int z_pull(z_sub_t *sub);
+int zn_pull(zn_sub_t *sub);
 
-int z_query_wo(z_zenoh_t *z, const char* resource, const char* predicate, z_reply_handler_t reply_handler, void *arg, z_query_dest_t dest_storages, z_query_dest_t dest_evals);
+int zn_query(zn_session_t *z, const char* resource, const char* predicate, zn_reply_handler_t reply_handler, void *arg);
+int zn_query_wo(zn_session_t *z, const char* resource, const char* predicate, zn_reply_handler_t reply_handler, void *arg, zn_query_dest_t dest_storages, zn_query_dest_t dest_evals);
 
-int z_undeclare_subscriber(z_sub_t *z);
-int z_undeclare_publisher(z_pub_t *z);
-int z_undeclare_storage(z_sto_t *z);
-int z_undeclare_eval(z_eva_t *z);
+int zn_undeclare_subscriber(zn_sub_t *z);
+int zn_undeclare_publisher(zn_pub_t *z);
+int zn_undeclare_storage(zn_sto_t *z);
+int zn_undeclare_eval(zn_eva_t *z);
 
-int z_close(z_zenoh_t *z);
+int zn_close(zn_session_t *z);
 
 
 //
 // Copied from zenoh/rname.h
 //
-int intersect(char *c1, char *c2);
+int zn_rname_intersect(char *c1, char *c2);

@@ -2,7 +2,7 @@ package io.zenoh.net;
 
 import java.nio.ByteBuffer;
 
-import io.zenoh.swig.z_pub_t;
+import io.zenoh.swig.zn_pub_t;
 import io.zenoh.swig.zenohc;
 
 /**
@@ -10,9 +10,9 @@ import io.zenoh.swig.zenohc;
  */
 public class Publisher {
 
-    private z_pub_t pub;
+    private zn_pub_t pub;
 
-    protected Publisher(z_pub_t pub) {
+    protected Publisher(zn_pub_t pub) {
         this.pub = pub;
     }
 
@@ -21,7 +21,7 @@ public class Publisher {
      * @throws ZNetException if undeclaration failed.
      */
     public void undeclare() throws ZNetException {
-        int error = zenohc.z_undeclare_publisher(pub);
+        int error = zenohc.zn_undeclare_publisher(pub);
         if (error != 0) {
             throw new ZNetException("z_undeclare_publisher failed ", error);
         }
@@ -33,7 +33,7 @@ public class Publisher {
      * @throws ZNetException if write fails.
      */
     public void streamCompactData(ByteBuffer data) throws ZNetException {
-        int result = zenohc.z_stream_compact_data(pub, data);
+        int result = zenohc.zn_stream_compact_data(pub, data);
         if (result != 0) {
             throw new ZNetException("z_stream_compact_data of "+data.capacity()+" bytes buffer failed", result);
         }
@@ -45,7 +45,7 @@ public class Publisher {
      * @throws ZNetException if write fails.
      */
     public void streamData(ByteBuffer data) throws ZNetException {
-        int result = zenohc.z_stream_data(pub, data);
+        int result = zenohc.zn_stream_data(pub, data);
         if (result != 0) {
             throw new ZNetException("z_stream_data of "+data.capacity()+" bytes buffer failed", result);
         }
@@ -59,7 +59,7 @@ public class Publisher {
      * @throws ZNetException if write fails.
      */
     public void streamData(ByteBuffer data, short encoding, short kind) throws ZNetException {
-        int result = zenohc.z_stream_data_wo(pub, data, encoding, kind);
+        int result = zenohc.zn_stream_data_wo(pub, data, encoding, kind);
         if (result != 0) {
             throw new ZNetException("z_stream_data of "+data.capacity()+" bytes buffer failed", result);
         }

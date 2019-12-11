@@ -4,13 +4,13 @@ import org.scijava.nativelib.NativeLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.zenoh.swig.SWIGTYPE_p_z_zenoh_t;
+import io.zenoh.swig.SWIGTYPE_p_zn_session_t;
 import io.zenoh.swig.result_kind;
-import io.zenoh.swig.z_eval_p_result_t;
-import io.zenoh.swig.z_pub_p_result_t;
-import io.zenoh.swig.z_sto_p_result_t;
-import io.zenoh.swig.z_sub_p_result_t;
-import io.zenoh.swig.z_zenoh_p_result_t;
+import io.zenoh.swig.zn_eval_p_result_t;
+import io.zenoh.swig.zn_pub_p_result_t;
+import io.zenoh.swig.zn_sto_p_result_t;
+import io.zenoh.swig.zn_sub_p_result_t;
+import io.zenoh.swig.zn_session_p_result_t;
 import io.zenoh.swig.zenohc;
 
 import java.util.Map;
@@ -37,10 +37,10 @@ public class Session {
         }
     }
 
-    private SWIGTYPE_p_z_zenoh_t z;
+    private SWIGTYPE_p_zn_session_t s;
 
-    private Session(SWIGTYPE_p_z_zenoh_t z) {
-        this.z = z;
+    private Session(SWIGTYPE_p_zn_session_t s) {
+        this.s = s;
     }
 
     /**
@@ -67,23 +67,23 @@ public class Session {
     public static Session open(String locator, Map<Integer, byte[]> properties) throws ZNetException {
         LOG.debug("Call z_open on {}", locator);
         Entry<Integer, byte[]>[] entries = properties != null ? properties.entrySet().toArray(EMPTY) : null;
-        z_zenoh_p_result_t zenoh_result = zenohc.z_open(locator,  entries);
-        if (zenoh_result.getTag().equals(result_kind.Z_ERROR_TAG)) {
-            throw new ZNetException("z_open failed", zenoh_result.getValue().getError());
+        zn_session_p_result_t session_result = zenohc.zn_open(locator,  entries);
+        if (session_result.getTag().equals(result_kind.Z_ERROR_TAG)) {
+            throw new ZNetException("z_open failed", session_result.getValue().getError());
         }
-        SWIGTYPE_p_z_zenoh_t z = zenoh_result.getValue().getZenoh();
+        SWIGTYPE_p_zn_session_t s = session_result.getValue().getSession();
 
         new Thread(new Runnable(){
             @Override
             public void run() {
                 {
                     LOG.debug("Run z_recv_loop");
-                    zenohc.z_recv_loop(z);
+                    zenohc.zn_recv_loop(s);
                 }
             }
         }).start();
 
-        return new Session(z);
+        return new Session(s);
     }
 
     /**
@@ -92,11 +92,11 @@ public class Session {
      */
     public void close() throws ZNetException {
         LOG.debug("Call z_stop_recv_loop");
-        int stop_result = zenohc.z_stop_recv_loop(z);
+        int stop_result = zenohc.zn_stop_recv_loop(s);
         if (stop_result != 0) {
             throw new ZNetException("z_stop_recv_loop failed", stop_result);
         }
-        int close_result = zenohc.z_close(z);
+        int close_result = zenohc.zn_close(s);
         if (close_result != 0) {
             throw new ZNetException("close_result failed", stop_result);
         }
@@ -106,7 +106,7 @@ public class Session {
      * @return a map pf properties containing various informations about the established zenoh session.
      */
     public Map<Integer, byte[]> info() {
-        return zenohc.z_info(z);
+        return zenohc.zn_info(s);
     }
 
     /**
@@ -117,7 +117,7 @@ public class Session {
      */
     public Publisher declarePublisher(String resource) throws ZNetException {
         LOG.debug("Call z_declare_publisher for {}", resource);
-        z_pub_p_result_t pub_result = zenohc.z_declare_publisher(z, resource);
+        zn_pub_p_result_t pub_result = zenohc.zn_declare_publisher(s, resource);
         if (pub_result.getTag().equals(result_kind.Z_ERROR_TAG)) {
             throw new ZNetException("z_declare_publisher on "+resource+" failed ", pub_result.getValue().getError());
         }
@@ -135,7 +135,7 @@ public class Session {
      */
     public Subscriber declareSubscriber(String resource, SubMode mode, DataHandler handler) throws ZNetException {
         LOG.debug("Call z_declare_subscriber for {}", resource);
-        z_sub_p_result_t sub_result = zenohc.z_declare_subscriber(z, resource, mode, handler);
+        zn_sub_p_result_t sub_result = zenohc.zn_declare_subscriber(s, resource, mode, handler);
         if (sub_result.getTag().equals(result_kind.Z_ERROR_TAG)) {
             throw new ZNetException("z_declare_subscriber on "+resource+" failed ", sub_result.getValue().getError());
         }
@@ -155,7 +155,7 @@ public class Session {
         throws ZNetException
     {
         LOG.debug("Call z_declare_storage for {}", resource);
-        z_sto_p_result_t sto_result = zenohc.z_declare_storage(z, resource, handler);
+        zn_sto_p_result_t sto_result = zenohc.zn_declare_storage(s, resource, handler);
         if (sto_result.getTag().equals(result_kind.Z_ERROR_TAG)) {
             throw new ZNetException("z_declare_subscriber on "+resource+" failed ", sto_result.getValue().getError());
         }
@@ -174,7 +174,7 @@ public class Session {
         throws ZNetException
     {
         LOG.debug("Call z_declare_eval for {}", resource);
-        z_eval_p_result_t eval_result = zenohc.z_declare_eval(z, resource, handler);
+        zn_eval_p_result_t eval_result = zenohc.zn_declare_eval(s, resource, handler);
         if (eval_result.getTag().equals(result_kind.Z_ERROR_TAG)) {
             throw new ZNetException("z_declare_eval on "+resource+" failed ", eval_result.getValue().getError());
         }
@@ -188,7 +188,7 @@ public class Session {
      * @throws ZNetException if write fails.
      */
     public void writeData(String resource, java.nio.ByteBuffer payload) throws ZNetException {
-        int result = zenohc.z_write_data(z, resource, payload);
+        int result = zenohc.zn_write_data(s, resource, payload);
         if (result != 0) {
             throw new ZNetException("z_write_data of "+payload.capacity()+" bytes buffer on "+resource+"failed", result);
         }
@@ -203,7 +203,7 @@ public class Session {
      * @throws ZNetException if write fails.
      */
     public void writeData(String resource, java.nio.ByteBuffer payload, short encoding, short kind) throws ZNetException {
-        int result = zenohc.z_write_data_wo(z, resource, payload, encoding, kind);
+        int result = zenohc.zn_write_data_wo(s, resource, payload, encoding, kind);
         if (result != 0) {
             throw new ZNetException("z_write_data_wo of "+payload.capacity()+" bytes buffer on "+resource+"failed", result);
         }
@@ -234,7 +234,7 @@ public class Session {
      * @throws ZNetException if fails.
      */
     public void query(String resource, String predicate, ReplyHandler handler, QueryDest dest_storages, QueryDest dest_evals) throws ZNetException {
-        int result = zenohc.z_query_wo(z, resource, predicate, handler, dest_storages, dest_evals);
+        int result = zenohc.zn_query_wo(s, resource, predicate, handler, dest_storages, dest_evals);
         if (result != 0) {
             throw new ZNetException("z_query on "+resource+" failed", result);
         }

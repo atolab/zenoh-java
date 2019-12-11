@@ -13,7 +13,7 @@ public class Rname {
      * @param rname2 a resrouce selector
      */
     public static boolean intersect(String rname1, String rname2) {
-        return zenohc.intersect(rname1, rname2) != 0;
+        return zenohc.zn_rname_intersect(rname1, rname2) != 0;
     }
 
 }

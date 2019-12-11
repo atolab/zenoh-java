@@ -1,11 +1,11 @@
 package io.zenoh.net;
 
-import io.zenoh.swig.z_temporal_property_t;
+import io.zenoh.swig.zn_temporal_property_t;
 
 /**
  * Subscription mode (used in {@link Zenoh#declareSubscriber(String, SubMode, SubscriberCallback)}).
  */
-public class SubMode extends io.zenoh.swig.z_sub_mode_t {
+public class SubMode extends io.zenoh.swig.zn_sub_mode_t {
 
     /**
      * The subscription mode kind.
@@ -58,7 +58,7 @@ public class SubMode extends io.zenoh.swig.z_sub_mode_t {
     private SubMode(Kind kind, int origin, int period, int duration) {
         super();
         setKind(kind.value());
-        z_temporal_property_t tprop = new z_temporal_property_t();
+        zn_temporal_property_t tprop = new zn_temporal_property_t();
         tprop.setOrigin(origin);
         tprop.setPeriod(period);
         tprop.setDuration(duration);

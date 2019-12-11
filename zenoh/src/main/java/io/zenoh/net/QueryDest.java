@@ -1,12 +1,12 @@
 package io.zenoh.net;
 
-import io.zenoh.swig.z_query_dest_t;
+import io.zenoh.swig.zn_query_dest_t;
 
 /**
  * An object defining which storages or evals should be destination of a query
  * (see {@link Zenoh#query(String, String, ReplyCallback, QueryDest, QueryDest)}).
  */
-public class QueryDest extends z_query_dest_t {
+public class QueryDest extends zn_query_dest_t {
 
     /**
      * The Query destination kind.
