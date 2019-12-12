@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import io.zenoh.net.Session;
 import io.zenoh.net.ZNet;
+import io.zenoh.net.ZNetException;
 
 /**
  * The Zenoh client API.
@@ -75,7 +76,7 @@ public class Zenoh {
             LOG.info("Session established with Zenoh router {}", zid);
                 return new Zenoh(s, zid);
 
-        } catch (ZException e) {
+        } catch (ZNetException e) {
             LOG.warn("Failed to establish session to {}", locator, e);
             throw new ZException("Login failed to " + locator, e);
         }
@@ -101,7 +102,7 @@ public class Zenoh {
         try {
             session.close();
             this.session = null;
-        } catch (ZException e) {
+        } catch (ZNetException e) {
             throw new ZException("Error during logout", e);
         }
     }

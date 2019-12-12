@@ -1,6 +1,5 @@
 package io.zenoh.net;
 
-import io.zenoh.ZException;
 import io.zenoh.swig.zenohc;
 import io.zenoh.swig.zn_eva_t;
 
@@ -17,12 +16,12 @@ public class Eval {
 
     /**
      * Undeclare the Eval.
-     * @throws ZException if undeclaration failed.
+     * @throws ZNetException if undeclaration failed.
      */
-    public void undeclare() throws ZException {
+    public void undeclare() throws ZNetException {
         int error = zenohc.zn_undeclare_eval(eval);
         if (error != 0) {
-            throw new ZException("zn_undeclare_eval failed ", error);
+            throw new ZNetException("zn_undeclare_eval failed ", error);
         }
     }
 

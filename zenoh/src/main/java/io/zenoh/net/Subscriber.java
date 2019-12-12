@@ -1,7 +1,6 @@
 package io.zenoh.net;
 
 
-import io.zenoh.ZException;
 import io.zenoh.swig.zenohc;
 import io.zenoh.swig.zn_sub_t;
 
@@ -19,23 +18,23 @@ public class Subscriber {
     /**
      * Retrives data for a given pull-mode subscription from 
      * the nearest infrastruture component (router).
-     * @throws ZException if pull failed.
+     * @throws ZNetException if pull failed.
      */
-    public void pull() throws ZException {
+    public void pull() throws ZNetException {
         int result = zenohc.zn_pull(sub);
         if (result != 0) {
-            throw new ZException("zn_pull failed", result);
+            throw new ZNetException("zn_pull failed", result);
         }
     }
 
     /**
      * Undeclare the Subscriber.
-     * @throws ZException if undeclaration failed.
+     * @throws ZNetException if undeclaration failed.
      */
-    public void undeclare() throws ZException {
+    public void undeclare() throws ZNetException {
         int error = zenohc.zn_undeclare_subscriber(sub);
         if (error != 0) {
-            throw new ZException("zn_undeclare_subscriber failed ", error);
+            throw new ZNetException("zn_undeclare_subscriber failed ", error);
         }
     }
 

@@ -1,6 +1,5 @@
 package io.zenoh.net;
 
-import io.zenoh.ZException;
 import io.zenoh.swig.zn_query_dest_t;
 
 /**
@@ -40,7 +39,7 @@ public class QueryDest extends zn_query_dest_t {
            this.numVal = numVal;
         }
      
-        public static Kind fromInt(short numVal) throws ZException {
+        public static Kind fromInt(short numVal) throws ZNetException {
             if (numVal == ZN_BEST_MATCH.value()) {
                 return ZN_BEST_MATCH;
             }
@@ -54,7 +53,7 @@ public class QueryDest extends zn_query_dest_t {
                 return ZN_NONE;
             }
             else {
-                throw new ZException("INTERNAL ERROR: cannot create QueryDest.Kind from int: "+numVal);
+                throw new ZNetException("INTERNAL ERROR: cannot create QueryDest.Kind from int: "+numVal);
             }
         }
 

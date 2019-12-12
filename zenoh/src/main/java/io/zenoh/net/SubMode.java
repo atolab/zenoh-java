@@ -1,6 +1,5 @@
 package io.zenoh.net;
 
-import io.zenoh.ZException;
 import io.zenoh.swig.zn_temporal_property_t;
 
 /**
@@ -24,7 +23,7 @@ public class SubMode extends io.zenoh.swig.zn_sub_mode_t {
            this.numVal = numVal;
         }
      
-        public static Kind fromInt(short numVal) throws ZException {
+        public static Kind fromInt(short numVal) throws ZNetException {
             if (numVal == ZN_PUSH_MODE.value()) {
                 return ZN_PUSH_MODE;
             }
@@ -38,7 +37,7 @@ public class SubMode extends io.zenoh.swig.zn_sub_mode_t {
                 return ZN_PERIODIC_PULL_MODE;
             }
             else {
-                throw new ZException("INTERNAL ERROR: cannot create SubMode.Kind from int: "+numVal);
+                throw new ZNetException("INTERNAL ERROR: cannot create SubMode.Kind from int: "+numVal);
             }
         }
 

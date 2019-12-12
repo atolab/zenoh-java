@@ -2,8 +2,6 @@ package io.zenoh.net;
 
 import java.nio.ByteBuffer;
 
-import io.zenoh.ZException;
-
 /**
  * A reply to a query (see {@link Zenoh#query(String, String, ReplyCallback)}
  * and {@link ReplyHandler#handleReply(ReplyValue)})
@@ -47,7 +45,7 @@ public class ReplyValue {
            this.numVal = numVal;
         }
      
-        public static Kind fromInt(int numVal) throws ZException {
+        public static Kind fromInt(int numVal) throws ZNetException {
             if (numVal == ZN_STORAGE_DATA.value()) {
                 return ZN_STORAGE_DATA;
             }
@@ -64,7 +62,7 @@ public class ReplyValue {
                 return ZN_REPLY_FINAL;
             }
             else {
-                throw new ZException("INTERNAL ERROR: cannot create ReplyValue.Kind from int: "+numVal);
+                throw new ZNetException("INTERNAL ERROR: cannot create ReplyValue.Kind from int: "+numVal);
             }
         }
 
@@ -83,7 +81,7 @@ public class ReplyValue {
     private DataInfo info;
  
     protected ReplyValue(int kind, byte[] srcid, long rsn, String rname, ByteBuffer data, DataInfo info) 
-        throws ZException
+        throws ZNetException
     {
         this(Kind.fromInt(kind), srcid, rsn, rname, data, info);
     }
