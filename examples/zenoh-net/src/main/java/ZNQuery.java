@@ -6,14 +6,14 @@ class ZNQuery {
 
         public void handleReply(ReplyValue reply) {
             switch (reply.getKind()) {
-                case Z_STORAGE_DATA:
-                case Z_EVAL_DATA:
+                case ZN_STORAGE_DATA:
+                case ZN_EVAL_DATA:
                     java.nio.ByteBuffer data = reply.getData();
                     try {
                         byte[] buf = new byte[data.remaining()];
                         data.get(buf);
                         String s = new String(buf, "UTF-8");
-                        if (reply.getKind() == ReplyValue.Kind.Z_STORAGE_DATA) {
+                        if (reply.getKind() == ReplyValue.Kind.ZN_STORAGE_DATA) {
                             System.out.printf(">> [Reply handler] received -Storage Data- ('%s': '%s')\n", reply.getRname(), s);
                         } else {
                             System.out.printf(">> [Reply handler] received -Eval Data-    ('%s': '%s')\n", reply.getRname(), s);
@@ -22,13 +22,13 @@ class ZNQuery {
                         System.out.println(">> [Reply handler] error decoding data: "+e);
                     }
                     break;
-                case Z_STORAGE_FINAL:
+                case ZN_STORAGE_FINAL:
                     System.out.println(">> [Reply handler] received -Storage Final-");
                     break;
-                case Z_EVAL_FINAL:
+                case ZN_EVAL_FINAL:
                     System.out.println(">> [Reply handler] received -Eval Final-");
                     break;
-                case Z_REPLY_FINAL:
+                case ZN_REPLY_FINAL:
                     System.out.println(">> [Reply handler] received -Reply Final-");
                     break;
             }

@@ -116,21 +116,21 @@ public class ClientIT {
         
         public void handleReply(ReplyValue reply) {
             switch (reply.getKind()) {
-                case Z_STORAGE_DATA:
+                case ZN_STORAGE_DATA:
                     storage_replies.add(new Resource(
                         reply.getRname(), 
                         reply.getData(), 
                         reply.getInfo().getKind(), 
                         reply.getInfo().getEncoding()));
                     break;
-                case Z_EVAL_DATA:
+                case ZN_EVAL_DATA:
                     eval_replies.add(new Resource(
                         reply.getRname(), 
                         reply.getData(), 
                         reply.getInfo().getKind(), 
                         reply.getInfo().getEncoding()));
                     break;
-                case Z_REPLY_FINAL:
+                case ZN_REPLY_FINAL:
                     replies.put(Arrays.asList(storage_replies, eval_replies));
                     storage_replies = new ArrayList<Resource>();
                     eval_replies = new ArrayList<Resource>();

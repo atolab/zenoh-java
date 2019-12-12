@@ -71,7 +71,7 @@ public class Workspace {
         try {
             ByteBuffer data = value.encode();
             session.writeData(path.toString(), data, value.getEncoding().getFlag(), KIND_PUT);
-        } catch (ZNetException e) {
+        } catch (ZException e) {
             throw new ZException("Put on "+path+" failed", e);
         }
     }
@@ -89,7 +89,7 @@ public class Workspace {
         try {
             ByteBuffer data = value.encode();
             session.writeData(path.toString(), data, value.getEncoding().getFlag(), KIND_UPDATE);
-        } catch (ZNetException e) {
+        } catch (ZException e) {
             throw new ZException("Update on "+path+" failed", e);
         }
     }
@@ -105,7 +105,7 @@ public class Workspace {
         LOG.debug("Remove on {}", path);
         try {
             session.writeData(path.toString(), EMPTY_BUF, (short)0, KIND_REMOVE);
-        } catch (ZNetException e) {
+        } catch (ZException e) {
             throw new ZException("Remove on "+path+" failed", e);
         }
     }
@@ -129,15 +129,15 @@ public class Workspace {
                 new ReplyHandler() {
                     public void handleReply(ReplyValue reply) {
                         switch (reply.getKind()) {
-                            case Z_STORAGE_DATA:
-                            case Z_EVAL_DATA:
+                            case ZN_STORAGE_DATA:
+                            case ZN_EVAL_DATA:
                                 Path path = new Path(reply.getRname());
                                 ByteBuffer data = reply.getData();
                                 short encodingFlag = (short) reply.getInfo().getEncoding();
-                                if (reply.getKind() == ReplyValue.Kind.Z_STORAGE_DATA) {
-                                    LOG.debug("Get on {} => Z_STORAGE_DATA {} : {} ({} bytes)", s, path, reply.getInfo().getTimestamp(), data.remaining());
+                                if (reply.getKind() == ReplyValue.Kind.ZN_STORAGE_DATA) {
+                                    LOG.debug("Get on {} => ZN_STORAGE_DATA {} : {} ({} bytes)", s, path, reply.getInfo().getTimestamp(), data.remaining());
                                 } else {
-                                    LOG.debug("Get on {} => Z_EVAL_DATA {} : {} ({} bytes)", s, path, reply.getInfo().getTimestamp(), data.remaining());
+                                    LOG.debug("Get on {} => ZN_EVAL_DATA {} : {} ({} bytes)", s, path, reply.getInfo().getTimestamp(), data.remaining());
                                 }
                                 try {
                                     Value value = Encoding.fromFlag(encodingFlag).getDecoder().decode(data);
@@ -150,14 +150,14 @@ public class Workspace {
                                     LOG.warn("Get on {}: error decoding reply {} : {}", s, reply.getRname(), e);
                                 }
                                 break;
-                            case Z_STORAGE_FINAL:
-                                LOG.trace("Get on {} => Z_STORAGE_FINAL", s);
+                            case ZN_STORAGE_FINAL:
+                                LOG.trace("Get on {} => ZN_STORAGE_FINAL", s);
                                 break;
-                            case Z_EVAL_FINAL:
-                                LOG.trace("Get on {} => Z_EVAL_FINAL", s);
+                            case ZN_EVAL_FINAL:
+                                LOG.trace("Get on {} => ZN_EVAL_FINAL", s);
                                 break;
-                            case Z_REPLY_FINAL:
-                                LOG.trace("Get on {} => Z_REPLY_FINAL", s);
+                            case ZN_REPLY_FINAL:
+                                LOG.trace("Get on {} => ZN_REPLY_FINAL", s);
                                 synchronized (map) {
                                     queryFinished.set(true);
                                     map.notify();
@@ -196,7 +196,7 @@ public class Workspace {
             
             return results;
 
-        } catch (ZNetException e) {
+        } catch (ZException e) {
             throw new ZException("Get on "+selector+" failed", e);
         }
     }
@@ -273,7 +273,7 @@ public class Workspace {
                 });
             return new SubscriptionId(sub);
 
-        } catch (ZNetException e) {
+        } catch (ZException e) {
             throw new ZException("Subscribe on "+selector+" failed", e);
         }
     }
@@ -287,7 +287,7 @@ public class Workspace {
     public void unsubscribe(SubscriptionId subid) throws ZException {
         try {
             subid.getZSubscriber().undeclare();
-        } catch (ZNetException e) {
+        } catch (ZException e) {
             throw new ZException("Unsubscribe failed", e);
         }
     }
@@ -352,7 +352,7 @@ public class Workspace {
             io.zenoh.net.Eval e = session.declareEval(p.toString(), qh);
             evals.put(p, e);
 
-        } catch (ZNetException e) {
+        } catch (ZException e) {
             throw new ZException("registerEval on "+p+" failed", e);
         }
 
@@ -369,7 +369,7 @@ public class Workspace {
         if (e != null) {
             try {
                 e.undeclare();
-            } catch (ZNetException ex) {
+            } catch (ZException ex) {
                 throw new ZException("unregisterEval failed", ex);
             }
         }

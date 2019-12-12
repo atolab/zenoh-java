@@ -9,7 +9,7 @@ public interface ReplyHandler {
     /**
      * The method that will be called on reception of replies to the query sent by 
      * {@link Zenoh#query(String, String, ReplyHandler)} or {@link Zenoh#query(String, String, ReplyHandler, QueryDest, QueryDest)}. 
-     * Note that the last message will have a kind set to {@link io.zenoh.ReplyValue.Kind#Z_STORAGE_FINAL}. 
+     * Note that the last message will have a kind set to {@link io.zenoh.ReplyValue.Kind#ZN_STORAGE_FINAL}. 
      * @param reply a reply
      */
     public void handleReply(ReplyValue reply);

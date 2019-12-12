@@ -1,5 +1,6 @@
 package io.zenoh.net;
 
+import io.zenoh.ZException;
 import io.zenoh.swig.zn_temporal_property_t;
 
 /**
@@ -11,10 +12,10 @@ public class SubMode extends io.zenoh.swig.zn_sub_mode_t {
      * The subscription mode kind.
      */
     public enum Kind { 
-        Z_PUSH_MODE((short)1),
-        Z_PULL_MODE((short)2),
-        Z_PERIODIC_PUSH_MODE((short)3),
-        Z_PERIODIC_PULL_MODE((short)4);
+        ZN_PUSH_MODE((short)1),
+        ZN_PULL_MODE((short)2),
+        ZN_PERIODIC_PUSH_MODE((short)3),
+        ZN_PERIODIC_PULL_MODE((short)4);
 
         private short numVal;
 
@@ -23,21 +24,21 @@ public class SubMode extends io.zenoh.swig.zn_sub_mode_t {
            this.numVal = numVal;
         }
      
-        public static Kind fromInt(short numVal) throws ZNetException {
-            if (numVal == Z_PUSH_MODE.value()) {
-                return Z_PUSH_MODE;
+        public static Kind fromInt(short numVal) throws ZException {
+            if (numVal == ZN_PUSH_MODE.value()) {
+                return ZN_PUSH_MODE;
             }
-            else if (numVal == Z_PULL_MODE.value()) {
-                return Z_PULL_MODE;
+            else if (numVal == ZN_PULL_MODE.value()) {
+                return ZN_PULL_MODE;
             }
-            else if (numVal == Z_PERIODIC_PUSH_MODE.value()) {
-                return Z_PERIODIC_PUSH_MODE;
+            else if (numVal == ZN_PERIODIC_PUSH_MODE.value()) {
+                return ZN_PERIODIC_PUSH_MODE;
             }
-            else if (numVal == Z_PERIODIC_PULL_MODE.value()) {
-                return Z_PERIODIC_PULL_MODE;
+            else if (numVal == ZN_PERIODIC_PULL_MODE.value()) {
+                return ZN_PERIODIC_PULL_MODE;
             }
             else {
-                throw new ZNetException("INTERNAL ERROR: cannot create SubMode.Kind from int: "+numVal);
+                throw new ZException("INTERNAL ERROR: cannot create SubMode.Kind from int: "+numVal);
             }
         }
 
@@ -47,8 +48,8 @@ public class SubMode extends io.zenoh.swig.zn_sub_mode_t {
         }
     }
 
-    private static SubMode PUSH_MODE = new SubMode(Kind.Z_PUSH_MODE);
-    private static SubMode PULL_MODE = new SubMode(Kind.Z_PULL_MODE);
+    private static SubMode PUSH_MODE = new SubMode(Kind.ZN_PUSH_MODE);
+    private static SubMode PULL_MODE = new SubMode(Kind.ZN_PULL_MODE);
 
     private SubMode(Kind kind) {
         super();
@@ -83,13 +84,13 @@ public class SubMode extends io.zenoh.swig.zn_sub_mode_t {
      * @return a periodic push subscription mode with the specified temporal properties.
      */
     public static SubMode periodicPush(int origin, int period, int duration) {
-        return new SubMode(Kind.Z_PERIODIC_PUSH_MODE, origin, period, duration);
+        return new SubMode(Kind.ZN_PERIODIC_PUSH_MODE, origin, period, duration);
     }
 
     /**
      * @return a periodic pull subscription mode with the specified temporal properties.
      */
     public static SubMode periodicPull(int origin, int period, int duration) {
-        return new SubMode(Kind.Z_PERIODIC_PULL_MODE, origin, period, duration);
+        return new SubMode(Kind.ZN_PERIODIC_PULL_MODE, origin, period, duration);
     }
 }

@@ -1,5 +1,6 @@
 package io.zenoh.net;
 
+import io.zenoh.ZException;
 import io.zenoh.swig.zn_query_dest_t;
 
 /**
@@ -15,22 +16,22 @@ public class QueryDest extends zn_query_dest_t {
         /**
          * The nearest complete storage/eval if there is one, all storages/evals if not.
          */
-        Z_BEST_MATCH((short)0),
+        ZN_BEST_MATCH((short)0),
 
         /**
          * Only complete storages/evals. 
          */
-        Z_COMPLETE((short)1),
+        ZN_COMPLETE((short)1),
 
         /**
          * All storages/evals.
          */
-        Z_ALL((short)2),
+        ZN_ALL((short)2),
 
         /**
          * no storages/evals.
          */
-        Z_NONE((short)3);
+        ZN_NONE((short)3);
 
         private short numVal;
 
@@ -39,21 +40,21 @@ public class QueryDest extends zn_query_dest_t {
            this.numVal = numVal;
         }
      
-        public static Kind fromInt(short numVal) throws ZNetException {
-            if (numVal == Z_BEST_MATCH.value()) {
-                return Z_BEST_MATCH;
+        public static Kind fromInt(short numVal) throws ZException {
+            if (numVal == ZN_BEST_MATCH.value()) {
+                return ZN_BEST_MATCH;
             }
-            else if (numVal == Z_COMPLETE.value()) {
-                return Z_COMPLETE;
+            else if (numVal == ZN_COMPLETE.value()) {
+                return ZN_COMPLETE;
             }
-            else if (numVal == Z_ALL.value()) {
-                return Z_ALL;
+            else if (numVal == ZN_ALL.value()) {
+                return ZN_ALL;
             }
-            else if (numVal == Z_NONE.value()) {
-                return Z_NONE;
+            else if (numVal == ZN_NONE.value()) {
+                return ZN_NONE;
             }
             else {
-                throw new ZNetException("INTERNAL ERROR: cannot create QueryDest.Kind from int: "+numVal);
+                throw new ZException("INTERNAL ERROR: cannot create QueryDest.Kind from int: "+numVal);
             }
         }
 
@@ -63,10 +64,10 @@ public class QueryDest extends zn_query_dest_t {
         }
     }
 
-    private static QueryDest BEST_MATCH = new QueryDest(Kind.Z_BEST_MATCH);
-    private static QueryDest COMPLETE = new QueryDest(Kind.Z_COMPLETE);
-    private static QueryDest ALL = new QueryDest(Kind.Z_ALL);
-    private static QueryDest NONE = new QueryDest(Kind.Z_NONE);
+    private static QueryDest BEST_MATCH = new QueryDest(Kind.ZN_BEST_MATCH);
+    private static QueryDest COMPLETE = new QueryDest(Kind.ZN_COMPLETE);
+    private static QueryDest ALL = new QueryDest(Kind.ZN_ALL);
+    private static QueryDest NONE = new QueryDest(Kind.ZN_NONE);
 
     private QueryDest(Kind kind) {
         super();
@@ -81,35 +82,35 @@ public class QueryDest extends zn_query_dest_t {
     }
 
     /**
-     * @return a {@link QueryDest} with kind {@link Kind#Z_BEST_MATCH}.
+     * @return a {@link QueryDest} with kind {@link Kind#ZN_BEST_MATCH}.
      */
     public static QueryDest bestMatch() {
         return BEST_MATCH;
     }
 
     /**
-     * @return a {@link QueryDest} with kind {@link Kind#Z_COMPLETE}.
+     * @return a {@link QueryDest} with kind {@link Kind#ZN_COMPLETE}.
      */
     public static QueryDest complete() {
         return COMPLETE;
     }
 
     /**
-     * @return a {@link QueryDest} with kind {@link Kind#Z_COMPLETE}.
+     * @return a {@link QueryDest} with kind {@link Kind#ZN_COMPLETE}.
      */
     public static QueryDest complete(short nb) {
-        return new QueryDest(Kind.Z_COMPLETE, nb);
+        return new QueryDest(Kind.ZN_COMPLETE, nb);
     }
 
     /**
-     * @return a {@link QueryDest} with kind {@link Kind#Z_ALL}.
+     * @return a {@link QueryDest} with kind {@link Kind#ZN_ALL}.
      */
     public static QueryDest all() {
         return ALL;
     }
 
     /**
-     * @return a {@link QueryDest} with kind {@link Kind#Z_NONE}.
+     * @return a {@link QueryDest} with kind {@link Kind#ZN_NONE}.
      */
     public static QueryDest none() {
         return NONE;

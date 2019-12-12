@@ -1,5 +1,6 @@
 package io.zenoh.net;
 
+import io.zenoh.ZException;
 import io.zenoh.swig.zenohc;
 import io.zenoh.swig.zn_sto_t;
 
@@ -16,12 +17,12 @@ public class Storage {
 
     /**
      * Undeclare the Storage.
-     * @throws ZNetException if undeclaration failed.
+     * @throws ZException if undeclaration failed.
      */
-    public void undeclare() throws ZNetException {
+    public void undeclare() throws ZException {
         int error = zenohc.zn_undeclare_storage(sto);
         if (error != 0) {
-            throw new ZNetException("z_undeclare_storage failed ", error);
+            throw new ZException("zn_undeclare_storage failed ", error);
         }
     }
 
