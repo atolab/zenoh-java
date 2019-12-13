@@ -315,11 +315,11 @@ public class Workspace {
                             @Override
                             public void run() {
                                 try {
-                                    Value v = eval.callback(path, predicateToProperties(s.getProperties()));
+                                    Value v = eval.callback(p, predicateToProperties(s.getProperties()));
                                     LOG.debug("Registered eval on {} handling query {}?{} returns: {}", p, rname, predicate, v);
                                     repliesSender.sendReplies(
                                         new Resource[]{
-                                            new Resource(path.toString(), v.encode(), v.getEncoding().getFlag(), Change.Kind.PUT.value())
+                                            new Resource(p.toString(), v.encode(), v.getEncoding().getFlag(), Change.Kind.PUT.value())
                                         }
                                     );
                                 } catch (Throwable e) {
@@ -333,11 +333,11 @@ public class Workspace {
                     else
                     {
                         try {
-                            Value v = eval.callback(path, predicateToProperties(s.getProperties()));
+                            Value v = eval.callback(p, predicateToProperties(s.getProperties()));
                             LOG.debug("Registered eval on {} handling query {}?{} returns: {}", p, rname, predicate, v);
                             repliesSender.sendReplies(
                                 new Resource[]{
-                                    new Resource(path.toString(), v.encode(), v.getEncoding().getFlag(), Change.Kind.PUT.value())
+                                    new Resource(p.toString(), v.encode(), v.getEncoding().getFlag(), Change.Kind.PUT.value())
                                 }
                             );
                         } catch (Throwable e) {
