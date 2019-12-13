@@ -46,11 +46,12 @@ public class Zenoh {
     }
 
     /**
-     * Establish a session with the Zenoh router reachable via provided locator.
-     * If the provided locator is ``null``, login will perform some 
-     * dynamic discovery and try to establish the session automatically. When not 
-     * ``null``, the locator must have the format: {@code tcp/<ip>:<port>}.
-     * 
+     * Establish a zenoh session via a provided locator. Locator is a string
+     * representing the network endpoint to which establish the session. If the 
+     * provided locator is ``null``, login will perform some dynamic discovery and 
+     * try to establish the session automatically. When not ``null``, the locator 
+     * must have the format: {@code tcp/<ip>:<port>} i.e. ``tcp/127.0.0.1:7447``.
+     *
      * @param locator    the locator or ``null``.
      * @param properties the Properties to be used for this session (e.g. "user",
      *                   "password"...). Can be ``null``.

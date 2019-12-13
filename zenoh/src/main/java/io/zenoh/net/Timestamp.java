@@ -4,7 +4,7 @@ import java.time.Instant;
 import java.util.Arrays;
 
 /**
- * A Zenoh timestamp.
+ * A zenoh-net timestamp.
  */
 public class Timestamp implements Comparable<Timestamp> {
 

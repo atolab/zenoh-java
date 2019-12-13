@@ -44,7 +44,7 @@ public class Session {
     }
 
     /**
-     * Open a zenoh session. 
+     * Open a zenoh-net session. 
      * @param locator a string representing the network endpoint to which establish the session. A typical locator looks like this : ``tcp/127.0.0.1:7447``. 
      * If ``null``, `open` will scout and try to establish the session automatically.
      * @return a Zenoh object representing the openned zenoh session..
@@ -55,7 +55,7 @@ public class Session {
     }
 
     /**
-     * Open a zenoh session. 
+     * Open a zenoh-net session. 
      * @param locator a string representing the network endpoint to which establish the session. A typical locator looks like this : ``tcp/127.0.0.1:7447``. 
      * If ``null``, `open` will scout and try to establish the session automatically.
      * @param properties a map of properties that will be used to establish and configure the zenoh session. 
@@ -87,7 +87,7 @@ public class Session {
     }
 
     /**
-     * Close the zenoh session.
+     * Close the zenoh-net session.
      * @throws ZNetException if close failed.
      */
     public void close() throws ZNetException {
@@ -103,7 +103,8 @@ public class Session {
     }
 
     /**
-     * @return a map pf properties containing various informations about the established zenoh session.
+     * @return a map of properties containing various informations about the
+     *         established zenoh-net session.
      */
     public Map<Integer, byte[]> info() {
         return zenohc.zn_info(s);
