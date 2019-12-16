@@ -8,6 +8,7 @@ import java.util.Hashtable;
 import io.zenoh.Path;
 import io.zenoh.Value;
 import io.zenoh.Workspace;
+import io.zenoh.core.ZException;
 
 /**
  * The Administration helper class.

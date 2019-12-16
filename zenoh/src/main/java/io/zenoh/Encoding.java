@@ -1,5 +1,7 @@
 package io.zenoh;
 
+import io.zenoh.core.ZException;
+
 public enum Encoding {
 
     RAW (RawValue.Decoder.getEncodingFlag(), RawValue.Decoder),

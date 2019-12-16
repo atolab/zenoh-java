@@ -1,5 +1,7 @@
 package io.zenoh.net;
 
+import io.zenoh.core.Timestamp;
+
 /**
  * Some meta informations about the associated data.
  */

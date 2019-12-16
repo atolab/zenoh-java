@@ -2,7 +2,7 @@ package io.zenoh;
 
 import org.slf4j.LoggerFactory;
 
-import io.zenoh.net.Timestamp;
+import io.zenoh.core.Timestamp;
 
 public class Entry implements Comparable<Entry> {
 

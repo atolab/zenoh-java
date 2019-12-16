@@ -143,6 +143,9 @@ public class ClientIT {
 
     @Test
     public final void test() throws Exception {
+
+        System.out.println("============================");
+
         Session z1 = Session.open("tcp/127.0.0.1:7447");
         Subscriber z1_sub1 = z1.declareSubscriber("/test/java/client/**", SubMode.push(), new z1_sub1_listener());
         Storage z1_sto1 = z1.declareStorage("/test/java/client/**", new z1_sto1_listener());

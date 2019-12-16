@@ -1,10 +1,10 @@
-package io.zenoh.net;
+package io.zenoh.core;
 
 import java.time.Instant;
 import java.util.Arrays;
 
 /**
- * A zenoh-net timestamp.
+ * A Zenoh timestamp.
  */
 public class Timestamp implements Comparable<Timestamp> {
 

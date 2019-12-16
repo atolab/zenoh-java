@@ -1,30 +1,31 @@
-package io.zenoh.net;
+package io.zenoh.core;
 
+import io.zenoh.swig.zenohcConstants;
 import java.util.HashMap;
 
 /**
- * An Exception raised by Zenoh-net.
+ * An Exception raised by Zenoh.
  */
-public class ZNetException extends Exception {
+public class ZException extends Exception {
 
 
     public static final Integer Z_NO_ERROR_CODE = 0x00;
 
-    public static final Integer Z_VLE_PARSE_ERROR = 0x01;
-    public static final Integer Z_ARRAY_PARSE_ERROR = 0x02;
-    public static final Integer Z_STRING_PARSE_ERROR = 0x03;
+    public static final Integer Z_VLE_PARSE_ERROR = zenohcConstants.Z_VLE_PARSE_ERROR;
+    public static final Integer Z_ARRAY_PARSE_ERROR = zenohcConstants.Z_ARRAY_PARSE_ERROR;
+    public static final Integer Z_STRING_PARSE_ERROR = zenohcConstants.Z_STRING_PARSE_ERROR;
 
-    public static final Integer ZN_PROPERTY_PARSE_ERROR = 0x81;
-    public static final Integer ZN_PROPERTIES_PARSE_ERROR = 0x82;
-    public static final Integer ZN_MESSAGE_PARSE_ERROR = 0x83;
-    public static final Integer ZN_INSUFFICIENT_IOBUF_SIZE = 0x84;
-    public static final Integer ZN_IO_ERROR = 0x85;
-    public static final Integer ZN_RESOURCE_DECL_ERROR = 0x86;
-    public static final Integer ZN_PAYLOAD_HEADER_PARSE_ERROR = 0x87;
-    public static final Integer ZN_TX_CONNECTION_ERROR = 0x89;
-    public static final Integer ZN_INVALID_ADDRESS_ERROR = 0x8a;
-    public static final Integer ZN_FAILED_TO_OPEN_SESSION = 0x8b;
-    public static final Integer ZN_UNEXPECTED_MESSAGE = 0x8c;
+    public static final Integer ZN_PROPERTY_PARSE_ERROR = zenohcConstants.ZN_PROPERTY_PARSE_ERROR;
+    public static final Integer ZN_PROPERTIES_PARSE_ERROR = zenohcConstants.ZN_PROPERTIES_PARSE_ERROR;
+    public static final Integer ZN_MESSAGE_PARSE_ERROR = zenohcConstants.ZN_MESSAGE_PARSE_ERROR;
+    public static final Integer ZN_INSUFFICIENT_IOBUF_SIZE = zenohcConstants.ZN_INSUFFICIENT_IOBUF_SIZE;
+    public static final Integer ZN_IO_ERROR = zenohcConstants.ZN_IO_ERROR;
+    public static final Integer ZN_RESOURCE_DECL_ERROR = zenohcConstants.ZN_RESOURCE_DECL_ERROR;
+    public static final Integer ZN_PAYLOAD_HEADER_PARSE_ERROR = zenohcConstants.ZN_PAYLOAD_HEADER_PARSE_ERROR;
+    public static final Integer ZN_TX_CONNECTION_ERROR = zenohcConstants.ZN_TX_CONNECTION_ERROR;
+    public static final Integer ZN_INVALID_ADDRESS_ERROR = zenohcConstants.ZN_INVALID_ADDRESS_ERROR;
+    public static final Integer ZN_FAILED_TO_OPEN_SESSION = zenohcConstants.ZN_FAILED_TO_OPEN_SESSION;
+    public static final Integer ZN_UNEXPECTED_MESSAGE = zenohcConstants.ZN_UNEXPECTED_MESSAGE;
 
     private static final java.util.Map<Integer, String> errorCodeToString =
         new HashMap<Integer, String>();
@@ -50,20 +51,20 @@ public class ZNetException extends Exception {
 
     private static final long serialVersionUID = 402535504102337839L;
     
-    protected ZNetException(String message) {
+    public ZException(String message) {
         this(message, Z_NO_ERROR_CODE);
     }
 
-    public ZNetException(String message, Throwable cause) {
+    public ZException(String message, Throwable cause) {
         this(message, Z_NO_ERROR_CODE, cause);
     }
 
-    protected ZNetException(String message, int errorCode) {
+    public ZException(String message, int errorCode) {
         super(message);
         this.errorCode = errorCode;
     }
 
-    protected ZNetException(String message, int errorCode, Throwable cause) {
+    public ZException(String message, int errorCode, Throwable cause) {
         super(message, cause);
         this.errorCode = errorCode;
     }

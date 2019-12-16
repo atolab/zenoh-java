@@ -1,5 +1,7 @@
 package io.zenoh;
 
+import io.zenoh.core.Timestamp;
+import io.zenoh.core.ZException;
 import io.zenoh.net.*;
 
 import java.util.Collection;
@@ -71,7 +73,7 @@ public class Workspace {
         try {
             ByteBuffer data = value.encode();
             session.writeData(path.toString(), data, value.getEncoding().getFlag(), KIND_PUT);
-        } catch (ZNetException e) {
+        } catch (ZException e) {
             throw new ZException("Put on "+path+" failed", e);
         }
     }
@@ -89,7 +91,7 @@ public class Workspace {
         try {
             ByteBuffer data = value.encode();
             session.writeData(path.toString(), data, value.getEncoding().getFlag(), KIND_UPDATE);
-        } catch (ZNetException e) {
+        } catch (ZException e) {
             throw new ZException("Update on "+path+" failed", e);
         }
     }
@@ -105,7 +107,7 @@ public class Workspace {
         LOG.debug("Remove on {}", path);
         try {
             session.writeData(path.toString(), EMPTY_BUF, (short)0, KIND_REMOVE);
-        } catch (ZNetException e) {
+        } catch (ZException e) {
             throw new ZException("Remove on "+path+" failed", e);
         }
     }
@@ -196,7 +198,7 @@ public class Workspace {
             
             return results;
 
-        } catch (ZNetException e) {
+        } catch (ZException e) {
             throw new ZException("Get on "+selector+" failed", e);
         }
     }
@@ -273,7 +275,7 @@ public class Workspace {
                 });
             return new SubscriptionId(sub);
 
-        } catch (ZNetException e) {
+        } catch (ZException e) {
             throw new ZException("Subscribe on "+selector+" failed", e);
         }
     }
@@ -287,7 +289,7 @@ public class Workspace {
     public void unsubscribe(SubscriptionId subid) throws ZException {
         try {
             subid.getZSubscriber().undeclare();
-        } catch (ZNetException e) {
+        } catch (ZException e) {
             throw new ZException("Unsubscribe failed", e);
         }
     }
@@ -352,7 +354,7 @@ public class Workspace {
             io.zenoh.net.Eval e = session.declareEval(p.toString(), qh);
             evals.put(p, e);
 
-        } catch (ZNetException e) {
+        } catch (ZException e) {
             throw new ZException("registerEval on "+p+" failed", e);
         }
 
@@ -369,7 +371,7 @@ public class Workspace {
         if (e != null) {
             try {
                 e.undeclare();
-            } catch (ZNetException ex) {
+            } catch (ZException ex) {
                 throw new ZException("unregisterEval failed", ex);
             }
         }

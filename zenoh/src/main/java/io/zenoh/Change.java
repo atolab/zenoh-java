@@ -1,6 +1,7 @@
 package io.zenoh;
 
-import io.zenoh.net.Timestamp;
+import io.zenoh.core.Timestamp;
+import io.zenoh.core.ZException;
 
 /**
  * The notification of a change for a path/value in Zenoh.

@@ -279,7 +279,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
   assert_no_exception;
   byte_buffer_class = (jclass) (*jenv)->NewGlobalRef(jenv, bb_class);
   assert_no_exception;
-  jclass ts_class = (*jenv)->FindClass(jenv, "io/zenoh/net/Timestamp");
+  jclass ts_class = (*jenv)->FindClass(jenv, "io/zenoh/core/Timestamp");
   assert_no_exception;
   timestamp_class = (jclass) (*jenv)->NewGlobalRef(jenv, ts_class);
   assert_no_exception;
@@ -370,7 +370,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
   timestamp_constr = (*jenv)->GetMethodID(jenv, timestamp_class,
     "<init>", "(J[B)V");
   data_info_constr = (*jenv)->GetMethodID(jenv, data_info_class,
-    "<init>", "(JLio/zenoh/net/Timestamp;II)V");
+    "<init>", "(JLio/zenoh/core/Timestamp;II)V");
   assert_no_exception;
   reply_value_constr = (*jenv)->GetMethodID(jenv, reply_value_class,
     "<init>", "(I[BJLjava/lang/String;Ljava/nio/ByteBuffer;Lio/zenoh/net/DataInfo;)V");
@@ -635,17 +635,18 @@ void call_replies_sender(jlong send_replies_ptr, jlong query_handle_ptr, zn_reso
 #include <stdint.h>
 
 //
+// Directly include headers definint constants
+// (others are partially copied below)
+//
+%javaconst(1);
+%include "zenoh/net/result.h"
+%include "zenoh/result.h"
+
+
+//
 // Copied from zenoh/types.h
 //
 typedef size_t z_vle_t;
-
-//
-// Copied from zenoh/result.h
-//
-enum result_kind {
-  Z_OK_TAG = 0,
-  Z_ERROR_TAG = 1   
-};
 
 //
 // Copied from zenoh/net/property.h

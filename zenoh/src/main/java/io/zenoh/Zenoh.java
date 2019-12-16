@@ -10,9 +10,9 @@ import java.util.concurrent.Executors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import io.zenoh.core.ZException;
 import io.zenoh.net.Session;
 import io.zenoh.net.ZNet;
-import io.zenoh.net.ZNetException;
 
 /**
  * The Zenoh client API.
@@ -77,7 +77,7 @@ public class Zenoh {
             LOG.info("Session established with Zenoh router {}", zid);
                 return new Zenoh(s, zid);
 
-        } catch (ZNetException e) {
+        } catch (ZException e) {
             LOG.warn("Failed to establish session to {}", locator, e);
             throw new ZException("Login failed to " + locator, e);
         }
@@ -103,7 +103,7 @@ public class Zenoh {
         try {
             session.close();
             this.session = null;
-        } catch (ZNetException e) {
+        } catch (ZException e) {
             throw new ZException("Error during logout", e);
         }
     }
