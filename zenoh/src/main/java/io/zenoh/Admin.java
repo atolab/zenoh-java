@@ -46,7 +46,7 @@ public class Admin {
      * Add a backend in the specified Zenoh router.
      */
     public void addBackend(String beid, Properties properties, String zid) throws ZException {
-        String path = String.format("/@/%s/plugins/yaks/backend/%s", zid, beid);
+        String path = String.format("/@/router/%s/plugin/storages/backend/%s", zid, beid);
         w.put(new Path(path), new PropertiesValue(properties));
     }
 
@@ -61,7 +61,7 @@ public class Admin {
      * Get a backend's properties from the specified Zenoh router.
      */
     public Properties getBackend(String beid, String zid) throws ZException {
-        String sel = String.format("/@/%s/plugins/yaks/backend/%s", zid, beid);
+        String sel = String.format("/@/router/%s/plugin/storages/backend/%s", zid, beid);
         Collection<Entry> entries = w.get(new Selector(sel));
         if (! entries.iterator().hasNext()) {
             return null;
@@ -81,7 +81,7 @@ public class Admin {
      * Get all the backends from the specified Zenoh router.
      */
     public Map<String, Properties> getBackends(String zid) throws ZException {
-        String sel = String.format("/@/%s/plugins/yaks/backend/*", zid);
+        String sel = String.format("/@/router/%s/plugin/storages/backend/*", zid);
         Collection<Entry> entries = w.get(new Selector(sel));
         Map<String, Properties> result = new Hashtable<String, Properties>(entries.size());
         for (Entry pv : entries) {
@@ -102,7 +102,7 @@ public class Admin {
      * Remove a backend from the specified Zenoh router.
      */
     public void removeBackend(String beid, String zid) throws ZException {
-        String path = String.format("/@/%s/plugins/yaks/backend/%s", zid, beid);
+        String path = String.format("/@/router/%s/plugin/storages/backend/%s", zid, beid);
         w.remove(new Path(path));
     }
 
@@ -133,7 +133,7 @@ public class Admin {
      * Add a storage in the specified Zenoh router, using the specified backend.
      */
     public void addStorageOnBackend(String stid, Properties properties, String backend, String zid) throws ZException {
-        String path = String.format("/@/%s/plugins/yaks/backend/%s/storage/%s", zid, backend, stid);
+        String path = String.format("/@/router/%s/plugin/storages/backend/%s/storage/%s", zid, backend, stid);
         w.put(new Path(path), new PropertiesValue(properties));
     }
 
@@ -148,7 +148,7 @@ public class Admin {
      * Get a storage's properties from the specified Zenoh router.
      */
     public Properties getStorage(String stid, String zid) throws ZException {
-        String sel = String.format("/@/%s/plugins/yaks/backend/*/storage/%s", zid, stid);
+        String sel = String.format("/@/router/%s/plugin/storages/backend/*/storage/%s", zid, stid);
         Collection<Entry> entries = w.get(new Selector(sel));
         if (! entries.iterator().hasNext()) {
             return null;
@@ -182,7 +182,7 @@ public class Admin {
      * Get all the storages from the specified backend within the specified Zenoh router.
      */
     public Map<String, Properties> getStoragesFromBackend(String backend, String zid) throws ZException {
-        String sel = String.format("/@/%s/plugins/yaks/backend/%s/storage/*", zid, backend);
+        String sel = String.format("/@/router/%s/plugin/storages/backend/%s/storage/*", zid, backend);
         Collection<Entry> entries = w.get(new Selector(sel));
         Map<String, Properties> result = new Hashtable<String, Properties>(entries.size());
         for (Entry entry : entries) {
@@ -204,7 +204,7 @@ public class Admin {
      * Remove a backend from the specified Zenoh router.
      */
     public void removeStorage(String stid, String zid) throws ZException {
-        String sel = String.format("/@/%s/plugins/yaks/backend/*/storage/%s", zid, stid);
+        String sel = String.format("/@/router/%s/plugin/storages/backend/*/storage/%s", zid, stid);
         Collection<Entry> entries = w.get(new Selector(sel));
         if (entries.iterator().hasNext()) {
             Path p = entries.iterator().next().getPath();
