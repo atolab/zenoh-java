@@ -4,13 +4,13 @@ import org.slf4j.LoggerFactory;
 
 import io.zenoh.core.Timestamp;
 
-public class Entry implements Comparable<Entry> {
+public class Data implements Comparable<Data> {
 
     private Path path;
     private Value value;
     private Timestamp timestamp;
 
-    protected Entry(Path path, Value value, Timestamp timestamp) {
+    protected Data(Path path, Value value, Timestamp timestamp) {
         this.path = path;
         this.value = value;
         this.timestamp = timestamp;
@@ -29,7 +29,7 @@ public class Entry implements Comparable<Entry> {
     }
 
     @Override
-    public int compareTo(Entry o) {
+    public int compareTo(Data o) {
         // Order entires according to their timestamps
         return timestamp.compareTo(o.timestamp);
     }
@@ -40,11 +40,11 @@ public class Entry implements Comparable<Entry> {
             return false;
         if (this == obj)
             return true;
-        if (! (obj instanceof Entry))
+        if (! (obj instanceof Data))
             return false;
 
-        Entry o = (Entry) obj;
-        // As timestamp is unique per entry, only compare timestamps.
+        Data o = (Data) obj;
+        // As timestamp is unique per data, only compare timestamps.
         if (!timestamp.equals(o.timestamp))
             return false;
 

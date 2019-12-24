@@ -46,9 +46,9 @@ public class ZEval {
                         if (name.startsWith("/")) {
                             try {
                                 System.out.printf("   >> Get name to use from Zenoh at path: %s\n", name);
-                                Collection<Entry> entries = w.get(new Selector(name));
-                                if (!entries.isEmpty()) {
-                                    name = entries.iterator().next().getValue().toString();
+                                Collection<Data> data = w.get(new Selector(name));
+                                if (!data.isEmpty()) {
+                                    name = data.iterator().next().getValue().toString();
                                 }
                             } catch (Throwable e) {
                                 System.err.println("Failed to get value from path "+name);

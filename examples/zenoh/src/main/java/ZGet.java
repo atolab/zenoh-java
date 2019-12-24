@@ -23,8 +23,8 @@ public class ZGet {
             Workspace w = z.workspace(new Path("/"));
 
             System.out.println("Get from "+s);
-            for (Entry entry : w.get(s)) {
-                System.out.println("  "+entry.getPath()+" : "+entry.getValue());
+            for (Data data : w.get(s)) {
+                System.out.println("  "+data.getPath()+" : "+data.getValue());
             }
 
             z.logout();

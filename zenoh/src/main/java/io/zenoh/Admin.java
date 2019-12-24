@@ -62,7 +62,7 @@ public class Admin {
      */
     public Properties getBackend(String beid, String zid) throws ZException {
         String sel = String.format("/@/router/%s/plugin/storages/backend/%s", zid, beid);
-        Collection<Entry> entries = w.get(new Selector(sel));
+        Collection<Data> entries = w.get(new Selector(sel));
         if (! entries.iterator().hasNext()) {
             return null;
         } else {
@@ -82,9 +82,9 @@ public class Admin {
      */
     public Map<String, Properties> getBackends(String zid) throws ZException {
         String sel = String.format("/@/router/%s/plugin/storages/backend/*", zid);
-        Collection<Entry> entries = w.get(new Selector(sel));
+        Collection<Data> entries = w.get(new Selector(sel));
         Map<String, Properties> result = new Hashtable<String, Properties>(entries.size());
-        for (Entry pv : entries) {
+        for (Data pv : entries) {
             String beid = pv.getPath().toString().substring(sel.length()-1);
             result.put(beid, propertiesOfValue(pv.getValue()));
         }
@@ -149,7 +149,7 @@ public class Admin {
      */
     public Properties getStorage(String stid, String zid) throws ZException {
         String sel = String.format("/@/router/%s/plugin/storages/backend/*/storage/%s", zid, stid);
-        Collection<Entry> entries = w.get(new Selector(sel));
+        Collection<Data> entries = w.get(new Selector(sel));
         if (! entries.iterator().hasNext()) {
             return null;
         } else {
@@ -183,12 +183,12 @@ public class Admin {
      */
     public Map<String, Properties> getStoragesFromBackend(String backend, String zid) throws ZException {
         String sel = String.format("/@/router/%s/plugin/storages/backend/%s/storage/*", zid, backend);
-        Collection<Entry> entries = w.get(new Selector(sel));
-        Map<String, Properties> result = new Hashtable<String, Properties>(entries.size());
-        for (Entry entry : entries) {
-            String stPath = entry.getPath().toString();
+        Collection<Data> data = w.get(new Selector(sel));
+        Map<String, Properties> result = new Hashtable<String, Properties>(data.size());
+        for (Data d : data) {
+            String stPath = d.getPath().toString();
             String stid = stPath.substring(stPath.lastIndexOf('/')+1);
-            result.put(stid, propertiesOfValue(entry.getValue()));
+            result.put(stid, propertiesOfValue(d.getValue()));
         }
         return result;
     }
@@ -205,7 +205,7 @@ public class Admin {
      */
     public void removeStorage(String stid, String zid) throws ZException {
         String sel = String.format("/@/router/%s/plugin/storages/backend/*/storage/%s", zid, stid);
-        Collection<Entry> entries = w.get(new Selector(sel));
+        Collection<Data> entries = w.get(new Selector(sel));
         if (entries.iterator().hasNext()) {
             Path p = entries.iterator().next().getPath();
             w.remove(p);

@@ -119,11 +119,11 @@ public class Workspace {
      * @return a collection of path/value.
      * @throws ZException if get failed.
      */
-    public Collection<Entry> get(Selector selector) throws ZException {
+    public Collection<Data> get(Selector selector) throws ZException {
         final Selector s = toAsbsoluteSelector(selector);
         LOG.debug("Get on {}", s);
         try {
-            final Map<Path, SortedSet<Entry>> map = new Hashtable<Path, SortedSet<Entry>>();
+            final Map<Path, SortedSet<Data>> map = new Hashtable<Path, SortedSet<Data>>();
             final java.util.concurrent.atomic.AtomicBoolean queryFinished =
                 new java.util.concurrent.atomic.AtomicBoolean(false);
             
@@ -143,11 +143,11 @@ public class Workspace {
                                 }
                                 try {
                                     Value value = Encoding.fromFlag(encodingFlag).getDecoder().decode(data);
-                                    Entry entry = new Entry(path, value, reply.getInfo().getTimestamp());
+                                    Data d = new Data(path, value, reply.getInfo().getTimestamp());
                                     if (!map.containsKey(path)) {
-                                        map.put(path, new TreeSet<Entry>());
+                                        map.put(path, new TreeSet<Data>());
                                     }
-                                    map.get(path).add(entry);
+                                    map.get(path).add(d);
                                 } catch (ZException e) {
                                     LOG.warn("Get on {}: error decoding reply {} : {}", s, reply.getRname(), e);
                                 }
@@ -180,18 +180,18 @@ public class Workspace {
                 }
             }
 
-            Collection<Entry> results = new LinkedList<Entry>();
+            Collection<Data> results = new LinkedList<Data>();
 
             if (isSelectorForSeries(selector)) {
                 // return all entries
-                for (SortedSet<Entry> l : map.values()) {
-                    for (Entry e : l) {
+                for (SortedSet<Data> l : map.values()) {
+                    for (Data e : l) {
                         results.add(e);
                     }
                 }
             } else {
-                // return only the latest entry for each path
-                for (SortedSet<Entry> l : map.values()) {
+                // return only the latest data for each path
+                for (SortedSet<Data> l : map.values()) {
                     results.add(l.last());
                 }
             }
