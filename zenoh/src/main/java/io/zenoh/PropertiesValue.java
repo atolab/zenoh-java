@@ -5,8 +5,10 @@ import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.Properties;
 
-
-public class PropertiesValue implements Value{
+/**
+ * A {@link Value} containing {@link Properties}.
+ */
+public class PropertiesValue implements Value {
 
     private static final short ENCODING_FLAG = 0x03;
 
@@ -14,19 +16,28 @@ public class PropertiesValue implements Value{
 
     private Properties p;
 
-
+    /**
+     * Creates a PropertiesValue containing some {@link Properties}.
+     * @param p the properties
+     */
     public PropertiesValue(Properties p) {
         this.p = p;
     }
 
+    /**
+     * Returns the properties from this PropertiesValue
+     * @return the properties
+     */
     public Properties getProperties() {
         return p;
     }
 
+    @Override
     public Encoding getEncoding() {
         return Encoding.PROPERTIES;
     }
 
+    @Override
     public ByteBuffer encode() {
         return ByteBuffer.wrap(toString().getBytes(utf8));
     }
@@ -64,8 +75,12 @@ public class PropertiesValue implements Value{
         return p.hashCode();
     }
 
+    /**
+     * The {@link Value.Decoder} for {@link PropertiesValue}s.
+     */
     public static final Value.Decoder Decoder = new Value.Decoder() {
 
+        @Override
         public short getEncodingFlag() {
             return ENCODING_FLAG;
         }
@@ -85,6 +100,7 @@ public class PropertiesValue implements Value{
             return p;
         }
 
+        @Override
         public Value decode(ByteBuffer buf) {
             return new PropertiesValue(fromString(new String(buf.array(), utf8)));
         }

@@ -11,7 +11,7 @@ import io.zenoh.Workspace;
 import io.zenoh.core.ZException;
 
 /**
- * The Administration helper class.
+ * The zenoh administration class.
  */
 public class Admin {
 
@@ -36,14 +36,25 @@ public class Admin {
     /************* Backends management *************/
 
     /**
-     * Add a backend in the connected Zenoh router.
+     * Add a backend in the connected zenoh router
+     * (i.e. the one you are directly connected to).
+     * 
+     * @param beid the backend identifier.
+     * @param properties the properties for backend initialization.
+     * @throws ZException if an error occurs.
      */
     public void addBackend(String beid, Properties properties) throws ZException {
         addBackend(beid, properties, this.zid);
     }
 
     /**
-     * Add a backend in the specified Zenoh router.
+     * Add a backend in the specified zenoh router,
+     * not necessarily the one you are connected to.
+     * 
+     * @param beid the backend identifier.
+     * @param properties the properties for backend initialization.
+     * @param zid the zenoh router identifier.
+     * @throws ZException if an error occurs.
      */
     public void addBackend(String beid, Properties properties, String zid) throws ZException {
         String path = String.format("/@/router/%s/plugin/storages/backend/%s", zid, beid);
@@ -51,14 +62,25 @@ public class Admin {
     }
 
     /**
-     * Get a backend's properties from the connected Zenoh router.
+     * Get a backend's properties from the connected zenoh router
+     * (i.e. the one you are directly connected to).
+     * 
+     * @param beid the backend identifier
+     * @return the backend properties
+     * @throws ZException if an error occurs.
      */
     public Properties getBackend(String beid) throws ZException {
         return getBackend(beid, this.zid);
     }
 
     /**
-     * Get a backend's properties from the specified Zenoh router.
+     * Get a backend's properties from the specified zenoh router,
+     * not necessarily the one you are connected to.
+     * 
+     * @param beid the backend identifier
+     * @param zid the zenoh router identifier.
+     * @return the backend properties
+     * @throws ZException if an error occurs.
      */
     public Properties getBackend(String beid, String zid) throws ZException {
         String sel = String.format("/@/router/%s/plugin/storages/backend/%s", zid, beid);
@@ -71,14 +93,23 @@ public class Admin {
     }
 
     /**
-     * Get all the backends from the connected Zenoh router.
+     * Get all the backends from the connected zenoh router
+     * (i.e. the one you are directly connected to).
+     * 
+     * @return a map of the backends properties, indexed by the backends identifiers.
+     * @throws ZException if an error occurs.
      */
     public Map<String, Properties> getBackends() throws ZException {
         return getBackends(this.zid);
     }
 
     /**
-     * Get all the backends from the specified Zenoh router.
+     * Get all the backends from the specified zenoh router,
+     * not necessarily the one you are connected to.
+     * 
+     * @param zid the zenoh router identifier.
+     * @return a map of the backends properties, indexed by the backends identifiers.
+     * @throws ZException if an error occurs.
      */
     public Map<String, Properties> getBackends(String zid) throws ZException {
         String sel = String.format("/@/router/%s/plugin/storages/backend/*", zid);
@@ -92,14 +123,23 @@ public class Admin {
     }
 
     /**
-     * Remove a backend from the connected Zenoh router.
+     * Remove a backend from the connected zenoh router
+     * (i.e. the one you are directly connected to).
+     *
+     * @param beid the backend identifier.
+     * @throws ZException if an error occurs.
      */
     public void removeBackend(String beid) throws ZException {
         removeBackend(beid, this.zid);
     }
 
     /**
-     * Remove a backend from the specified Zenoh router.
+     * Remove a backend from the specified zenoh router,
+     * not necessarily the one you are connected to.
+     *
+     * @param beid the backend identifier.
+     * @param zid the zenoh router identifier.
+     * @throws ZException if an error occurs.
      */
     public void removeBackend(String beid, String zid) throws ZException {
         String path = String.format("/@/router/%s/plugin/storages/backend/%s", zid, beid);
@@ -109,28 +149,48 @@ public class Admin {
     /************* Storages management *************/
 
      /**
-     * Add a storage in the connected Zenoh router, using an automatically chosen backend.
+     * Add a storage in the connected zenoh router, using an automatically chosen backend.
+     * 
+     * @param stid the storage identifier
+     * @param properties the properties for storage initialization.
+     * @throws ZException if an error occurs.
      */
     public void addStorage(String stid, Properties properties) throws ZException {
         addStorageOnBackend(stid, properties, "auto", this.zid);
     }
 
      /**
-     * Add a storage in the specified Zenoh router, using an automatically chosen backend.
+     * Add a storage in the specified zenoh router, using an automatically chosen backend.
+     * 
+     * @param stid the storage identifier
+     * @param properties the properties for storage initialization.
+     * @param zid the zenoh router identifier.
+     * @throws ZException if an error occurs.
      */
     public void addStorage(String stid, Properties properties, String zid) throws ZException {
         addStorageOnBackend(stid, properties, "auto", zid);
     }
 
      /**
-     * Add a storage in the connected Zenoh router, using the specified backend.
+     * Add a storage in the connected zenoh router, using the specified backend.
+     * 
+     * @param stid the storage identifier.
+     * @param properties the properties for storage initialization.
+     * @param backend the identifier of the backend to use for the storage.
+     * @throws ZException if an error occurs.
      */
     public void addStorageOnBackend(String stid, Properties properties, String backend) throws ZException {
         addStorageOnBackend(stid, properties, backend, this.zid);
     }
 
      /**
-     * Add a storage in the specified Zenoh router, using the specified backend.
+     * Add a storage in the specified zenoh router, using the specified backend.
+     * 
+     * @param stid the storage identifier.
+     * @param properties the properties for storage initialization.
+     * @param backend the identifier of the backend to use for the storage.
+     * @param zid the zenoh router identifier.
+     * @throws ZException if an error occurs.
      */
     public void addStorageOnBackend(String stid, Properties properties, String backend, String zid) throws ZException {
         String path = String.format("/@/router/%s/plugin/storages/backend/%s/storage/%s", zid, backend, stid);
@@ -138,14 +198,23 @@ public class Admin {
     }
 
     /**
-     * Get a storage's properties from the connected Zenoh router.
+     * Get a storage's properties from the connected zenoh router.
+     * 
+     * @param stid the storage identifier
+     * @return the storage properties
+     * @throws ZException if an error occurs.
      */
     public Properties getStorage(String stid) throws ZException {
         return getStorage(stid, this.zid);
     }
 
     /**
-     * Get a storage's properties from the specified Zenoh router.
+     * Get a storage's properties from the specified zenoh router.
+     * 
+     * @param stid the storage identifier
+     * @param zid the zenoh router identifier.
+     * @return the storage properties
+     * @throws ZException if an error occurs.
      */
     public Properties getStorage(String stid, String zid) throws ZException {
         String sel = String.format("/@/router/%s/plugin/storages/backend/*/storage/%s", zid, stid);
@@ -158,28 +227,44 @@ public class Admin {
     }
 
     /**
-     * Get all the storages from the connected Zenoh router.
+     * Get all the storages from the connected zenoh router.
+     * 
+     * @return a map of the storages properties, indexed by the storages identifiers.
+     * @throws ZException if an error occurs.
      */
     public Map<String, Properties> getStorages() throws ZException {
         return getStoragesFromBackend("*", this.zid);
     }
 
     /**
-     * Get all the storages from the specified Zenoh router.
+     * Get all the storages from the specified zenoh router.
+     * 
+     * @param zid the zenoh router identifier.
+     * @return a map of the storages properties, indexed by the storages identifiers.
+     * @throws ZException if an error occurs.
      */
     public Map<String, Properties> getStorages(String zid) throws ZException {
         return getStoragesFromBackend("*", zid);
     }
 
     /**
-     * Get all the storages from the specified backend within the connected Zenoh router.
+     * Get all the storages from the specified backend within the connected zenoh router.
+     * 
+     * @param backend the backend identifier.
+     * @return a map of the storages properties, indexed by the storages identifiers.
+     * @throws ZException if an error occurs.
      */
     public Map<String, Properties> getStoragesFromBackend(String backend) throws ZException {
         return getStoragesFromBackend(backend, this.zid);
     }
 
     /**
-     * Get all the storages from the specified backend within the specified Zenoh router.
+     * Get all the storages from the specified backend within the specified zenoh router.
+     * 
+     * @param backend the backend identifier.
+     * @param zid the zenoh router identifier.
+     * @return a map of the storages properties, indexed by the storages identifiers.
+     * @throws ZException if an error occurs.
      */
     public Map<String, Properties> getStoragesFromBackend(String backend, String zid) throws ZException {
         String sel = String.format("/@/router/%s/plugin/storages/backend/%s/storage/*", zid, backend);
@@ -194,14 +279,21 @@ public class Admin {
     }
 
     /**
-     * Remove a storage from the connected Zenoh router.
+     * Remove a storage from the connected zenoh router.
+     * 
+     * @param stid the storage identifier.
+     * @throws ZException if an error occurs.
      */
     public void removeStorage(String stid) throws ZException {
         removeStorage(stid, this.zid);
     }
 
     /**
-     * Remove a backend from the specified Zenoh router.
+     * Remove a storage from the specified zenoh router.
+     * 
+     * @param stid the storage identifier.
+     * @param zid the zenoh router identifier.
+     * @throws ZException if an error occurs.
      */
     public void removeStorage(String stid, String zid) throws ZException {
         String sel = String.format("/@/router/%s/plugin/storages/backend/*/storage/%s", zid, stid);

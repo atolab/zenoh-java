@@ -4,6 +4,11 @@ import org.slf4j.LoggerFactory;
 
 import io.zenoh.core.Timestamp;
 
+/**
+ * A zenoh data returned by a {@link Workspace#get(Selector)} query.
+ * The Data objects are comparable according to their {@link Timestamp}.
+ * Note that zenoh makes sure that each published path/value has a unique timestamp accross the system.
+ */
 public class Data implements Comparable<Data> {
 
     private Path path;
@@ -16,14 +21,29 @@ public class Data implements Comparable<Data> {
         this.timestamp = timestamp;
     }
 
+    /**
+     * Returns the {@link Path} of the data.
+     * 
+     * @return the path of the data.
+     */
     public Path getPath() {
         return path;
     }
 
+    /**
+     * Returns the {@link Value} of the data.
+     * 
+     * @return the value of the data.
+     */
     public Value getValue() {
         return value;
     }
 
+    /**
+     * Returns the {@link Timestamp} of the data.
+     * 
+     * @return the timestamp of the data.
+     */
     public Timestamp getTimestamp() {
         return timestamp;
     }

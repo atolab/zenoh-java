@@ -4,11 +4,14 @@ import io.zenoh.core.Timestamp;
 import io.zenoh.core.ZException;
 
 /**
- * The notification of a change for a path/value in Zenoh.
+ * The notification of a change for a resource in zenoh.
  * See {@link Listener}.
  */
 public class Change {
 
+    /**
+     * The kind of Change: either {@link #PUT}, {@link #UPDATE} or {@link #REMOVE}.
+     */
     public enum Kind {
         PUT( 0x00),
         UPDATE( 0x01),
@@ -20,6 +23,11 @@ public class Change {
             this.numVal = numVal;
         }
 
+        /**
+         * Returns the numeric value of the change kind (the same than in zenoh-c).
+         * 
+         * @return the numeric value.
+         */
         public int value() {
             return numVal;
         }
@@ -52,17 +60,43 @@ public class Change {
         this.value = value;
     }
 
+    /**
+     * Returns the {@link Path} of resource that changed.
+     * 
+     * @return the resource path.
+     */
     public Path getPath() {
         return path;
     }
 
+    /**
+     * Returns the {@link Kind} of change.
+     * 
+     * @return the kind of change.
+     */
     public Kind getKind() {
         return kind;
     }
 
+    /**
+     * Returns the {@link Timestamp} when change occured.
+     * 
+     * @return the timestamp.
+     */
     public Timestamp getTimestamp() {
         return timestamp;
     }
+    
+    /**
+     * Depending of the change {@link Kind}, returns:
+     *  <ul>
+     *    <li>if kind is {@link Kind#PUT}: the new value</li>
+     *    <li>if kind is {@link Kind#UPDATE}: the delta value</li>
+     *    <li>if kind is {@link Kind#REMOVE}: null</li>
+     *  </ul>
+     * 
+     * @return the new value (complete or delta), or null.
+     */
     public Value getValue() {
         return value;
     }

@@ -3,6 +3,9 @@ package io.zenoh;
 import java.nio.charset.Charset;
 import java.nio.ByteBuffer;
 
+/**
+ * A {@link Value} containing an UTF-8 {@link String}.
+ */
 public class StringValue implements Value{
 
     private static final short ENCODING_FLAG = 0x02;
@@ -12,18 +15,28 @@ public class StringValue implements Value{
     private String s;
 
 
+    /**
+     * Creates a StringValue containing a {@link String}.
+     * @param s the string
+     */
     public StringValue(String s) {
         this.s = s;
     }
 
+    /**
+     * Returns the string from this StringValue
+     * @return the string
+     */
     public String getString() {
         return s;
     }
 
+    @Override
     public Encoding getEncoding() {
         return Encoding.STRING;
     }
 
+    @Override
     public ByteBuffer encode() {
         return ByteBuffer.wrap(s.getBytes(utf8));
     }
@@ -50,11 +63,16 @@ public class StringValue implements Value{
         return s.hashCode();
     }
 
+    /**
+     * The {@link Value.Decoder} for {@link StringValue}s.
+     */
     public static final Value.Decoder Decoder = new Value.Decoder() {
+        @Override
         public short getEncodingFlag() {
             return ENCODING_FLAG;
         }
 
+        @Override
        public Value decode(ByteBuffer buf) {
             return new StringValue(new String(buf.array(), utf8));
         }

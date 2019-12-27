@@ -8,13 +8,13 @@ import io.zenoh.*;
 
 public class SelectorTest {
 
-    private void testSelector(String s, String expPath, String expPredicate, String expFragment) {
+    private void testSelector(String s, String expPath, String expFilter, String expFragment) {
         try {
             Selector sel = new Selector(s);
             Assert.assertEquals("Selector for "+s+" has unexpected path: "+sel.getPath(),
                 expPath, sel.getPath());
-            Assert.assertEquals("Selector for "+s+" has unexpected predicate: "+sel.getPredicate(),
-                expPredicate, sel.getPredicate());
+            Assert.assertEquals("Selector for "+s+" has unexpected predicate: "+sel.getFilter(),
+                expFilter, sel.getFilter());
             Assert.assertEquals("Selector for "+s+" has unexpected fragment: "+sel.getFragment(),
             expFragment, sel.getFragment());
         } catch (Throwable e) {
