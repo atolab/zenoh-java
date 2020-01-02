@@ -63,8 +63,8 @@ public class Workspace {
     /**
      * Put a path/value into Zenoh.
      * 
-     * @param path the {@link Path}
-     * @param value the {@link Value}
+     * @param path the {@link Path}. Can be absolute or relative to the workspace.
+     * @param value the {@link Value}.
      * @throws ZException if put failed.
      */
     public void put(Path path, Value value) throws ZException {
@@ -81,7 +81,7 @@ public class Workspace {
     /**
      * Update a path/value into Zenoh.
      * 
-     * @param path the {@link Path}
+     * @param path the {@link Path}. Can be absolute or relative to the workspace.
      * @param value a delta to be applied on the existing value.
      * @throws ZException if update failed.
      */
@@ -99,7 +99,7 @@ public class Workspace {
     /**
      * Remove a path/value from Zenoh.
      * 
-     * @param path the {@link Path} to be removed
+     * @param path the {@link Path} to be removed. Can be absolute or relative to the workspace.
      * @throws ZException if remove failed.
      */
     public void remove(Path path) throws ZException {

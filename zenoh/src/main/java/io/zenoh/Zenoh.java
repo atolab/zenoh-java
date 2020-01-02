@@ -48,13 +48,13 @@ public class Zenoh {
     /**
      * Establish a zenoh session via a provided locator. Locator is a string
      * representing the network endpoint to which establish the session. If the 
-     * provided locator is ``null``, login will perform some dynamic discovery and 
-     * try to establish the session automatically. When not ``null``, the locator 
-     * must have the format: {@code tcp/<ip>:<port>} i.e. ``tcp/127.0.0.1:7447``.
+     * provided locator is <tt>null</tt>, login will perform some dynamic discovery and 
+     * try to establish the session automatically. When not <tt>null</tt>, the locator 
+     * must have the format: {@code tcp/<ip>:<port>} (for instance {@code tcp/127.0.0.1:7447}).
      *
-     * @param locator    the locator or ``null``.
+     * @param locator    the locator or <tt>null</tt>.
      * @param properties the Properties to be used for this session (e.g. "user",
-     *                   "password"...). Can be ``null``.
+     *                   "password"...). Can be <tt>null</tt>.
      * @return a {@link Zenoh} object.
      * @throws ZException if login fails.
      */
@@ -139,7 +139,8 @@ public class Zenoh {
     }
 
     /**
-     * Returns the {@link Admin} object.
+     * Returns the {@link Admin} object that provides
+     * helper operations to administer Zenoh.
      */
     public Admin admin() {
         return admin;
