@@ -24,7 +24,7 @@ import java.util.regex.Matcher;
  *     <li>
  *     <b>filter</b>: a list of predicates separated by `'&'` allowing to perform filtering on the {@link Value}
  *     associated with the matching keys.
- *     Each predicate has the form `field``operator` `value` where:
+ *     Each predicate has the form "`field``operator``value`" where:
  *       <ul>
  *         <li> <b>field</b> is the name of a field in the value (is applicable and is existing. otherwise the predicate is false)
  *         <li> <b>operator</b> is one of a comparison operators: `<` , `>` , `<=`  , `>=`  , `=`  , `!=`

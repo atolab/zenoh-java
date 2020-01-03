@@ -5,7 +5,7 @@ package io.zenoh;
  * A Path cannot contain any '*' character.
  * Examples of paths:  "/demo/example/test" , "/com/adlink/building/fr/floor/1/office/2" ...
  * <p>
- * A path can be absolute (i.e. starting with a `'/'`) or relative to a [workspace](#workspace).
+ * A path can be absolute (i.e. starting with a `'/'`) or relative to a {@link Workspace}.
  *
  * @see Workspace#put(Path, Value)
  */
