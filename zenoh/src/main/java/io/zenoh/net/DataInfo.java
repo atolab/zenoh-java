@@ -3,45 +3,47 @@ package io.zenoh.net;
 import io.zenoh.core.Timestamp;
 
 /**
- * Some meta informations about the associated data.
+ * Data structure containing meta informations about the associated data.
  */
 public class DataInfo {
 
-    private long flags;
-    private Timestamp tstamp;
-    private int encoding;
-    private int kind;
+    private Timestamp tstamp = null;
+    private int encoding = 0;
+    private int kind = 0;
+
+    private static final long ZN_T_STAMP  = 0x10;
+    private static final long ZN_KIND = 0x20;
+    private static final long ZN_ENCODING = 0x40;
+    
 
     protected DataInfo(long flags, Timestamp tstamp , int encoding, int kind) {
-        this.flags = flags;
-        this.tstamp = tstamp;
-        this.encoding = encoding;
-        this.kind = kind;
+        if ((flags & ZN_T_STAMP) != 0L) {
+            this.tstamp = tstamp;
+        }
+        if ((flags & ZN_KIND) != 0L) {
+            this.kind = kind;
+        }
+        if ((flags & ZN_ENCODING) != 0L) {
+            this.encoding = encoding;
+        }
     }
 
     /**
-     * @return flags indicating which meta information is present in the {@link DataInfo}.
-     */
-    public long getFlags() {
-        return flags;
-    }
-
-    /**
-     * @return the data encoding.
+     * @return the encoding of the data.
      */
     public int getEncoding() {
         return encoding;
     }
 
     /**
-     * @return the unique timestamp at which the data was produced.
+     * @return the unique timestamp at which the data has been produced.
      */
     public Timestamp getTimestamp() {
         return tstamp;
     }
 
     /**
-     * @return the data kind.
+     * @return the kind of the data.
      */
     public int getKind() {
         return kind;

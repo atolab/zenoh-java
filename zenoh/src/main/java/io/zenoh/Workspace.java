@@ -112,6 +112,23 @@ public class Workspace {
         }
     }
 
+    // Timestamp generated locally when not available in received Data
+    // @TODO: remove this when we're sure Data always come with a Timestamp.
+    private static class LocalTimestamp extends Timestamp {
+        private static final byte[] zeroId = { 0x00 };
+
+        LocalTimestamp() {
+            super(currentTime(), zeroId);
+        }
+
+        private static long currentTime() {
+            long now = System.currentTimeMillis();
+            long sec = (now / 1000) << 32;
+            float frac = (((float)(now % 1000))/ 1000) * 0x100000000L;
+            return sec + (long)frac;
+        }
+    }
+
     /**
      * Get a selection of path/value from Zenoh.
      * 
@@ -143,7 +160,13 @@ public class Workspace {
                                 }
                                 try {
                                     Value value = Encoding.fromFlag(encodingFlag).getDecoder().decode(data);
-                                    Data d = new Data(path, value, reply.getInfo().getTimestamp());
+                                    Timestamp ts = reply.getInfo().getTimestamp();
+                                    // @TODO: remove this when we're sure Data always come with a Timestamp.
+                                    if (ts == null) {
+                                        LOG.warn("Get on {}: received data for {} without timestamp. Adding it with current date.", s,path);
+                                        ts = new LocalTimestamp();
+                                    }
+                                    Data d = new Data(path, value, ts);
                                     if (!map.containsKey(path)) {
                                         map.put(path, new TreeSet<Data>());
                                     }
