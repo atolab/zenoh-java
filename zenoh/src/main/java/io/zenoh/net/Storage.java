@@ -5,7 +5,7 @@ import io.zenoh.swig.zenohc;
 import io.zenoh.swig.zn_sto_t;
 
 /**
- * A Storage (see {@link Zenoh#declareStorage(String, StorageCallback)}).
+ * A Storage (see {@link Session#declareStorage(String, StorageCallback)}).
  */
 public class Storage {
 

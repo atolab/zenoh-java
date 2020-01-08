@@ -4,7 +4,7 @@ import io.zenoh.core.ZException;
 import io.zenoh.swig.zn_temporal_property_t;
 
 /**
- * Subscription mode (used in {@link Zenoh#declareSubscriber(String, SubMode, SubscriberCallback)}).
+ * Subscription mode (used in {@link Session#declareSubscriber(String, SubMode, SubscriberCallback)}).
  */
 public class SubMode extends io.zenoh.swig.zn_sub_mode_t {
 

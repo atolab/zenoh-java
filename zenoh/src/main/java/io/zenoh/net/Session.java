@@ -45,9 +45,11 @@ public class Session {
     }
 
     /**
-     * Open a zenoh-net session. 
-     * @param locator a string representing the network endpoint to which establish the session. A typical locator looks like this : ``tcp/127.0.0.1:7447``. 
-     * If ``null``, `open` will scout and try to establish the session automatically.
+     * Open a zenoh-net session.
+     * 
+     * @param locator a string representing the network endpoint to which establish the session.
+     *      A typical locator looks like this : <code>"tcp/127.0.0.1:7447"</code>. 
+     *      If <code>null</code>, open() will scout and try to establish the session automatically.
      * @return a Zenoh object representing the openned zenoh session..
      * @throws ZException if session etablishment fails.
      */
@@ -56,12 +58,15 @@ public class Session {
     }
 
     /**
-     * Open a zenoh-net session. 
-     * @param locator a string representing the network endpoint to which establish the session. A typical locator looks like this : ``tcp/127.0.0.1:7447``. 
-     * If ``null``, `open` will scout and try to establish the session automatically.
+     * Open a zenoh-net session.
+     * 
+     * @param locator a string representing the network endpoint to which establish the session.
+     *      A typical locator looks like this : <code>"tcp/127.0.0.1:7447"</code>. 
+     *      If <code>null</code>, open() will scout and try to establish the session automatically.
      * @param properties a map of properties that will be used to establish and configure the zenoh session. 
-     * **properties** will typically contain the ``username`` and ``password`` informations needed to establish the zenoh session with a secured infrastructure. 
-     * It can be set to ``NULL``. 
+     * **properties** will typically contain the <code>"username"</code> and <code>"password"</code> informations
+     * needed to establish the zenoh session with a secured infrastructure. 
+     * It can be set to <code>null</code>. 
      * @return a Zenoh object representing the openned zenoh session..
      * @throws ZException if session etablishment fails.
      */
@@ -112,8 +117,8 @@ public class Session {
     }
 
     /**
-     * Declare a publication for resource seletor **resource**.
-     * @param resource the resource seletor to publish.
+     * Declare a publication for resource name <b>resource</b>.
+     * @param resource the resource name to publish.
      * @return the zenoh {@link Publisher}.
      * @throws ZException if declaration fails.
      */
@@ -127,12 +132,13 @@ public class Session {
     }
 
     /**
-     * Declare a subscribtion for all published data matching the provided resource selector **resource**. 
-     * @param resource the resource seletor to subscribe to.
+     * Declare a subscribtion for all published data matching the provided resource name <b>resource</b>. 
+     * 
+     * @param resource the resource name to subscribe to.
      * @param mode the subscription mode.
      * @param handler a {@link DataHandler} subclass implementing the callback function that will be called each time
-     * a data matching the subscribed **resource** is received.
-     * @return the zenoh {@link Subscriber}.
+     * a data matching the subscribed resource name <b>resource</b> is received.
+     * @return the zenoh-net {@link Subscriber}.
      * @throws ZException if declaration fails.
      */
     public Subscriber declareSubscriber(String resource, SubMode mode, DataHandler handler) throws ZException {
@@ -145,11 +151,14 @@ public class Session {
     }
 
     /**
-     * Declare a storage for all data matching the provided resource selector **resource**. 
-     * @param resource the resource selector to store.
+     * Declare a storage for all data matching the provided resource name <b>resource</b>. 
+     * @param resource the resource selection to store.
      * @param handler a {@link StorageHandler} subclass implementing the callback functions that will be called each time
-     * a data matching the stored **resource** selector is received and each time a query for data matching the
-     * stored **resource** selector is received.
+     * a data matching the stored resource name <b>resource</b> is received and each time a query for data matching the
+     * stored resource name <b>resource</b> is received.
+     * The {@link StorageHandler#handleQuery(String, String, RepliesSender)} function MUST call the provided
+     * {@link RepliesSender#sendReplies(Resource[])} function with the resulting data.
+     * {@link RepliesSender#sendReplies(Resource[])} can be called with an empty array.
      * @return the zenoh {@link Storage}.
      * @throws ZException if declaration fails.
      */
@@ -165,10 +174,13 @@ public class Session {
     }
 
     /**
-     * Declare an eval able to provide data matching the provided resource selector **resource**. 
-     * @param resource the resource selector to evaluate.
+     * Declare an eval able to provide data matching the provided resource name <b>resource</b>. 
+     * @param resource the resource to evaluate.
      * @param handler a {@link QueryHandler} subclass implementing the the callback function that will be called each time a
-     * query for data matching the evaluated **resource** selector is received.
+     * query for data matching the evaluated resource name <b>resource</b> is received.
+     * The {@link QueryHandler#handleQuery(String, String, RepliesSender)} function MUST call the provided
+     * {@link RepliesSender#sendReplies(Resource[])} function with the resulting data.
+     * {@link RepliesSender#sendReplies(Resource[])} can be called with an empty array.
      * @return the Eval.
      * @throws ZException if declaration fails.
      */
@@ -184,8 +196,8 @@ public class Session {
     }
 
     /**
-     * Send data in a *write_data* message for the resource selector **resource**.
-     * @param resource the resource selector of the data to be sent.
+     * Send data in a <i>write_data</i> message for the resource <b>resource</b>.
+     * @param resource the resource name of the data to be sent.
      * @param payload the data.
      * @throws ZException if write fails.
      */
@@ -197,8 +209,8 @@ public class Session {
     }
 
     /**
-     * Send data in a *write_data* message for the resource selector **resource**.
-     * @param resource the resource selector of the data to be sent.
+     * Send data in a <i>write_data</i> message for the resource <b>resource</b>.
+     * @param resource the resource name of the data to be sent.
      * @param payload the data.
      * @param encoding a metadata information associated with the published data that represents the encoding of the published data. 
      * @param kind a metadata information associated with the published data that represents the kind of publication.
@@ -212,8 +224,8 @@ public class Session {
     }
 
     /**
-     * Query data matching resource selector **resource**.
-     * @param resource the resource selector to query.
+     * Query data matching resource name <b>resource</b>.
+     * @param resource the resource to query.
      * @param predicate a string that will be propagated to the storages and evals that should provide the queried data. 
      * It may allow them to filter, transform and/or compute the queried data. .
      * @param handler a {@link ReplyHandler} subclass implementing the callback function that will be called on reception
@@ -225,8 +237,8 @@ public class Session {
     }
 
     /**
-     * Query data matching resource selector **resource**.
-     * @param resource the resource selector to query.
+     * Query data matching resource name <b>resource</b>.
+     * @param resource the resource to query.
      * @param predicate a string that will be propagated to the storages and evals that should provide the queried data. 
      * It may allow them to filter, transform and/or compute the queried data. .
      * @param handler a {@link ReplyHandler} subclass implementing the callback function that will be called on reception

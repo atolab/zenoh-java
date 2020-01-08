@@ -6,7 +6,7 @@ import io.zenoh.swig.zenohc;
 import io.zenoh.swig.zn_sub_t;
 
 /**
- * A Subscriber (see {@link Zenoh#declareSubscriber(String, SubMode, SubscriberCallback)}).
+ * A Subscriber (see {@link Session#declareSubscriber(String, SubMode, SubscriberCallback)}).
  */
 public class Subscriber {
 
@@ -17,8 +17,9 @@ public class Subscriber {
     }
 
     /**
-     * Retrives data for a given pull-mode subscription from 
-     * the nearest infrastruture component (router).
+     * Pull data for the {@link SubMode.Kind#ZN_PULL_MODE} or {@link SubMode.Kind#ZN_PERIODIC_PULL_MODE} subscribtion.
+     * The pulled data will be provided by calling the {@link DataHandler#handleData(String, java.nio.ByteBuffer, DataInfo)}
+     * function provided to the {@link Session#declareSubscriber(String, SubMode, DataHandler)} function.
      * @throws ZException if pull failed.
      */
     public void pull() throws ZException {

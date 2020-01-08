@@ -4,8 +4,8 @@ import io.zenoh.core.ZException;
 import java.nio.ByteBuffer;
 
 /**
- * A reply to a query (see {@link Zenoh#query(String, String, ReplyCallback)}
- * and {@link ReplyHandler#handleReply(ReplyValue)})
+ * A data structure containing one of the replies to a query
+ * (see {@link ReplyHandler#handleReply(ReplyValue)}).
  */
 public class ReplyValue {
 
@@ -104,7 +104,7 @@ public class ReplyValue {
     }
 
     /**
-     * @return the unique id of the storage or eval that sent this reply when 
+     * @return the unique identifier of the storage or eval that sent this reply when 
      * {@link ReplyValue#kind} equals {@link Kind#ZN_STORAGE_DATA}, {@link Kind#ZN_STORAGE_FINAL}, 
      * {@link Kind#ZN_EVAL_DATA} or {@link Kind#ZN_EVAL_FINAL}.
      */

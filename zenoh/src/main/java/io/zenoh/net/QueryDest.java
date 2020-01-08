@@ -4,8 +4,8 @@ import io.zenoh.core.ZException;
 import io.zenoh.swig.zn_query_dest_t;
 
 /**
- * An object defining which storages or evals should be destination of a query
- * (see {@link Zenoh#query(String, String, ReplyCallback, QueryDest, QueryDest)}).
+ * A data structure defining which storages or evals should be destination of a query
+ * (see {@link Session#query(String, String, ReplyCallback, QueryDest, QueryDest)}).
  */
 public class QueryDest extends zn_query_dest_t {
 
@@ -96,6 +96,10 @@ public class QueryDest extends zn_query_dest_t {
     }
 
     /**
+     * Returns a {@link QueryDest} with kind {@link Kind#ZN_COMPLETE}
+     * and with the number of storages or evals that should be destination of the query.
+     * 
+     * @param nb the number of storages or evals that should be destination of the query
      * @return a {@link QueryDest} with kind {@link Kind#ZN_COMPLETE}.
      */
     public static QueryDest complete(short nb) {

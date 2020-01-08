@@ -7,7 +7,7 @@ import io.zenoh.swig.zn_pub_t;
 import io.zenoh.swig.zenohc;
 
 /**
- * A Publisher (see {@link Zenoh#declarePublisher(String)}).
+ * A Publisher (see {@link Session#declarePublisher(String)}).
  */
 public class Publisher {
 
@@ -29,8 +29,8 @@ public class Publisher {
     }
 
     /**
-     * Write a data with default encoding (0) and kind (0), using a ZN_COMPACT_DATA message.
-     * @param data the data
+     * Send data in a <i>compact_data</i> message for the resource published by this Publisher.
+     * @param data the data to be sent.
      * @throws ZException if write fails.
      */
     public void streamCompactData(ByteBuffer data) throws ZException {
@@ -41,8 +41,8 @@ public class Publisher {
     }
 
     /**
-     * Write a data with default encoding (0) and kind (0), using a ZN_STREAM_DATA message.
-     * @param data the data
+     * Send data in a <i>stream_data</i> message for the resource published by this Publisher.
+     * @param data the data to be sent.
      * @throws ZException if write fails.
      */
     public void streamData(ByteBuffer data) throws ZException {
@@ -53,10 +53,12 @@ public class Publisher {
     }
 
     /**
-     * Write a data with specified encoding and kind, using a ZN_STREAM_DATA message.
-     * @param data the data
-     * @param encoding the data encoding.
-     * @param kind the data kind.
+     * Send data in a <i>stream_data</i> message for the resource published by this Publisher.
+     * @param data the data to be sent.
+     * @param encoding a metadata information associated with the published data
+     *      that represents the encoding of the published data.
+     * @param kind a metadata information associated with the published data
+     *      that represents the kind of publication.
      * @throws ZException if write fails.
      */
     public void streamData(ByteBuffer data, short encoding, short kind) throws ZException {
