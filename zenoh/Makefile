@@ -85,7 +85,7 @@ $(ZENOHC_COPY_DIR)/CMakeLists.txt:
 
 $(SWIG_C_FILE): $(SWIG_FILE)
 	@mkdir -p $(SWIG_JAVA_OUTDIR)
-	swig -java -package io.zenoh.swig -I$(ZENOHC_DEV_DIR)/include -outdir $(SWIG_JAVA_OUTDIR) -o $(SWIG_C_FILE) $(SWIG_FILE)
+	swig -java -package io.zenoh.swig -I$(ZENOHC_COPY_DIR)/include -outdir $(SWIG_JAVA_OUTDIR) -o $(SWIG_C_FILE) $(SWIG_FILE)
 
 
 
