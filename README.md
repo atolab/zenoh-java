@@ -3,7 +3,19 @@
 
 # Zenoh Java Client API
 
-The Java API for Zenoh, based on the zenoh-c API via JNI.
+The Java API for [zenoh](https://zenoh.io), based on the zenoh-c API via JNI.
+
+## Installation
+
+zenoh-java is available on Maven Central.
+Just add the dependency in your POM:
+```xml
+  <dependency>
+    <groupId>io.zenoh</groupId>
+    <artifactId>zenoh</artifactId>
+    <version>0.4.0</version>
+  </dependency>
+```
 
 ## Building
 Requirements:
@@ -35,4 +47,4 @@ Note that this Maven build offers profiles in addition of the default one:
 
 
 ## Examples
-See examples/README.md
+See [examples/zenoh/README.md](examples/zenoh/)
