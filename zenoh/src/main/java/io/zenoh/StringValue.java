@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2014, 2020 Contributors to the Eclipse Foundation
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0, or the Apache License, Version 2.0
+ * which is available at https://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+ *
+ * Contributors: Julien Enoch, ADLINK Technology Inc.
+ * Initial implementation of Eclipse Zenoh.
+ */
 package io.zenoh;
 
 import java.nio.charset.Charset;
@@ -6,7 +22,7 @@ import java.nio.ByteBuffer;
 /**
  * A {@link Value} containing an UTF-8 {@link String}.
  */
-public class StringValue implements Value{
+public class StringValue implements Value {
 
     private static final short ENCODING_FLAG = 0x02;
 
@@ -14,9 +30,9 @@ public class StringValue implements Value{
 
     private String s;
 
-
     /**
      * Creates a StringValue containing a {@link String}.
+     * 
      * @param s the string
      */
     public StringValue(String s) {
@@ -25,6 +41,7 @@ public class StringValue implements Value{
 
     /**
      * Returns the string from this StringValue
+     * 
      * @return the string
      */
     public String getString() {
@@ -52,7 +69,7 @@ public class StringValue implements Value{
             return false;
         if (this == obj)
             return true;
-        if (! (obj instanceof StringValue))
+        if (!(obj instanceof StringValue))
             return false;
 
         return s.equals(((StringValue) obj).s);
@@ -73,7 +90,7 @@ public class StringValue implements Value{
         }
 
         @Override
-       public Value decode(ByteBuffer buf) {
+        public Value decode(ByteBuffer buf) {
             return new StringValue(new String(buf.array(), utf8));
         }
     };

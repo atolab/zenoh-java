@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2014, 2020 Contributors to the Eclipse Foundation
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0, or the Apache License, Version 2.0
+ * which is available at https://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+ *
+ * Contributors: Julien Enoch, ADLINK Technology Inc.
+ * Initial implementation of Eclipse Zenoh.
+ */
 package io.zenoh;
 
 import java.nio.charset.Charset;
@@ -47,10 +63,11 @@ public class Zenoh {
 
     /**
      * Establish a zenoh session via a provided locator. Locator is a string
-     * representing the network endpoint to which establish the session. If the 
-     * provided locator is <tt>null</tt>, login will perform some dynamic discovery and 
-     * try to establish the session automatically. When not <tt>null</tt>, the locator 
-     * must have the format: {@code tcp/<ip>:<port>} (for instance {@code tcp/127.0.0.1:7447}).
+     * representing the network endpoint to which establish the session. If the
+     * provided locator is <tt>null</tt>, login will perform some dynamic discovery
+     * and try to establish the session automatically. When not <tt>null</tt>, the
+     * locator must have the format: {@code tcp/<ip>:<port>} (for instance
+     * {@code tcp/127.0.0.1:7447}).
      *
      * @param locator    the locator or <tt>null</tt>.
      * @param properties the Properties to be used for this session (e.g. "user",
@@ -75,7 +92,7 @@ public class Zenoh {
             }
             String zid = hexdump(buf);
             LOG.info("Session established with Zenoh router {}", zid);
-                return new Zenoh(s, zid);
+            return new Zenoh(s, zid);
 
         } catch (ZException e) {
             LOG.warn("Failed to establish session to {}", locator, e);
@@ -94,7 +111,6 @@ public class Zenoh {
         return zprops;
     }
 
-
     /**
      * Terminates the Zenoh session.
      */
@@ -109,12 +125,12 @@ public class Zenoh {
     }
 
     /**
-     * Creates a Workspace using the provided path.
-     * All relative {@link Selector} or {@link Path} used with this Workspace will be relative to this path.
+     * Creates a Workspace using the provided path. All relative {@link Selector} or
+     * {@link Path} used with this Workspace will be relative to this path.
      * <p>
-     * Notice that all subscription listeners and eval callbacks declared in this workspace will be
-     * executed by the I/O thread. This implies that no long operations or other call to Zenoh
-     * shall be performed in those callbacks.
+     * Notice that all subscription listeners and eval callbacks declared in this
+     * workspace will be executed by the I/O thread. This implies that no long
+     * operations or other call to Zenoh shall be performed in those callbacks.
      *
      * @param path the Workspace's path.
      * @return a {@link Workspace}.
@@ -124,12 +140,13 @@ public class Zenoh {
     }
 
     /**
-     * Creates a Workspace using the provided path.
-     * All relative {@link Selector} or {@link Path} used with this Workspace will be relative to this path.
+     * Creates a Workspace using the provided path. All relative {@link Selector} or
+     * {@link Path} used with this Workspace will be relative to this path.
      * <p>
-     * Notice that all subscription listeners and eval callbacks declared in this workspace will be
-     * executed by a CachedThreadPool. This is useful when listeners and/or callbacks need to perform
-     * long operations or need to call other Zenoh operations.
+     * Notice that all subscription listeners and eval callbacks declared in this
+     * workspace will be executed by a CachedThreadPool. This is useful when
+     * listeners and/or callbacks need to perform long operations or need to call
+     * other Zenoh operations.
      *
      * @param path the Workspace's path.
      * @return a {@link Workspace}.
@@ -139,8 +156,8 @@ public class Zenoh {
     }
 
     /**
-     * Returns the {@link Admin} object that provides
-     * helper operations to administer Zenoh.
+     * Returns the {@link Admin} object that provides helper operations to
+     * administer Zenoh.
      */
     public Admin admin() {
         return admin;

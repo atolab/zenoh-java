@@ -1,3 +1,20 @@
+/*
+ * Copyright (c) 2014, 2020 Contributors to the Eclipse Foundation
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0, or the Apache License, Version 2.0
+ * which is available at https://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+ *
+ * Contributors: Julien Enoch, ADLINK Technology Inc.
+ * Initial implementation of Eclipse Zenoh.
+ */
+
 package io.zenoh.net.test;
 
 import java.nio.ByteBuffer;
@@ -15,10 +32,12 @@ public class ClientIT {
     public static class MVar<T> {
         T ref;
         T val;
-        
+
         public synchronized T get() {
             try {
-                while(val == null) {wait();}
+                while (val == null) {
+                    wait();
+                }
                 T result = val;
                 val = null;
                 notify();
@@ -27,14 +46,17 @@ public class ClientIT {
                 return null;
             }
         }
-        
+
         public synchronized void put(T putval) {
             try {
-                while(val != null) {wait();}
+                while (val != null) {
+                    wait();
+                }
                 val = putval;
                 ref = putval;
                 notify();
-            } catch (InterruptedException e) {}
+            } catch (InterruptedException e) {
+            }
         }
 
         public T read() {
@@ -43,8 +65,7 @@ public class ClientIT {
     }
 
     public static boolean resourceEquals(Resource r1, Resource r2) {
-        return r1.getRname().equals(r2.getRname()) 
-            && r1.getData().equals(r2.getData());
+        return r1.getRname().equals(r2.getRname()) && r1.getData().equals(r2.getData());
     }
 
     MVar<Resource> z1_sub1_last_res = new MVar<Resource>();
@@ -71,72 +92,72 @@ public class ClientIT {
             z3_sub1_last_res.put(new Resource(rname, data, info.getEncoding(), info.getKind()));
         }
     }
-    
-    private class z1_sto1_listener implements StorageHandler {    
+
+    private class z1_sto1_listener implements StorageHandler {
         public void handleData(String rname, ByteBuffer data, DataInfo info) {
             z1_sto1_last_res.put(new Resource(rname, data, info.getEncoding(), info.getKind()));
         }
-    
+
         public void handleQuery(String rname, String predicate, RepliesSender repliesSender) {
-            repliesSender.sendReplies(new Resource[]{z1_sto1_last_res.read()});
+            repliesSender.sendReplies(new Resource[] { z1_sto1_last_res.read() });
         }
     }
-    
-    private class z2_sto1_listener implements StorageHandler {    
+
+    private class z2_sto1_listener implements StorageHandler {
         public void handleData(String rname, ByteBuffer data, DataInfo info) {
             z2_sto1_last_res.put(new Resource(rname, data, info.getEncoding(), info.getKind()));
         }
-    
+
         public void handleQuery(String rname, String predicate, RepliesSender repliesSender) {
-            repliesSender.sendReplies(new Resource[]{z2_sto1_last_res.read()});
+            repliesSender.sendReplies(new Resource[] { z2_sto1_last_res.read() });
         }
     }
-    
+
     private class z1_eval1_handler implements QueryHandler {
         public void handleQuery(String rname, String predicate, RepliesSender repliesSender) {
             try {
-                ByteBuffer data = (ByteBuffer)ByteBuffer.allocateDirect(256).put("z1_eval1_data".getBytes("UTF-8")).flip();
-                repliesSender.sendReplies(new Resource[]{new Resource("/test/java/client/z1_eval1", data, 0, 0)});
-            } catch(Exception e) {repliesSender.sendReplies(new Resource[0]);}
+                ByteBuffer data = (ByteBuffer) ByteBuffer.allocateDirect(256).put("z1_eval1_data".getBytes("UTF-8"))
+                        .flip();
+                repliesSender.sendReplies(new Resource[] { new Resource("/test/java/client/z1_eval1", data, 0, 0) });
+            } catch (Exception e) {
+                repliesSender.sendReplies(new Resource[0]);
+            }
         }
     }
-    
+
     private class z2_eval1_handler implements QueryHandler {
         public void handleQuery(String rname, String predicate, RepliesSender repliesSender) {
             try {
-                ByteBuffer data = (ByteBuffer)ByteBuffer.allocateDirect(256).put("z2_eval1_data".getBytes("UTF-8")).flip();
-                repliesSender.sendReplies(new Resource[]{new Resource("/test/java/client/z2_eval1", data, 0, 0)});
-            } catch(Exception e) {repliesSender.sendReplies(new Resource[0]);}
+                ByteBuffer data = (ByteBuffer) ByteBuffer.allocateDirect(256).put("z2_eval1_data".getBytes("UTF-8"))
+                        .flip();
+                repliesSender.sendReplies(new Resource[] { new Resource("/test/java/client/z2_eval1", data, 0, 0) });
+            } catch (Exception e) {
+                repliesSender.sendReplies(new Resource[0]);
+            }
         }
     }
 
     private class reply_handler implements ReplyHandler {
         List<Resource> storage_replies = new ArrayList<Resource>();
         List<Resource> eval_replies = new ArrayList<Resource>();
-        
+
         public void handleReply(ReplyValue reply) {
             switch (reply.getKind()) {
-                case ZN_STORAGE_DATA:
-                    storage_replies.add(new Resource(
-                        reply.getRname(), 
-                        reply.getData(), 
-                        reply.getInfo().getKind(), 
+            case ZN_STORAGE_DATA:
+                storage_replies.add(new Resource(reply.getRname(), reply.getData(), reply.getInfo().getKind(),
                         reply.getInfo().getEncoding()));
-                    break;
-                case ZN_EVAL_DATA:
-                    eval_replies.add(new Resource(
-                        reply.getRname(), 
-                        reply.getData(), 
-                        reply.getInfo().getKind(), 
+                break;
+            case ZN_EVAL_DATA:
+                eval_replies.add(new Resource(reply.getRname(), reply.getData(), reply.getInfo().getKind(),
                         reply.getInfo().getEncoding()));
-                    break;
-                case ZN_REPLY_FINAL:
-                    replies.put(Arrays.asList(storage_replies, eval_replies));
-                    storage_replies = new ArrayList<Resource>();
-                    eval_replies = new ArrayList<Resource>();
-                    break;
-                default:
-                    break;
+                break;
+            case ZN_REPLY_FINAL:
+                replies.put(Arrays.asList(storage_replies, eval_replies));
+                storage_replies = new ArrayList<Resource>();
+                eval_replies = new ArrayList<Resource>();
+                break;
+            default:
+                break;
             }
         }
     }
@@ -168,7 +189,7 @@ public class ClientIT {
         Resource rcvd_res;
         List<List<Resource>> reps;
 
-        sent_buf = (ByteBuffer)ByteBuffer.allocateDirect(256).put("z1_wr1_spl1".getBytes("UTF-8")).flip();
+        sent_buf = (ByteBuffer) ByteBuffer.allocateDirect(256).put("z1_wr1_spl1".getBytes("UTF-8")).flip();
         sent_res = new Resource("/test/java/client/z1_wr1", sent_buf, 0, 0);
         z1.writeData(sent_res.getRname(), sent_res.getData().duplicate());
         rcvd_res = z1_sub1_last_res.get();
@@ -197,15 +218,15 @@ public class ClientIT {
         Assert.assertTrue(resourceEquals(sent_res, reps.get(0).get(1)));
         // self.assertEqual(0, len(eval_replies))
         // This may not be true for now as :
-        //  - zenoh-c does not check received query properties
-        //  - zenohd does not filter out replies
+        // - zenoh-c does not check received query properties
+        // - zenohd does not filter out replies
 
         z1.query("/test/java/client/**", "", new reply_handler(), QueryDest.none(), QueryDest.bestMatch());
         reps = replies.get();
         // Assert.assertEquals(0, reps.get(0).size());
         // This may not be true for now as :
-        //  - zenoh-c does not check received query properties
-        //  - zenohd does not filter out replies
+        // - zenoh-c does not check received query properties
+        // - zenohd does not filter out replies
         Assert.assertEquals(2, reps.get(1).size());
 
         z2.query("/test/java/client/**", "", new reply_handler());
@@ -222,19 +243,18 @@ public class ClientIT {
         Assert.assertTrue(resourceEquals(sent_res, reps.get(0).get(1)));
         // self.assertEqual(0, len(eval_replies))
         // This may not be true for now as :
-        //  - zenoh-c does not check received query properties
-        //  - zenohd does not filter out replies
+        // - zenoh-c does not check received query properties
+        // - zenohd does not filter out replies
 
         z2.query("/test/java/client/**", "", new reply_handler(), QueryDest.none(), QueryDest.bestMatch());
         reps = replies.get();
         // Assert.assertEquals(0, reps.get(0).size());
         // This may not be true for now as :
-        //  - zenoh-c does not check received query properties
-        //  - zenohd does not filter out replies
+        // - zenoh-c does not check received query properties
+        // - zenohd does not filter out replies
         Assert.assertEquals(2, reps.get(1).size());
 
-
-        sent_buf = (ByteBuffer)ByteBuffer.allocateDirect(256).put("z2_wr1_spl1".getBytes("UTF-8")).flip();
+        sent_buf = (ByteBuffer) ByteBuffer.allocateDirect(256).put("z2_wr1_spl1".getBytes("UTF-8")).flip();
         sent_res = new Resource("/test/java/client/**", sent_buf, 0, 0);
         z2.writeData(sent_res.getRname(), sent_res.getData().duplicate());
         rcvd_res = z1_sub1_last_res.get();
@@ -263,8 +283,7 @@ public class ClientIT {
         Assert.assertTrue(resourceEquals(sent_res, reps.get(0).get(1)));
         Assert.assertEquals(2, reps.get(1).size());
 
-
-        sent_buf = (ByteBuffer)ByteBuffer.allocateDirect(256).put("z1_pub1_spl1".getBytes("UTF-8")).flip();
+        sent_buf = (ByteBuffer) ByteBuffer.allocateDirect(256).put("z1_pub1_spl1".getBytes("UTF-8")).flip();
         sent_res = new Resource("/test/java/client/z1_pub1", sent_buf, 0, 0);
         z1_pub1.streamData(sent_res.getData().duplicate());
         rcvd_res = z1_sub1_last_res.get();
@@ -293,8 +312,7 @@ public class ClientIT {
         Assert.assertTrue(resourceEquals(sent_res, reps.get(0).get(1)));
         Assert.assertEquals(2, reps.get(1).size());
 
-
-        sent_buf = (ByteBuffer)ByteBuffer.allocateDirect(256).put("z2_pub1_spl1".getBytes("UTF-8")).flip();
+        sent_buf = (ByteBuffer) ByteBuffer.allocateDirect(256).put("z2_pub1_spl1".getBytes("UTF-8")).flip();
         sent_res = new Resource("/test/java/client/z2_pub1", sent_buf, 0, 0);
         z2_pub1.streamData(sent_res.getData().duplicate());
         rcvd_res = z1_sub1_last_res.get();
@@ -336,5 +354,5 @@ public class ClientIT {
         z1.close();
         z2.close();
         z3.close();
-    } 
+    }
 }

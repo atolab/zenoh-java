@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2014, 2020 Contributors to the Eclipse Foundation
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0, or the Apache License, Version 2.0
+ * which is available at https://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+ *
+ * Contributors: Julien Enoch, ADLINK Technology Inc.
+ * Initial implementation of Eclipse Zenoh.
+ */
 package io.zenoh.core;
 
 import java.time.Instant;
@@ -20,15 +36,15 @@ public class Timestamp implements Comparable<Timestamp> {
 
     /**
      * Return the time as a 64-bit long, where:
-     *  <ul>
-     *   <li>The higher 32-bit represent the number of seconds
-     *       since midnight, January 1, 1970 UTC
-     *   <li>The lower 32-bit represent a fraction of 1 second.
-     *  </ul>
+     * <ul>
+     * <li>The higher 32-bit represent the number of seconds since midnight, January
+     * 1, 1970 UTC
+     * <li>The lower 32-bit represent a fraction of 1 second.
+     * </ul>
      * <p>
      * WARNING: this time cannot be used with {@link java.util.Date#Date(long)}.
      * Rather use {@link #getTimeAsInstant()}.
-
+     * 
      * @return the time as a 64-bits NTP time.
      */
     public long getTime() {
@@ -49,7 +65,7 @@ public class Timestamp implements Comparable<Timestamp> {
     private static final long NANO_PER_SEC = 1000000000L;
 
     /**
-     * 
+     *
      * @return the Timestamp's creation time as a {@link java.time.Instant}.
      */
     public Instant getTimeAsInstant() {
@@ -81,7 +97,7 @@ public class Timestamp implements Comparable<Timestamp> {
             return false;
         if (this == obj)
             return true;
-        if (! (obj instanceof Timestamp))
+        if (!(obj instanceof Timestamp))
             return false;
 
         Timestamp o = (Timestamp) obj;
@@ -104,11 +120,9 @@ public class Timestamp implements Comparable<Timestamp> {
         synchronized (this) {
             if (asString == null) {
                 StringBuffer sb = new StringBuffer();
-                sb.append(getTimeAsInstant().toString())
-                  .append('/');
-                  for (byte b : clockId) {
-                    sb.append(HEX_DIGITS[(b & 0xF0) >> 4])
-                      .append(HEX_DIGITS[b & 0x0F]);
+                sb.append(getTimeAsInstant().toString()).append('/');
+                for (byte b : clockId) {
+                    sb.append(HEX_DIGITS[(b & 0xF0) >> 4]).append(HEX_DIGITS[b & 0x0F]);
                 }
                 asString = sb.toString();
             }

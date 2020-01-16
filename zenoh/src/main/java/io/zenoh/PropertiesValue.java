@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2014, 2020 Contributors to the Eclipse Foundation
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0, or the Apache License, Version 2.0
+ * which is available at https://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+ *
+ * Contributors: Julien Enoch, ADLINK Technology Inc.
+ * Initial implementation of Eclipse Zenoh.
+ */
 package io.zenoh;
 
 import java.nio.charset.Charset;
@@ -18,6 +34,7 @@ public class PropertiesValue implements Value {
 
     /**
      * Creates a PropertiesValue containing some {@link Properties}.
+     * 
      * @param p the properties
      */
     public PropertiesValue(Properties p) {
@@ -26,6 +43,7 @@ public class PropertiesValue implements Value {
 
     /**
      * Returns the properties from this PropertiesValue
+     * 
      * @return the properties
      */
     public Properties getProperties() {
@@ -43,12 +61,12 @@ public class PropertiesValue implements Value {
     }
 
     private static final String PROP_SEP = ";";
-    private static final String KV_SEP   = "=";
+    private static final String KV_SEP = "=";
 
     @Override
     public String toString() {
         StringBuffer buf = new StringBuffer();
-        int i=0;
+        int i = 0;
         for (Map.Entry<Object, Object> e : p.entrySet()) {
             buf.append(e.getKey()).append(KV_SEP).append(e.getValue());
             if (++i < p.size()) {
@@ -64,7 +82,7 @@ public class PropertiesValue implements Value {
             return false;
         if (this == obj)
             return true;
-        if (! (obj instanceof PropertiesValue))
+        if (!(obj instanceof PropertiesValue))
             return false;
 
         return p.equals(((PropertiesValue) obj).p);
@@ -93,7 +111,7 @@ public class PropertiesValue implements Value {
                     if (i < 0) {
                         p.setProperty(kv, "");
                     } else {
-                        p.setProperty(kv.substring(0, i), kv.substring(i+1));
+                        p.setProperty(kv.substring(0, i), kv.substring(i + 1));
                     }
                 }
             }

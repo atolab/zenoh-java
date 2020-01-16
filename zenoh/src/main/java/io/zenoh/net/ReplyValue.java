@@ -1,18 +1,34 @@
+/*
+ * Copyright (c) 2014, 2020 Contributors to the Eclipse Foundation
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0, or the Apache License, Version 2.0
+ * which is available at https://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+ *
+ * Contributors: Julien Enoch, ADLINK Technology Inc.
+ * Initial implementation of Eclipse Zenoh.
+ */
 package io.zenoh.net;
 
 import io.zenoh.core.ZException;
 import java.nio.ByteBuffer;
 
 /**
- * A data structure containing one of the replies to a query
- * (see {@link ReplyHandler#handleReply(ReplyValue)}).
+ * A data structure containing one of the replies to a query (see
+ * {@link ReplyHandler#handleReply(ReplyValue)}).
  */
 public class ReplyValue {
 
     /**
      * The reply message kind.
      */
-    public enum Kind { 
+    public enum Kind {
 
         /**
          * The reply contains some data from a storage.
@@ -41,38 +57,31 @@ public class ReplyValue {
 
         private int numVal;
 
-        Kind(int numVal)
-        {
-           this.numVal = numVal;
+        Kind(int numVal) {
+            this.numVal = numVal;
         }
-     
+
         public static Kind fromInt(int numVal) throws ZException {
             if (numVal == ZN_STORAGE_DATA.value()) {
                 return ZN_STORAGE_DATA;
-            }
-            else if (numVal == ZN_STORAGE_FINAL.value()) {
+            } else if (numVal == ZN_STORAGE_FINAL.value()) {
                 return ZN_STORAGE_FINAL;
             }
             if (numVal == ZN_EVAL_DATA.value()) {
                 return ZN_EVAL_DATA;
-            }
-            else if (numVal == ZN_EVAL_FINAL.value()) {
+            } else if (numVal == ZN_EVAL_FINAL.value()) {
                 return ZN_EVAL_FINAL;
-            }
-            else if (numVal == ZN_REPLY_FINAL.value()) {
+            } else if (numVal == ZN_REPLY_FINAL.value()) {
                 return ZN_REPLY_FINAL;
-            }
-            else {
-                throw new ZException("INTERNAL ERROR: cannot create ReplyValue.Kind from int: "+numVal);
+            } else {
+                throw new ZException("INTERNAL ERROR: cannot create ReplyValue.Kind from int: " + numVal);
             }
         }
 
-        public int value()
-        {
-           return numVal;
+        public int value() {
+            return numVal;
         }
     }
-
 
     private Kind kind;
     private byte[] srcid;
@@ -80,10 +89,9 @@ public class ReplyValue {
     private String rname;
     private ByteBuffer data;
     private DataInfo info;
- 
-    protected ReplyValue(int kind, byte[] srcid, long rsn, String rname, ByteBuffer data, DataInfo info) 
-        throws ZException
-    {
+
+    protected ReplyValue(int kind, byte[] srcid, long rsn, String rname, ByteBuffer data, DataInfo info)
+            throws ZException {
         this(Kind.fromInt(kind), srcid, rsn, rname, data, info);
     }
 
@@ -104,18 +112,20 @@ public class ReplyValue {
     }
 
     /**
-     * @return the unique identifier of the storage or eval that sent this reply when 
-     * {@link ReplyValue#kind} equals {@link Kind#ZN_STORAGE_DATA}, {@link Kind#ZN_STORAGE_FINAL}, 
-     * {@link Kind#ZN_EVAL_DATA} or {@link Kind#ZN_EVAL_FINAL}.
+     * @return the unique identifier of the storage or eval that sent this reply
+     *         when {@link ReplyValue#kind} equals {@link Kind#ZN_STORAGE_DATA},
+     *         {@link Kind#ZN_STORAGE_FINAL}, {@link Kind#ZN_EVAL_DATA} or
+     *         {@link Kind#ZN_EVAL_FINAL}.
      */
     public byte[] getSrcId() {
         return srcid;
     }
 
     /**
-     * @return the sequence number of the reply from the identified storage or eval when
-     * {@link ReplyValue#kind} equals {@link Kind#ZN_STORAGE_DATA}, {@link Kind#ZN_STORAGE_FINAL}, 
-     * {@link Kind#ZN_EVAL_DATA} or {@link Kind#ZN_EVAL_FINAL}.
+     * @return the sequence number of the reply from the identified storage or eval
+     *         when {@link ReplyValue#kind} equals {@link Kind#ZN_STORAGE_DATA},
+     *         {@link Kind#ZN_STORAGE_FINAL}, {@link Kind#ZN_EVAL_DATA} or
+     *         {@link Kind#ZN_EVAL_FINAL}.
      */
     public long getRsn() {
         return rsn;
@@ -123,23 +133,24 @@ public class ReplyValue {
 
     /**
      * @return the resource name of the received data when {@link ReplyValue#kind}
-     * equals {@link Kind#ZN_STORAGE_DATA} or {@link Kind#ZN_EVAL_DATA}.
+     *         equals {@link Kind#ZN_STORAGE_DATA} or {@link Kind#ZN_EVAL_DATA}.
      */
     public String getRname() {
         return rname;
     }
 
     /**
-     * @return the received data when {@link ReplyValue#kind}
-     * equals {@link Kind#ZN_STORAGE_DATA} or {@link Kind#ZN_EVAL_DATA}.
+     * @return the received data when {@link ReplyValue#kind} equals
+     *         {@link Kind#ZN_STORAGE_DATA} or {@link Kind#ZN_EVAL_DATA}.
      */
     public ByteBuffer getData() {
         return data;
     }
 
     /**
-     * @return some meta information about the received data when {@link ReplyValue#kind}
-     * equals {@link Kind#ZN_STORAGE_DATA} or {@link Kind#ZN_EVAL_DATA}.
+     * @return some meta information about the received data when
+     *         {@link ReplyValue#kind} equals {@link Kind#ZN_STORAGE_DATA} or
+     *         {@link Kind#ZN_EVAL_DATA}.
      */
     public DataInfo getInfo() {
         return info;

@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2014, 2020 Contributors to the Eclipse Foundation
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0, or the Apache License, Version 2.0
+ * which is available at https://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+ *
+ * Contributors: Julien Enoch, ADLINK Technology Inc.
+ * Initial implementation of Eclipse Zenoh.
+ */
 package io.zenoh;
 
 import org.slf4j.LoggerFactory;
@@ -5,9 +21,10 @@ import org.slf4j.LoggerFactory;
 import io.zenoh.core.Timestamp;
 
 /**
- * A zenoh data returned by a {@link Workspace#get(Selector)} query.
- * The Data objects are comparable according to their {@link Timestamp}.
- * Note that zenoh makes sure that each published path/value has a unique timestamp accross the system.
+ * A zenoh data returned by a {@link Workspace#get(Selector)} query. The Data
+ * objects are comparable according to their {@link Timestamp}. Note that zenoh
+ * makes sure that each published path/value has a unique timestamp accross the
+ * system.
  */
 public class Data implements Comparable<Data> {
 
@@ -23,7 +40,7 @@ public class Data implements Comparable<Data> {
 
     /**
      * Returns the {@link Path} of the data.
-     * 
+     *
      * @return the path of the data.
      */
     public Path getPath() {
@@ -32,7 +49,7 @@ public class Data implements Comparable<Data> {
 
     /**
      * Returns the {@link Value} of the data.
-     * 
+     *
      * @return the value of the data.
      */
     public Value getValue() {
@@ -41,7 +58,7 @@ public class Data implements Comparable<Data> {
 
     /**
      * Returns the {@link Timestamp} of the data.
-     * 
+     *
      * @return the timestamp of the data.
      */
     public Timestamp getTimestamp() {
@@ -60,7 +77,7 @@ public class Data implements Comparable<Data> {
             return false;
         if (this == obj)
             return true;
-        if (! (obj instanceof Data))
+        if (!(obj instanceof Data))
             return false;
 
         Data o = (Data) obj;
@@ -71,13 +88,13 @@ public class Data implements Comparable<Data> {
         // however, log a warning if path and values are different...
         if (!path.equals(o.path)) {
             LoggerFactory.getLogger("io.zenoh").warn(
-                "INTERNAL ERROR: 2 entries with same timestamp {} have different paths: {} vs. {}",
-                timestamp, path, o.path);
+                    "INTERNAL ERROR: 2 entries with same timestamp {} have different paths: {} vs. {}", timestamp, path,
+                    o.path);
         }
         if (!value.equals(o.value)) {
             LoggerFactory.getLogger("io.zenoh").warn(
-                "INTERNAL ERROR: 2 entries with same timestamp {} have different values: {} vs. {}",
-                timestamp, value, o.value);
+                    "INTERNAL ERROR: 2 entries with same timestamp {} have different values: {} vs. {}", timestamp,
+                    value, o.value);
         }
 
         return true;

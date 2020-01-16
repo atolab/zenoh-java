@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2014, 2020 Contributors to the Eclipse Foundation
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0, or the Apache License, Version 2.0
+ * which is available at https://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+ *
+ * Contributors: Julien Enoch, ADLINK Technology Inc.
+ * Initial implementation of Eclipse Zenoh.
+ */
 package io.zenoh.core;
 
 import io.zenoh.swig.zenohcConstants;
@@ -7,7 +23,6 @@ import java.util.HashMap;
  * An Exception raised by Zenoh.
  */
 public class ZException extends Exception {
-
 
     public static final Integer Z_NO_ERROR_CODE = 0x00;
 
@@ -27,8 +42,7 @@ public class ZException extends Exception {
     public static final Integer ZN_FAILED_TO_OPEN_SESSION = zenohcConstants.ZN_FAILED_TO_OPEN_SESSION;
     public static final Integer ZN_UNEXPECTED_MESSAGE = zenohcConstants.ZN_UNEXPECTED_MESSAGE;
 
-    private static final java.util.Map<Integer, String> errorCodeToString =
-        new HashMap<Integer, String>();
+    private static final java.util.Map<Integer, String> errorCodeToString = new HashMap<Integer, String>();
 
     static {
         errorCodeToString.put(Z_ARRAY_PARSE_ERROR, "Z_ARRAY_PARSE_ERROR");
@@ -46,11 +60,10 @@ public class ZException extends Exception {
         errorCodeToString.put(ZN_UNEXPECTED_MESSAGE, "ZN_UNEXPECTED_MESSAGE");
     }
 
-
     private int errorCode;
 
     private static final long serialVersionUID = 402535504102337839L;
-    
+
     public ZException(String message) {
         this(message, Z_NO_ERROR_CODE);
     }
@@ -75,7 +88,7 @@ public class ZException extends Exception {
 
     public String getErrorCodeName() {
         String name = errorCodeToString.get(errorCode);
-        return (name != null ? name : "UNKOWN_ERROR_CODE("+errorCode+")");
+        return (name != null ? name : "UNKOWN_ERROR_CODE(" + errorCode + ")");
     }
 
     public String toString() {

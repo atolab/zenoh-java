@@ -1,3 +1,20 @@
+
+/*
+ * Copyright (c) 2014, 2020 Contributors to the Eclipse Foundation
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0, or the Apache License, Version 2.0
+ * which is available at https://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+ *
+ * Contributors: Julien Enoch, ADLINK Technology Inc.
+ * Initial implementation of Eclipse Zenoh.
+ */
 import java.util.List;
 
 import io.zenoh.Change;
@@ -6,7 +23,6 @@ import io.zenoh.Path;
 import io.zenoh.Selector;
 import io.zenoh.Workspace;
 import io.zenoh.Zenoh;
-
 
 class ZSubThr {
 
@@ -23,10 +39,10 @@ class ZSubThr {
     }
 
     private static class Observer implements Listener {
-    	public void onChanges(List<Change> changes) {
+        public void onChanges(List<Change> changes) {
             if (count == 0) {
                 start = System.currentTimeMillis();
-                count ++;
+                count++;
             } else if (count < N) {
                 count++;
             } else {
@@ -48,13 +64,13 @@ class ZSubThr {
         try {
             Selector selector = new Selector(s);
 
-            System.out.println("Login to Zenoh (locator="+locator+")...");
+            System.out.println("Login to Zenoh (locator=" + locator + ")...");
             Zenoh z = Zenoh.login(locator, null);
 
             System.out.println("Use Workspace on '/'");
             Workspace w = z.workspace(new Path("/"));
 
-            System.out.println("Subscribe on "+selector);
+            System.out.println("Subscribe on " + selector);
             w.subscribe(selector, new Observer());
 
             Thread.sleep(60000);

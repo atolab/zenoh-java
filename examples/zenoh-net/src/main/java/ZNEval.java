@@ -1,3 +1,20 @@
+
+/*
+ * Copyright (c) 2014, 2020 Contributors to the Eclipse Foundation
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0, or the Apache License, Version 2.0
+ * which is available at https://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+ *
+ * Contributors: Julien Enoch, ADLINK Technology Inc.
+ * Initial implementation of Eclipse Zenoh.
+ */
 import io.zenoh.net.*;
 
 import java.io.InputStreamReader;
@@ -9,11 +26,9 @@ class ZNEval implements QueryHandler {
 
     public void handleQuery(String rname, String predicate, RepliesSender repliesSender) {
         System.out.printf(">> [Query handler] Handling '%s?%s'\n", rname, predicate);
-    
+
         ByteBuffer data = ByteBuffer.wrap("Eval from Java!".getBytes());
-        Resource[] replies = {
-            new Resource(uri, data, 0, 0)
-        };
+        Resource[] replies = { new Resource(uri, data, 0, 0) };
 
         repliesSender.sendReplies(replies);
     }
@@ -22,7 +37,7 @@ class ZNEval implements QueryHandler {
         if (args.length > 0) {
             uri = args[0];
         }
-        
+
         String locator = null;
         if (args.length > 1) {
             locator = args[1];
@@ -32,11 +47,12 @@ class ZNEval implements QueryHandler {
             System.out.println("Openning session...");
             Session s = Session.open(locator);
 
-            System.out.println("Declaring Eval on '"+uri+"'...");
+            System.out.println("Declaring Eval on '" + uri + "'...");
             Eval e = s.declareEval(uri, new ZNEval());
 
             InputStreamReader stdin = new InputStreamReader(System.in);
-            while ((char) stdin.read() != 'q');
+            while ((char) stdin.read() != 'q')
+                ;
 
             e.undeclare();
             s.close();

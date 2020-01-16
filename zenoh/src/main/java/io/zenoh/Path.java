@@ -1,11 +1,28 @@
+/*
+ * Copyright (c) 2014, 2020 Contributors to the Eclipse Foundation
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0, or the Apache License, Version 2.0
+ * which is available at https://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+ *
+ * Contributors: Julien Enoch, ADLINK Technology Inc.
+ * Initial implementation of Eclipse Zenoh.
+ */
 package io.zenoh;
 
 /**
  * A zenoh Path is a set of strings separated by '/' , as in a filesystem path.
- * A Path cannot contain any '*' character.
- * Examples of paths:  "/demo/example/test" , "/com/adlink/building/fr/floor/1/office/2" ...
+ * A Path cannot contain any '*' character. Examples of paths:
+ * "/demo/example/test" , "/com/adlink/building/fr/floor/1/office/2" ...
  * <p>
- * A path can be absolute (i.e. starting with a `'/'`) or relative to a {@link Workspace}.
+ * A path can be absolute (i.e. starting with a `'/'`) or relative to a
+ * {@link Workspace}.
  *
  * @see Workspace#put(Path, Value)
  */
@@ -14,8 +31,8 @@ public class Path implements Comparable<Path> {
     private String path;
 
     /**
-     * Create a Path from a string such as  "/demo/example/test".
-     * 
+     * Create a Path from a string such as "/demo/example/test".
+     *
      * @param p the string
      */
     public Path(String p) {
@@ -25,18 +42,18 @@ public class Path implements Comparable<Path> {
         if (p.isEmpty()) {
             throw new IllegalArgumentException("Invalid path (empty String)");
         }
-        for (int i=0; i < p.length(); ++i) {
+        for (int i = 0; i < p.length(); ++i) {
             char c = p.charAt(i);
             if (c == '?' || c == '#' || c == '[' || c == ']' || c == '*')
-            throw new IllegalArgumentException("Invalid path: " + p + " (forbidden character at index " + i + ")");
+                throw new IllegalArgumentException("Invalid path: " + p + " (forbidden character at index " + i + ")");
         }
         this.path = removeUselessSlashes(p);
     }
 
     private String removeUselessSlashes(String s) {
         String result = s.replaceAll("/+", "/");
-        if (result.charAt(result.length()-1) == '/') {
-            return result.substring(0, result.length()-1);
+        if (result.charAt(result.length() - 1) == '/') {
+            return result.substring(0, result.length() - 1);
         } else {
             return result;
         }
@@ -73,6 +90,7 @@ public class Path implements Comparable<Path> {
 
     /**
      * The Path length (i.e. the length of the Path as a string)
+     * 
      * @return the length
      */
     public int length() {
@@ -81,6 +99,7 @@ public class Path implements Comparable<Path> {
 
     /**
      * Returns true if the Path is relative (i.e. it doesn't start with '/')
+     * 
      * @return true if the Path is relative.
      */
     public boolean isRelative() {
@@ -88,7 +107,9 @@ public class Path implements Comparable<Path> {
     }
 
     /**
-     * Returns a new Path made of the concatenation of the specified prefix and this Path.
+     * Returns a new Path made of the concatenation of the specified prefix and this
+     * Path.
+     * 
      * @param prefix the prefix to add.
      * @return a new Path made of the prefix plus this Path.
      */

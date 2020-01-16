@@ -1,31 +1,47 @@
+/*
+ * Copyright (c) 2014, 2020 Contributors to the Eclipse Foundation
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0, or the Apache License, Version 2.0
+ * which is available at https://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+ *
+ * Contributors: Julien Enoch, ADLINK Technology Inc.
+ * Initial implementation of Eclipse Zenoh.
+ */
 package io.zenoh;
 
 import io.zenoh.core.ZException;
 
 /**
- * A description of the {@link Value} format, allowing zenoh to know
- * how to encode/decode the value to/from a bytes buffer.
+ * A description of the {@link Value} format, allowing zenoh to know how to
+ * encode/decode the value to/from a bytes buffer.
  */
 public enum Encoding {
 
     /**
      * The value has a RAW encoding (i.e. it's a bytes buffer).
      */
-    RAW (RawValue.Decoder.getEncodingFlag(), RawValue.Decoder),
+    RAW(RawValue.Decoder.getEncodingFlag(), RawValue.Decoder),
     /**
      * The value is an UTF-8 string.
      */
-    STRING (StringValue.Decoder.getEncodingFlag(), StringValue.Decoder),
+    STRING(StringValue.Decoder.getEncodingFlag(), StringValue.Decoder),
     /**
-     * The value if a list of keys/values, encoded as an UTF-8 string.
-     * The keys/values are separated by ';' character, and each key is separated
-     * from its associated value (if any) with a '=' character.
+     * The value if a list of keys/values, encoded as an UTF-8 string. The
+     * keys/values are separated by ';' character, and each key is separated from
+     * its associated value (if any) with a '=' character.
      */
-    PROPERTIES (PropertiesValue.Decoder.getEncodingFlag(), PropertiesValue.Decoder),
+    PROPERTIES(PropertiesValue.Decoder.getEncodingFlag(), PropertiesValue.Decoder),
     /**
      * The value is a JSON structure in an UTF-8 string.
      */
-    JSON((short)0x04, StringValue.Decoder);
+    JSON((short) 0x04, StringValue.Decoder);
 
     private short flag;
     private Value.Decoder decoder;
@@ -36,8 +52,9 @@ public enum Encoding {
     }
 
     /**
-     * Returns the numeric flag corresponding to the encoding, for usage with zenoh-net.
-     * 
+     * Returns the numeric flag corresponding to the encoding, for usage with
+     * zenoh-net.
+     *
      * @return the encoding flag.
      */
     public short getFlag() {
@@ -46,29 +63,24 @@ public enum Encoding {
 
     /**
      * Returns the {@link Value.Decoder} for this encoding.
-     * 
+     *
      * @return the decoder.
      */
     public Value.Decoder getDecoder() {
         return decoder;
     }
 
-
     protected static Encoding fromFlag(short flag) throws ZException {
         if (flag == RAW.getFlag()) {
             return RAW;
-        }
-        else if (flag == STRING.getFlag()) {
+        } else if (flag == STRING.getFlag()) {
             return STRING;
-        }
-        else if (flag == PROPERTIES.getFlag()) {
+        } else if (flag == PROPERTIES.getFlag()) {
             return PROPERTIES;
-        }
-        else if (flag == JSON.getFlag()) {
+        } else if (flag == JSON.getFlag()) {
             return JSON;
-        }
-        else {
-            throw new ZException("Unkown encoding flag: "+flag);
+        } else {
+            throw new ZException("Unkown encoding flag: " + flag);
         }
     }
 

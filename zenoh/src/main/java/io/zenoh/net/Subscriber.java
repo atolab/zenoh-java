@@ -1,12 +1,28 @@
+/*
+ * Copyright (c) 2014, 2020 Contributors to the Eclipse Foundation
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0, or the Apache License, Version 2.0
+ * which is available at https://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+ *
+ * Contributors: Julien Enoch, ADLINK Technology Inc.
+ * Initial implementation of Eclipse Zenoh.
+ */
 package io.zenoh.net;
-
 
 import io.zenoh.core.ZException;
 import io.zenoh.swig.zenohc;
 import io.zenoh.swig.zn_sub_t;
 
 /**
- * A Subscriber (see {@link Session#declareSubscriber(String, SubMode, SubscriberCallback)}).
+ * A Subscriber (see
+ * {@link Session#declareSubscriber(String, SubMode, SubscriberCallback)}).
  */
 public class Subscriber {
 
@@ -17,9 +33,13 @@ public class Subscriber {
     }
 
     /**
-     * Pull data for the {@link SubMode.Kind#ZN_PULL_MODE} or {@link SubMode.Kind#ZN_PERIODIC_PULL_MODE} subscribtion.
-     * The pulled data will be provided by calling the {@link DataHandler#handleData(String, java.nio.ByteBuffer, DataInfo)}
-     * function provided to the {@link Session#declareSubscriber(String, SubMode, DataHandler)} function.
+     * Pull data for the {@link SubMode.Kind#ZN_PULL_MODE} or
+     * {@link SubMode.Kind#ZN_PERIODIC_PULL_MODE} subscribtion. The pulled data will
+     * be provided by calling the
+     * {@link DataHandler#handleData(String, java.nio.ByteBuffer, DataInfo)}
+     * function provided to the
+     * {@link Session#declareSubscriber(String, SubMode, DataHandler)} function.
+     * 
      * @throws ZException if pull failed.
      */
     public void pull() throws ZException {
@@ -31,6 +51,7 @@ public class Subscriber {
 
     /**
      * Undeclare the Subscriber.
+     * 
      * @throws ZException if undeclaration failed.
      */
     public void undeclare() throws ZException {

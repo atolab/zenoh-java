@@ -1,50 +1,59 @@
+/*
+ * Copyright (c) 2014, 2020 Contributors to the Eclipse Foundation
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0, or the Apache License, Version 2.0
+ * which is available at https://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+ *
+ * Contributors: Julien Enoch, ADLINK Technology Inc.
+ * Initial implementation of Eclipse Zenoh.
+ */
 package io.zenoh.net;
 
 import io.zenoh.core.ZException;
 import io.zenoh.swig.zn_temporal_property_t;
 
 /**
- * Subscription mode (used in {@link Session#declareSubscriber(String, SubMode, SubscriberCallback)}).
+ * Subscription mode (used in
+ * {@link Session#declareSubscriber(String, SubMode, SubscriberCallback)}).
  */
 public class SubMode extends io.zenoh.swig.zn_sub_mode_t {
 
     /**
      * The subscription mode kind.
      */
-    public enum Kind { 
-        ZN_PUSH_MODE((short)1),
-        ZN_PULL_MODE((short)2),
-        ZN_PERIODIC_PUSH_MODE((short)3),
-        ZN_PERIODIC_PULL_MODE((short)4);
+    public enum Kind {
+        ZN_PUSH_MODE((short) 1), ZN_PULL_MODE((short) 2), ZN_PERIODIC_PUSH_MODE((short) 3),
+        ZN_PERIODIC_PULL_MODE((short) 4);
 
         private short numVal;
 
-        Kind(short numVal)
-        {
-           this.numVal = numVal;
+        Kind(short numVal) {
+            this.numVal = numVal;
         }
-     
+
         public static Kind fromInt(short numVal) throws ZException {
             if (numVal == ZN_PUSH_MODE.value()) {
                 return ZN_PUSH_MODE;
-            }
-            else if (numVal == ZN_PULL_MODE.value()) {
+            } else if (numVal == ZN_PULL_MODE.value()) {
                 return ZN_PULL_MODE;
-            }
-            else if (numVal == ZN_PERIODIC_PUSH_MODE.value()) {
+            } else if (numVal == ZN_PERIODIC_PUSH_MODE.value()) {
                 return ZN_PERIODIC_PUSH_MODE;
-            }
-            else if (numVal == ZN_PERIODIC_PULL_MODE.value()) {
+            } else if (numVal == ZN_PERIODIC_PULL_MODE.value()) {
                 return ZN_PERIODIC_PULL_MODE;
-            }
-            else {
-                throw new ZException("INTERNAL ERROR: cannot create SubMode.Kind from int: "+numVal);
+            } else {
+                throw new ZException("INTERNAL ERROR: cannot create SubMode.Kind from int: " + numVal);
             }
         }
 
-        public short value()
-        {
-           return numVal;
+        public short value() {
+            return numVal;
         }
     }
 
@@ -81,14 +90,16 @@ public class SubMode extends io.zenoh.swig.zn_sub_mode_t {
     }
 
     /**
-     * @return a periodic push subscription mode with the specified temporal properties.
+     * @return a periodic push subscription mode with the specified temporal
+     *         properties.
      */
     public static SubMode periodicPush(int origin, int period, int duration) {
         return new SubMode(Kind.ZN_PERIODIC_PUSH_MODE, origin, period, duration);
     }
 
     /**
-     * @return a periodic pull subscription mode with the specified temporal properties.
+     * @return a periodic pull subscription mode with the specified temporal
+     *         properties.
      */
     public static SubMode periodicPull(int origin, int period, int duration) {
         return new SubMode(Kind.ZN_PERIODIC_PULL_MODE, origin, period, duration);

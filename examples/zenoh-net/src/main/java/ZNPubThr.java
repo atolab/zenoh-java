@@ -1,3 +1,20 @@
+
+/*
+ * Copyright (c) 2014, 2020 Contributors to the Eclipse Foundation
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0, or the Apache License, Version 2.0
+ * which is available at https://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+ *
+ * Contributors: Julien Enoch, ADLINK Technology Inc.
+ * Initial implementation of Eclipse Zenoh.
+ */
 import io.zenoh.net.*;
 
 class ZNPubThr {
@@ -20,22 +37,22 @@ class ZNPubThr {
         if (lenArg.startsWith("I")) {
             len = Integer.parseInt(lenArg.substring(1));
             data = java.nio.ByteBuffer.allocate(len);
-            System.out.println("Running throughput test for payload of "+len+" bytes from a non-direct ByteBuffer");
+            System.out.println("Running throughput test for payload of " + len + " bytes from a non-direct ByteBuffer");
         } else if (lenArg.startsWith("W")) {
             len = Integer.parseInt(lenArg.substring(1));
             // allocate more than len, to wrap with an offset and test the impact
-            byte[] array = new byte[len+1024];
+            byte[] array = new byte[len + 1024];
             data = java.nio.ByteBuffer.wrap(array, 100, len);
-            System.out.println("Running throughput test for payload of "+len+" bytes from a wrapped ByteBuffer");
+            System.out.println("Running throughput test for payload of " + len + " bytes from a wrapped ByteBuffer");
         } else {
             len = Integer.parseInt(lenArg);
             data = java.nio.ByteBuffer.allocateDirect(len);
-            System.out.println("Running throughput test for payload of "+len+" bytes from a direct ByteBuffer");
+            System.out.println("Running throughput test for payload of " + len + " bytes from a direct ByteBuffer");
         }
 
         int posInit = data.position();
         for (int i = 0; i < len; ++i) {
-            data.put((byte) (i%10));
+            data.put((byte) (i % 10));
         }
         data.flip();
         data.position(posInit);

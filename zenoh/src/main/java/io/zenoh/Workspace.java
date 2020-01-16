@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2014, 2020 Contributors to the Eclipse Foundation
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0, or the Apache License, Version 2.0
+ * which is available at https://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+ *
+ * Contributors: Julien Enoch, ADLINK Technology Inc.
+ * Initial implementation of Eclipse Zenoh.
+ */
 package io.zenoh;
 
 import io.zenoh.core.Timestamp;
@@ -36,7 +52,6 @@ public class Workspace {
     private ExecutorService threadPool;
     private Map<Path, io.zenoh.net.Eval> evals;
 
-
     protected Workspace(Path path, Session session, ExecutorService threadPool) {
         this.path = path;
         this.session = session;
@@ -62,8 +77,8 @@ public class Workspace {
 
     /**
      * Put a path/value into Zenoh.
-     * 
-     * @param path the {@link Path}. Can be absolute or relative to the workspace.
+     *
+     * @param path  the {@link Path}. Can be absolute or relative to the workspace.
      * @param value the {@link Value}.
      * @throws ZException if put failed.
      */
@@ -74,14 +89,14 @@ public class Workspace {
             ByteBuffer data = value.encode();
             session.writeData(path.toString(), data, value.getEncoding().getFlag(), KIND_PUT);
         } catch (ZException e) {
-            throw new ZException("Put on "+path+" failed", e);
+            throw new ZException("Put on " + path + " failed", e);
         }
     }
 
     /**
      * Update a path/value into Zenoh.
-     * 
-     * @param path the {@link Path}. Can be absolute or relative to the workspace.
+     *
+     * @param path  the {@link Path}. Can be absolute or relative to the workspace.
      * @param value a delta to be applied on the existing value.
      * @throws ZException if update failed.
      */
@@ -92,23 +107,24 @@ public class Workspace {
             ByteBuffer data = value.encode();
             session.writeData(path.toString(), data, value.getEncoding().getFlag(), KIND_UPDATE);
         } catch (ZException e) {
-            throw new ZException("Update on "+path+" failed", e);
+            throw new ZException("Update on " + path + " failed", e);
         }
     }
 
     /**
      * Remove a path/value from Zenoh.
-     * 
-     * @param path the {@link Path} to be removed. Can be absolute or relative to the workspace.
+     *
+     * @param path the {@link Path} to be removed. Can be absolute or relative to
+     *             the workspace.
      * @throws ZException if remove failed.
      */
     public void remove(Path path) throws ZException {
         path = toAsbsolutePath(path);
         LOG.debug("Remove on {}", path);
         try {
-            session.writeData(path.toString(), EMPTY_BUF, (short)0, KIND_REMOVE);
+            session.writeData(path.toString(), EMPTY_BUF, (short) 0, KIND_REMOVE);
         } catch (ZException e) {
-            throw new ZException("Remove on "+path+" failed", e);
+            throw new ZException("Remove on " + path + " failed", e);
         }
     }
 
@@ -124,14 +140,14 @@ public class Workspace {
         private static long currentTime() {
             long now = System.currentTimeMillis();
             long sec = (now / 1000) << 32;
-            float frac = (((float)(now % 1000))/ 1000) * 0x100000000L;
-            return sec + (long)frac;
+            float frac = (((float) (now % 1000)) / 1000) * 0x100000000L;
+            return sec + (long) frac;
         }
     }
 
     /**
      * Get a selection of path/value from Zenoh.
-     * 
+     *
      * @param selector the {@link Selector} expressing the selection.
      * @return a collection of path/value.
      * @throws ZException if get failed.
@@ -141,57 +157,59 @@ public class Workspace {
         LOG.debug("Get on {}", s);
         try {
             final Map<Path, SortedSet<Data>> map = new Hashtable<Path, SortedSet<Data>>();
-            final java.util.concurrent.atomic.AtomicBoolean queryFinished =
-                new java.util.concurrent.atomic.AtomicBoolean(false);
-            
-            session.query(s.getPath(), s.getOptionalPart(),
-                new ReplyHandler() {
-                    public void handleReply(ReplyValue reply) {
-                        switch (reply.getKind()) {
-                            case ZN_STORAGE_DATA:
-                            case ZN_EVAL_DATA:
-                                Path path = new Path(reply.getRname());
-                                ByteBuffer data = reply.getData();
-                                short encodingFlag = (short) reply.getInfo().getEncoding();
-                                if (reply.getKind() == ReplyValue.Kind.ZN_STORAGE_DATA) {
-                                    LOG.debug("Get on {} => ZN_STORAGE_DATA {} : {} ({} bytes)", s, path, reply.getInfo().getTimestamp(), data.remaining());
-                                } else {
-                                    LOG.debug("Get on {} => ZN_EVAL_DATA {} : {} ({} bytes)", s, path, reply.getInfo().getTimestamp(), data.remaining());
-                                }
-                                try {
-                                    Value value = Encoding.fromFlag(encodingFlag).getDecoder().decode(data);
-                                    Timestamp ts = reply.getInfo().getTimestamp();
-                                    // @TODO: remove this when we're sure Data always come with a Timestamp.
-                                    if (ts == null) {
-                                        LOG.warn("Get on {}: received data for {} without timestamp. Adding it with current date.", s,path);
-                                        ts = new LocalTimestamp();
-                                    }
-                                    Data d = new Data(path, value, ts);
-                                    if (!map.containsKey(path)) {
-                                        map.put(path, new TreeSet<Data>());
-                                    }
-                                    map.get(path).add(d);
-                                } catch (ZException e) {
-                                    LOG.warn("Get on {}: error decoding reply {} : {}", s, reply.getRname(), e);
-                                }
-                                break;
-                            case ZN_STORAGE_FINAL:
-                                LOG.trace("Get on {} => ZN_STORAGE_FINAL", s);
-                                break;
-                            case ZN_EVAL_FINAL:
-                                LOG.trace("Get on {} => ZN_EVAL_FINAL", s);
-                                break;
-                            case ZN_REPLY_FINAL:
-                                LOG.trace("Get on {} => ZN_REPLY_FINAL", s);
-                                synchronized (map) {
-                                    queryFinished.set(true);
-                                    map.notify();
-                                }
-                                break;
+            final java.util.concurrent.atomic.AtomicBoolean queryFinished = new java.util.concurrent.atomic.AtomicBoolean(
+                    false);
+
+            session.query(s.getPath(), s.getOptionalPart(), new ReplyHandler() {
+                public void handleReply(ReplyValue reply) {
+                    switch (reply.getKind()) {
+                    case ZN_STORAGE_DATA:
+                    case ZN_EVAL_DATA:
+                        Path path = new Path(reply.getRname());
+                        ByteBuffer data = reply.getData();
+                        short encodingFlag = (short) reply.getInfo().getEncoding();
+                        if (reply.getKind() == ReplyValue.Kind.ZN_STORAGE_DATA) {
+                            LOG.debug("Get on {} => ZN_STORAGE_DATA {} : {} ({} bytes)", s, path,
+                                    reply.getInfo().getTimestamp(), data.remaining());
+                        } else {
+                            LOG.debug("Get on {} => ZN_EVAL_DATA {} : {} ({} bytes)", s, path,
+                                    reply.getInfo().getTimestamp(), data.remaining());
                         }
+                        try {
+                            Value value = Encoding.fromFlag(encodingFlag).getDecoder().decode(data);
+                            Timestamp ts = reply.getInfo().getTimestamp();
+                            // @TODO: remove this when we're sure Data always come with a Timestamp.
+                            if (ts == null) {
+                                LOG.warn(
+                                        "Get on {}: received data for {} without timestamp. Adding it with current date.",
+                                        s, path);
+                                ts = new LocalTimestamp();
+                            }
+                            Data d = new Data(path, value, ts);
+                            if (!map.containsKey(path)) {
+                                map.put(path, new TreeSet<Data>());
+                            }
+                            map.get(path).add(d);
+                        } catch (ZException e) {
+                            LOG.warn("Get on {}: error decoding reply {} : {}", s, reply.getRname(), e);
+                        }
+                        break;
+                    case ZN_STORAGE_FINAL:
+                        LOG.trace("Get on {} => ZN_STORAGE_FINAL", s);
+                        break;
+                    case ZN_EVAL_FINAL:
+                        LOG.trace("Get on {} => ZN_EVAL_FINAL", s);
+                        break;
+                    case ZN_REPLY_FINAL:
+                        LOG.trace("Get on {} => ZN_REPLY_FINAL", s);
+                        synchronized (map) {
+                            queryFinished.set(true);
+                            map.notify();
+                        }
+                        break;
                     }
                 }
-            );
+            });
 
             synchronized (map) {
                 while (!queryFinished.get()) {
@@ -218,11 +236,11 @@ public class Workspace {
                     results.add(l.last());
                 }
             }
-            
+
             return results;
 
         } catch (ZException e) {
-            throw new ZException("Get on "+selector+" failed", e);
+            throw new ZException("Get on " + selector + " failed", e);
         }
     }
 
@@ -232,17 +250,17 @@ public class Workspace {
         for (String p : props) {
             if (p.startsWith("starttime") || p.startsWith("stoptime")) {
                 return true;
-            } 
+            }
         }
         return false;
     }
 
-
     /**
      * Subscribe to a selection of path/value from Zenoh.
-     * 
+     *
      * @param selector the {@link Selector} expressing the selection.
-     * @param listener the {@link Listener} that will be called for each change of a path/value matching the selection.
+     * @param listener the {@link Listener} that will be called for each change of a
+     *                 path/value matching the selection.
      * @return a {@link SubscriptionId}.
      * @throws ZException if subscribe failed.
      */
@@ -250,62 +268,59 @@ public class Workspace {
         final Selector s = toAsbsoluteSelector(selector);
         LOG.debug("subscribe on {}", selector);
         try {
-            Subscriber sub = session.declareSubscriber(s.getPath(), SubMode.push(),
-                new DataHandler() {
-                    public void handleData(String rname, ByteBuffer data, DataInfo info) {
-                        LOG.debug("subscribe on {} : received notif for {} (kind:{})", s, rname, info.getKind());
-                        // TODO: list of more than 1 change when available in zenoh-c
-                        List<Change> changes = new ArrayList<Change>(1);
+            Subscriber sub = session.declareSubscriber(s.getPath(), SubMode.push(), new DataHandler() {
+                public void handleData(String rname, ByteBuffer data, DataInfo info) {
+                    LOG.debug("subscribe on {} : received notif for {} (kind:{})", s, rname, info.getKind());
+                    // TODO: list of more than 1 change when available in zenoh-c
+                    List<Change> changes = new ArrayList<Change>(1);
 
-                        try {
-                            Path path = new Path(rname);
-                            Change.Kind kind = Change.Kind.fromInt(info.getKind());
-                            short encodingFlag = (short) info.getEncoding();
-                            Timestamp timestamp= info.getTimestamp();
-                            Value value = null;
-                            if (kind != Change.Kind.REMOVE) {
-                                value = Encoding.fromFlag(encodingFlag).getDecoder().decode(data);
-                            }
-                            Change change = new Change(path, kind, timestamp, value);
-                            changes.add(change);
-                        } catch (ZException e) {
-                            LOG.warn("subscribe on {}: error decoding change for {} : {}", s, rname, e);
+                    try {
+                        Path path = new Path(rname);
+                        Change.Kind kind = Change.Kind.fromInt(info.getKind());
+                        short encodingFlag = (short) info.getEncoding();
+                        Timestamp timestamp = info.getTimestamp();
+                        Value value = null;
+                        if (kind != Change.Kind.REMOVE) {
+                            value = Encoding.fromFlag(encodingFlag).getDecoder().decode(data);
                         }
+                        Change change = new Change(path, kind, timestamp, value);
+                        changes.add(change);
+                    } catch (ZException e) {
+                        LOG.warn("subscribe on {}: error decoding change for {} : {}", s, rname, e);
+                    }
 
-                        if (threadPool != null) {
-                            threadPool.execute(new Runnable() {
-                                @Override
-                                public void run() {
-                                    try {
-                                        listener.onChanges(changes);
-                                    } catch (Throwable e) {
-                                        LOG.warn("subscribe on {} : error receiving notification for {} : {}", s, rname, e);
-                                        LOG.debug("Stack trace: ", e);
-                                    }
+                    if (threadPool != null) {
+                        threadPool.execute(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    listener.onChanges(changes);
+                                } catch (Throwable e) {
+                                    LOG.warn("subscribe on {} : error receiving notification for {} : {}", s, rname, e);
+                                    LOG.debug("Stack trace: ", e);
                                 }
-                            });
-                        }
-                        else
-                        {
-                            try {
-                                listener.onChanges(changes);
-                            } catch (Throwable e) {
-                                LOG.warn("subscribe on {} : error receiving notification for {} : {}", s, rname, e);
-                                LOG.debug("Stack trace: ", e);
                             }
+                        });
+                    } else {
+                        try {
+                            listener.onChanges(changes);
+                        } catch (Throwable e) {
+                            LOG.warn("subscribe on {} : error receiving notification for {} : {}", s, rname, e);
+                            LOG.debug("Stack trace: ", e);
                         }
                     }
-                });
+                }
+            });
             return new SubscriptionId(sub);
 
         } catch (ZException e) {
-            throw new ZException("Subscribe on "+selector+" failed", e);
+            throw new ZException("Subscribe on " + selector + " failed", e);
         }
     }
 
     /**
      * Unregisters a previous subscription.
-     * 
+     *
      * @param subid the {@link SubscriptionId} to unregister
      * @throws ZException if unsusbscribe failed.
      */
@@ -320,10 +335,12 @@ public class Workspace {
     private static final Resource[] EMPTY_EVAL_REPLY = new Resource[0];
 
     /**
-     * Registers an evaluation function under the provided {@link Path}.
-     * The function will be evaluated in a dedicated thread, and thus may call any other Workspace operation.
-     * 
-     * @param path the {@link Path} where the function can be triggered using {@link #get(Selector)}
+     * Registers an evaluation function under the provided {@link Path}. The
+     * function will be evaluated in a dedicated thread, and thus may call any other
+     * Workspace operation.
+     *
+     * @param path the {@link Path} where the function can be triggered using
+     *             {@link #get(Selector)}
      * @param eval the evaluation function
      * @throws ZException if registration failed.
      */
@@ -334,39 +351,35 @@ public class Workspace {
             QueryHandler qh = new QueryHandler() {
                 public void handleQuery(String rname, String predicate, RepliesSender repliesSender) {
                     LOG.debug("Registered eval on {} handling query {}?{}", p, rname, predicate);
-                    Selector s = new Selector(rname+"?"+predicate);
+                    Selector s = new Selector(rname + "?" + predicate);
                     if (threadPool != null) {
                         threadPool.execute(new Runnable() {
                             @Override
                             public void run() {
                                 try {
                                     Value v = eval.callback(p, predicateToProperties(s.getProperties()));
-                                    LOG.debug("Registered eval on {} handling query {}?{} returns: {}", p, rname, predicate, v);
-                                    repliesSender.sendReplies(
-                                        new Resource[]{
-                                            new Resource(p.toString(), v.encode(), v.getEncoding().getFlag(), Change.Kind.PUT.value())
-                                        }
-                                    );
+                                    LOG.debug("Registered eval on {} handling query {}?{} returns: {}", p, rname,
+                                            predicate, v);
+                                    repliesSender.sendReplies(new Resource[] { new Resource(p.toString(), v.encode(),
+                                            v.getEncoding().getFlag(), Change.Kind.PUT.value()) });
                                 } catch (Throwable e) {
-                                    LOG.warn("Registered eval on {} caught an exception while handling query {} {} : {}", p, rname, predicate, e);
+                                    LOG.warn(
+                                            "Registered eval on {} caught an exception while handling query {} {} : {}",
+                                            p, rname, predicate, e);
                                     LOG.debug("Stack trace: ", e);
                                     repliesSender.sendReplies(EMPTY_EVAL_REPLY);
                                 }
                             }
                         });
-                    }
-                    else
-                    {
+                    } else {
                         try {
                             Value v = eval.callback(p, predicateToProperties(s.getProperties()));
                             LOG.debug("Registered eval on {} handling query {}?{} returns: {}", p, rname, predicate, v);
-                            repliesSender.sendReplies(
-                                new Resource[]{
-                                    new Resource(p.toString(), v.encode(), v.getEncoding().getFlag(), Change.Kind.PUT.value())
-                                }
-                            );
+                            repliesSender.sendReplies(new Resource[] { new Resource(p.toString(), v.encode(),
+                                    v.getEncoding().getFlag(), Change.Kind.PUT.value()) });
                         } catch (Throwable e) {
-                            LOG.warn("Registered eval on {} caught an exception while handling query {} {} : {}", p, rname, predicate, e);
+                            LOG.warn("Registered eval on {} caught an exception while handling query {} {} : {}", p,
+                                    rname, predicate, e);
                             LOG.debug("Stack trace: ", e);
                             repliesSender.sendReplies(EMPTY_EVAL_REPLY);
                         }
@@ -378,14 +391,14 @@ public class Workspace {
             evals.put(p, e);
 
         } catch (ZException e) {
-            throw new ZException("registerEval on "+p+" failed", e);
+            throw new ZException("registerEval on " + p + " failed", e);
         }
 
     }
 
     /**
      * Unregister a previously registered evaluation function.
-     * 
+     *
      * @param path the {@link Path} where the function has been registered
      * @throws ZException if unregistration failed.
      */
@@ -400,14 +413,13 @@ public class Workspace {
         }
     }
 
-
     private static Properties predicateToProperties(String predicate) {
         Properties result = new Properties();
         String[] kvs = predicate.split(";");
         for (String kv : kvs) {
             int i = kv.indexOf('=');
             if (i > 0) {
-                result.setProperty(kv.substring(0, i), kv.substring(i+1));
+                result.setProperty(kv.substring(0, i), kv.substring(i + 1));
             }
         }
         return result;

@@ -1,3 +1,19 @@
+/*
+ * Copyright (c) 2014, 2020 Contributors to the Eclipse Foundation
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0, or the Apache License, Version 2.0
+ * which is available at https://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+ *
+ * Contributors: Julien Enoch, ADLINK Technology Inc.
+ * Initial implementation of Eclipse Zenoh.
+ */
 package io.zenoh.net;
 
 import java.nio.ByteBuffer;
@@ -19,6 +35,7 @@ public class Publisher {
 
     /**
      * Undeclare the Publisher.
+     * 
      * @throws ZException if undeclaration failed.
      */
     public void undeclare() throws ZException {
@@ -29,42 +46,48 @@ public class Publisher {
     }
 
     /**
-     * Send data in a <i>compact_data</i> message for the resource published by this Publisher.
+     * Send data in a <i>compact_data</i> message for the resource published by this
+     * Publisher.
+     * 
      * @param data the data to be sent.
      * @throws ZException if write fails.
      */
     public void streamCompactData(ByteBuffer data) throws ZException {
         int result = zenohc.zn_stream_compact_data(pub, data);
         if (result != 0) {
-            throw new ZException("zn_stream_compact_data of "+data.capacity()+" bytes buffer failed", result);
+            throw new ZException("zn_stream_compact_data of " + data.capacity() + " bytes buffer failed", result);
         }
     }
 
     /**
-     * Send data in a <i>stream_data</i> message for the resource published by this Publisher.
+     * Send data in a <i>stream_data</i> message for the resource published by this
+     * Publisher.
+     * 
      * @param data the data to be sent.
      * @throws ZException if write fails.
      */
     public void streamData(ByteBuffer data) throws ZException {
         int result = zenohc.zn_stream_data(pub, data);
         if (result != 0) {
-            throw new ZException("zn_stream_data of "+data.capacity()+" bytes buffer failed", result);
+            throw new ZException("zn_stream_data of " + data.capacity() + " bytes buffer failed", result);
         }
     }
 
     /**
-     * Send data in a <i>stream_data</i> message for the resource published by this Publisher.
-     * @param data the data to be sent.
+     * Send data in a <i>stream_data</i> message for the resource published by this
+     * Publisher.
+     * 
+     * @param data     the data to be sent.
      * @param encoding a metadata information associated with the published data
-     *      that represents the encoding of the published data.
-     * @param kind a metadata information associated with the published data
-     *      that represents the kind of publication.
+     *                 that represents the encoding of the published data.
+     * @param kind     a metadata information associated with the published data
+     *                 that represents the kind of publication.
      * @throws ZException if write fails.
      */
     public void streamData(ByteBuffer data, short encoding, short kind) throws ZException {
         int result = zenohc.zn_stream_data_wo(pub, data, encoding, kind);
         if (result != 0) {
-            throw new ZException("zn_stream_data of "+data.capacity()+" bytes buffer failed", result);
+            throw new ZException("zn_stream_data of " + data.capacity() + " bytes buffer failed", result);
         }
     }
 

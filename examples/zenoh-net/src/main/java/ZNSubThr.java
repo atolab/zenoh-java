@@ -1,9 +1,26 @@
+
+/*
+ * Copyright (c) 2014, 2020 Contributors to the Eclipse Foundation
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information regarding copyright ownership.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0, or the Apache License, Version 2.0
+ * which is available at https://www.apache.org/licenses/LICENSE-2.0.
+ *
+ * SPDX-License-Identifier: EPL-2.0 OR Apache-2.0
+ *
+ * Contributors: Julien Enoch, ADLINK Technology Inc.
+ * Initial implementation of Eclipse Zenoh.
+ */
 import io.zenoh.net.*;
 
 import java.nio.ByteBuffer;
 
 class ZNSubThr {
-    
+
     private static final long N = 100000;
 
     private static long count = 0;
@@ -20,7 +37,7 @@ class ZNSubThr {
         public void handleData(String rname, ByteBuffer data, DataInfo info) {
             if (count == 0) {
                 start = System.currentTimeMillis();
-                count ++;
+                count++;
             } else if (count < N) {
                 count++;
             } else {
