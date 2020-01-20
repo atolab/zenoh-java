@@ -1,4 +1,7 @@
+
 [![Build Status](https://travis-ci.com/atolab/zenoh-java.svg?branch=master)](https://travis-ci.com/atolab/zenoh-java)
+[![License](https://img.shields.io/badge/License-EPL%202.0-blue)](https://choosealicense.com/licenses/epl-2.0/)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Documentation Status](https://readthedocs.org/projects/zenoh-java/badge/?version=latest)](https://zenoh-java.readthedocs.io/en/latest/?badge=latest)
 
 # Zenoh Java Client API
