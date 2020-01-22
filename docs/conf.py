@@ -4,7 +4,7 @@
 project = 'zenoh-java'
 copyright = '2020, ATOLabs'
 author = 'ATOLabs'
-release = '0.4.1-SNAPSHOT'
+release = '0.4.1'
 
 # -- General configuration ---------------------------------------------------
 master_doc = 'index'

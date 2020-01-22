@@ -16,7 +16,7 @@ Just add the dependency in your POM:
   <dependency>
     <groupId>io.zenoh</groupId>
     <artifactId>zenoh</artifactId>
-    <version>0.4.0</version>
+    <version>0.4.1</version>
   </dependency>
 ```
 
