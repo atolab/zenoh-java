@@ -1,5 +1,6 @@
 # Maven build directory
 target
+*.versionsBackup
 
 # IDE files
 .classpath

@@ -24,7 +24,7 @@
 
   <groupId>io.zenoh</groupId>
   <artifactId>parent-pom</artifactId>
-  <version>0.4.1</version>
+  <version>0.4.2-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Zenoh parent-pom</name>
