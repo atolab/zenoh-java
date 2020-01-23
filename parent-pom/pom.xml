@@ -27,6 +27,10 @@
 
   <licenses>
     <license>
+      <name>Eclipse Public License 2.0</name>
+      <url>https://www.eclipse.org/legal/epl-2.0/</url>
+    </license>
+    <license>
       <name>Apache-2.0</name>
       <url>http://www.apache.org/licenses/LICENSE-2.0</url>
     </license>
@@ -46,18 +50,8 @@
 
   <developers>
     <developer>
-      <name>Angelo Corsaro</name>
-      <email>angelo.corsaro@adlinktech.com</email>
-      <organization>ADLINK Technology</organization>
-    </developer>
-    <developer>
-      <name>Julien Enoch</name>
-      <email>julien.enoch@adlinktech.com</email>
-      <organization>ADLINK Technology</organization>
-    </developer>
-    <developer>
-      <name>Olivier Hecart</name>
-      <email>olivier.hecart@adlinktech.com</email>
+      <name>ADLINK zenoh team</name>
+      <email>zenoh@adlink-labs.tech</email>
       <organization>ADLINK Technology</organization>
     </developer>
   </developers>
