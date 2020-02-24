@@ -13,12 +13,12 @@
  */
 import java.util.List;
 
-import io.zenoh.Change;
-import io.zenoh.Listener;
-import io.zenoh.Path;
-import io.zenoh.Selector;
-import io.zenoh.Workspace;
-import io.zenoh.Zenoh;
+import org.eclipse.zenoh.Change;
+import org.eclipse.zenoh.Listener;
+import org.eclipse.zenoh.Path;
+import org.eclipse.zenoh.Selector;
+import org.eclipse.zenoh.Workspace;
+import org.eclipse.zenoh.Zenoh;
 
 class ZSubThr {
 

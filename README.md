@@ -1,6 +1,6 @@
 ![zenoh banner](./zenoh-dragon.png)
 
-[![Build Status](https://travis-ci.com/atolab/zenoh-java.svg?branch=master)](https://travis-ci.com/atolab/zenoh-java)
+[![Build Status](https://travis-ci.com/eclipse-zenoh/zenoh-java.svg?branch=master)](https://travis-ci.com/eclipse-zenoh/zenoh-java)
 [![License](https://img.shields.io/badge/License-EPL%202.0-blue)](https://choosealicense.com/licenses/epl-2.0/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Documentation Status](https://readthedocs.org/projects/zenoh-java/badge/?version=latest)](https://zenoh-java.readthedocs.io/en/latest/?badge=latest)
@@ -15,9 +15,9 @@ zenoh-java is available on Maven Central.
 Just add the dependency in your POM:
 ```xml
   <dependency>
-    <groupId>io.zenoh</groupId>
+    <groupId>org.eclipse.zenoh</groupId>
     <artifactId>zenoh</artifactId>
-    <version>0.4.1</version>
+    <version>0.5.0-SNAPSHOT</version>
   </dependency>
 ```
 
@@ -34,7 +34,7 @@ To build for your current platform:
 ```mvn clean install```
 
 If zenoh-c is found in the same directory than zenoh-java, the build will copy its sources and compile it.
-Otherwise, the build will clone the [zenoh-c](https://github.com/atolab/zenoh-c) repository and compile it.
+Otherwise, the build will clone the [zenoh-c](https://github.com/eclipse-zenoh/zenoh-c) repository and compile it.
 
 Note that this Maven build offers profiles in addition of the default one:
 

@@ -12,11 +12,11 @@
  *   ADLINK zenoh team, <zenoh@adlink-labs.tech>
  */
 
-import io.zenoh.Path;
-import io.zenoh.RawValue;
-import io.zenoh.Value;
-import io.zenoh.Workspace;
-import io.zenoh.Zenoh;
+import org.eclipse.zenoh.Path;
+import org.eclipse.zenoh.RawValue;
+import org.eclipse.zenoh.Value;
+import org.eclipse.zenoh.Workspace;
+import org.eclipse.zenoh.Zenoh;
 
 class ZPutThr {
 

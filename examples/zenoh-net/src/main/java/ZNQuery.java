@@ -11,7 +11,7 @@
  * Contributors:
  *   ADLINK zenoh team, <zenoh@adlink-labs.tech>
  */
-import io.zenoh.net.*;
+import org.eclipse.zenoh.net.*;
 
 class ZNQuery {
 

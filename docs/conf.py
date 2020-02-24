@@ -16,9 +16,9 @@
 
 # -- Project information -----------------------------------------------------
 project = 'zenoh-java'
-copyright = '2020, ATOLabs'
-author = 'ATOLabs'
-release = '0.4.2-SNAPSHOT'
+copyright = '2020, Eclipse Foundation'
+author = 'Eclipse Foundation'
+release = '0.5.0-SNAPSHOT'
 
 # -- General configuration ---------------------------------------------------
 master_doc = 'index'

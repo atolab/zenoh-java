@@ -14,7 +14,7 @@
 import java.util.HashMap;
 import java.util.Map;
 
-import io.zenoh.net.*;
+import org.eclipse.zenoh.net.*;
 
 class ZNInfo {
     private static final char[] HEX_DIGITS = "0123456789abcdef".toCharArray();

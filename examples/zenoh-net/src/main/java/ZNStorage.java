@@ -12,7 +12,7 @@
  *   ADLINK zenoh team, <zenoh@adlink-labs.tech>
  */
 
-import io.zenoh.net.*;
+import org.eclipse.zenoh.net.*;
 
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;

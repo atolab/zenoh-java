@@ -16,9 +16,9 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>io.zenoh</groupId>
+  <groupId>org.eclipse.zenoh</groupId>
   <artifactId>parent-pom</artifactId>
-  <version>0.4.2-SNAPSHOT</version>
+  <version>0.5.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Zenoh parent-pom</name>
@@ -37,15 +37,15 @@
   </licenses>
 
   <scm>
-    <url>https://github.com/atolab/zenoh-java</url>
-    <connection>scm:git:git://github.com/atolab/zenoh-java.git</connection>
-    <developerConnection>scm:git:git@github.com:atolab/zenoh-java.git</developerConnection>
+    <url>https://github.com/eclipse-zenoh/zenoh-java</url>
+    <connection>scm:git:git://github.com/eclipse-zenoh/zenoh-java.git</connection>
+    <developerConnection>scm:git:git@github.com:eclipse-zenoh/zenoh-java.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
 
   <organization>
-    <name>ADLINK Technology</name>
-    <url>https://www.adlinktech.com/</url>
+    <name>Eclipse Foundation</name>
+    <url>http://www.eclipse.org/</url>
   </organization>
 
   <developers>

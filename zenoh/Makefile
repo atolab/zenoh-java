@@ -32,7 +32,7 @@ ZENOHC_LIB_NAME := zenohc_java
 
 
 SWIG_FILE := src/main/swig/zenohc.i
-SWIG_JAVA_OUTDIR := $(TARGET_DIR)/generated-sources/java/io/zenoh/swig
+SWIG_JAVA_OUTDIR := $(TARGET_DIR)/generated-sources/java/org/eclipse/zenoh/swig
 SWIG_C_OUTDIR := $(ZENOHC_COPY_DIR)/src
 SWIG_C_FILE := $(SWIG_C_OUTDIR)/zenohc_java.c
 
@@ -93,12 +93,12 @@ $(ZENOHC_COPY_DIR)/CMakeLists.txt:
 		cp -r $(ZENOHC_DEV_DIR)/CMakeLists.txt $(ZENOHC_DEV_DIR)/include $(ZENOHC_DEV_DIR)/src $(ZENOHC_DEV_DIR)/dockcross $(ZENOHC_COPY_DIR)/ ; \
 	else \
 		echo "Clone tag '$${ZENOH_GIT_TAG:-master}' from Github to $(ZENOHC_COPY_DIR)" ; \
-		git clone --branch $${ZENOH_GIT_TAG:-master} https://github.com/atolab/zenoh-c $(ZENOHC_COPY_DIR) ; \
+		git clone --branch $${ZENOH_GIT_TAG:-master} https://github.com/eclipse-zenoh/zenoh-c $(ZENOHC_COPY_DIR) ; \
 	fi
 
 $(SWIG_C_FILE): $(SWIG_FILE)
 	@mkdir -p $(SWIG_JAVA_OUTDIR)
-	swig -java -package io.zenoh.swig -I$(ZENOHC_COPY_DIR)/include -outdir $(SWIG_JAVA_OUTDIR) -o $(SWIG_C_FILE) $(SWIG_FILE)
+	swig -java -package org.eclipse.zenoh.swig -I$(ZENOHC_COPY_DIR)/include -outdir $(SWIG_JAVA_OUTDIR) -o $(SWIG_C_FILE) $(SWIG_FILE)
 
 
 

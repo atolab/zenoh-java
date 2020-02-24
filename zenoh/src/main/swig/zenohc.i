@@ -98,8 +98,8 @@
 
 /*----- typemap for zn_data_handler_t + arg in zn_declare_subscriber -------*/
 %typemap(jni) zn_data_handler_t data_handler "jobject";
-%typemap(jtype) zn_data_handler_t data_handler "io.zenoh.net.DataHandler";
-%typemap(jstype) zn_data_handler_t data_handler "io.zenoh.net.DataHandler";
+%typemap(jtype) zn_data_handler_t data_handler "org.eclipse.zenoh.net.DataHandler";
+%typemap(jstype) zn_data_handler_t data_handler "org.eclipse.zenoh.net.DataHandler";
 %typemap(javain) zn_data_handler_t data_handler "$javainput";
 %typemap(in,numinputs=1) (zn_data_handler_t data_handler, void *arg) %{
   // Store DataHandler object in a handler_arg
@@ -115,8 +115,8 @@
 
 /*----- typemap for zn_data_handler_t + zn_query_handler_t + arg in zn_declare_storage -------*/
 %typemap(jni) (zn_data_handler_t data_handler, zn_query_handler_t query_handler) "jobject";
-%typemap(jtype) (zn_data_handler_t data_handler, zn_query_handler_t query_handler) "io.zenoh.net.StorageHandler";
-%typemap(jstype) (zn_data_handler_t data_handler, zn_query_handler_t query_handler) "io.zenoh.net.StorageHandler";
+%typemap(jtype) (zn_data_handler_t data_handler, zn_query_handler_t query_handler) "org.eclipse.zenoh.net.StorageHandler";
+%typemap(jstype) (zn_data_handler_t data_handler, zn_query_handler_t query_handler) "org.eclipse.zenoh.net.StorageHandler";
 %typemap(javain) (zn_data_handler_t data_handler, zn_query_handler_t query_handler) "$javainput";
 %typemap(in,numinputs=1) (zn_data_handler_t data_handler, zn_query_handler_t query_handler, void *arg) %{
   // Store the StorageHandler object in a handler_arg
@@ -133,8 +133,8 @@
 
 /*----- typemap for zn_query_handler_t + arg in zn_declare_eval -------*/
 %typemap(jni) (zn_query_handler_t query_handler) "jobject";
-%typemap(jtype) (zn_query_handler_t query_handler) "io.zenoh.net.QueryHandler";
-%typemap(jstype) (zn_query_handler_t query_handler) "io.zenoh.net.QueryHandler";
+%typemap(jtype) (zn_query_handler_t query_handler) "org.eclipse.zenoh.net.QueryHandler";
+%typemap(jstype) (zn_query_handler_t query_handler) "org.eclipse.zenoh.net.QueryHandler";
 %typemap(javain) (zn_query_handler_t query_handler) "$javainput";
 %typemap(in,numinputs=1) (zn_query_handler_t query_handler, void *arg) %{
   // Store the QueryHandler object in a handler_arg
@@ -150,8 +150,8 @@
 
 /*----- typemap for zn_reply_handler_t + arg in zn_query -------*/
 %typemap(jni) zn_reply_handler_t reply_handler "jobject";
-%typemap(jtype) zn_reply_handler_t reply_handler "io.zenoh.net.ReplyHandler";
-%typemap(jstype) zn_reply_handler_t reply_handler "io.zenoh.net.ReplyHandler";
+%typemap(jtype) zn_reply_handler_t reply_handler "org.eclipse.zenoh.net.ReplyHandler";
+%typemap(jstype) zn_reply_handler_t reply_handler "org.eclipse.zenoh.net.ReplyHandler";
 %typemap(javain) zn_reply_handler_t reply_handler "$javainput";
 %typemap(in,numinputs=1) (zn_reply_handler_t reply_handler, void *arg) %{
   // Store ReplyHandler object in a handler_arg
@@ -167,11 +167,11 @@
 
 /*----- typemap for Resource[] to zn_resource_p_array_t -------*/
 %typemap(jni) (zn_resource_p_array_t replies) "jobjectArray"
-%typemap(jtype) (zn_resource_p_array_t replies) "io.zenoh.net.Resource[]"
-%typemap(jstype) (zn_resource_p_array_t replies) "io.zenoh.net.Resource[]"
+%typemap(jtype) (zn_resource_p_array_t replies) "org.eclipse.zenoh.net.Resource[]"
+%typemap(jstype) (zn_resource_p_array_t replies) "org.eclipse.zenoh.net.Resource[]"
 %typemap(javain) (zn_resource_p_array_t replies) "$javainput"
 %typemap(in) (zn_resource_p_array_t replies) %{
-  // Convert io.zenoh.net.Resource[] into zn_resource_p_array_t
+  // Convert org.eclipse.zenoh.net.Resource[] into zn_resource_p_array_t
   if ($input == NULL) {
     $1.length = 0;
     $1.elem = NULL;
@@ -277,7 +277,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
   }
 
   // Caching classes. Note that we need to convert those as a GlobalRef since they are local by default and might be GCed.
-  jclass s_class = (*jenv)->FindClass(jenv, "io/zenoh/net/Session");
+  jclass s_class = (*jenv)->FindClass(jenv, "org/eclipse/zenoh/net/Session");
   assert_no_exception;
   session_class = (jclass) (*jenv)->NewGlobalRef(jenv, s_class);
   assert_no_exception;
@@ -293,19 +293,19 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
   assert_no_exception;
   byte_buffer_class = (jclass) (*jenv)->NewGlobalRef(jenv, bb_class);
   assert_no_exception;
-  jclass ts_class = (*jenv)->FindClass(jenv, "io/zenoh/core/Timestamp");
+  jclass ts_class = (*jenv)->FindClass(jenv, "org/eclipse/zenoh/core/Timestamp");
   assert_no_exception;
   timestamp_class = (jclass) (*jenv)->NewGlobalRef(jenv, ts_class);
   assert_no_exception;
-  jclass di_class = (*jenv)->FindClass(jenv, "io/zenoh/net/DataInfo");
+  jclass di_class = (*jenv)->FindClass(jenv, "org/eclipse/zenoh/net/DataInfo");
   assert_no_exception;
   data_info_class = (jclass) (*jenv)->NewGlobalRef(jenv, di_class);
   assert_no_exception;
-  jclass rv_class = (*jenv)->FindClass(jenv, "io/zenoh/net/ReplyValue");
+  jclass rv_class = (*jenv)->FindClass(jenv, "org/eclipse/zenoh/net/ReplyValue");
   assert_no_exception;
   reply_value_class = (jclass) (*jenv)->NewGlobalRef(jenv, rv_class);
   assert_no_exception;
-  jclass rs_class = (*jenv)->FindClass(jenv, "io/zenoh/net/RepliesSender");
+  jclass rs_class = (*jenv)->FindClass(jenv, "org/eclipse/zenoh/net/RepliesSender");
   assert_no_exception;
   replies_sender_class = (jclass) (*jenv)->NewGlobalRef(jenv, rs_class);
   assert_no_exception;
@@ -315,13 +315,13 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
   assert_no_exception;
   jclass map_entry_class = (*jenv)->FindClass(jenv, "java/util/Map$Entry");
   assert_no_exception;
-  jclass datahandler_class = (*jenv)->FindClass(jenv, "io/zenoh/net/DataHandler");
+  jclass datahandler_class = (*jenv)->FindClass(jenv, "org/eclipse/zenoh/net/DataHandler");
   assert_no_exception;
-  jclass queryhandler_class = (*jenv)->FindClass(jenv, "io/zenoh/net/QueryHandler");
+  jclass queryhandler_class = (*jenv)->FindClass(jenv, "org/eclipse/zenoh/net/QueryHandler");
   assert_no_exception;
-  jclass replyhandler_class = (*jenv)->FindClass(jenv, "io/zenoh/net/ReplyHandler");
+  jclass replyhandler_class = (*jenv)->FindClass(jenv, "org/eclipse/zenoh/net/ReplyHandler");
   assert_no_exception;
-  jclass resource_class = (*jenv)->FindClass(jenv, "io/zenoh/net/Resource");
+  jclass resource_class = (*jenv)->FindClass(jenv, "org/eclipse/zenoh/net/Resource");
   assert_no_exception;
 
 
@@ -370,24 +370,24 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved) {
   assert_no_exception;
 
   handledata_method = (*jenv)->GetMethodID(jenv, datahandler_class,
-    "handleData", "(Ljava/lang/String;Ljava/nio/ByteBuffer;Lio/zenoh/net/DataInfo;)V");
+    "handleData", "(Ljava/lang/String;Ljava/nio/ByteBuffer;Lorg/eclipse/zenoh/net/DataInfo;)V");
   assert_no_exception;
   handlequery_method = (*jenv)->GetMethodID(jenv, queryhandler_class,
-    "handleQuery", "(Ljava/lang/String;Ljava/lang/String;Lio/zenoh/net/RepliesSender;)V");
+    "handleQuery", "(Ljava/lang/String;Ljava/lang/String;Lorg/eclipse/zenoh/net/RepliesSender;)V");
   assert_no_exception;
   replies_sender_constr = (*jenv)->GetMethodID(jenv, replies_sender_class,
     "<init>", "(JJ)V");
   assert_no_exception;
   handlereply_method = (*jenv)->GetMethodID(jenv, replyhandler_class,
-   "handleReply", "(Lio/zenoh/net/ReplyValue;)V");
+   "handleReply", "(Lorg/eclipse/zenoh/net/ReplyValue;)V");
   assert_no_exception;
   timestamp_constr = (*jenv)->GetMethodID(jenv, timestamp_class,
     "<init>", "(J[B)V");
   data_info_constr = (*jenv)->GetMethodID(jenv, data_info_class,
-    "<init>", "(JLio/zenoh/core/Timestamp;II)V");
+    "<init>", "(JLorg/eclipse/zenoh/core/Timestamp;II)V");
   assert_no_exception;
   reply_value_constr = (*jenv)->GetMethodID(jenv, reply_value_class,
-    "<init>", "(I[BJLjava/lang/String;Ljava/nio/ByteBuffer;Lio/zenoh/net/DataInfo;)V");
+    "<init>", "(I[BJLjava/lang/String;Ljava/nio/ByteBuffer;Lorg/eclipse/zenoh/net/DataInfo;)V");
   assert_no_exception;
   resource_get_rname_method = (*jenv)->GetMethodID(jenv, resource_class,
    "getRname", "()Ljava/lang/String;");

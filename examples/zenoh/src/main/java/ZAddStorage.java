@@ -12,7 +12,7 @@
  *   ADLINK zenoh team, <zenoh@adlink-labs.tech>
  */
 
-import io.zenoh.*;
+import org.eclipse.zenoh.*;
 
 import java.util.Properties;
 
